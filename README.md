@@ -4,7 +4,7 @@ Varrock Square is a social blogging platform designed for the free-to-play [Old 
 
 # Building
 
-Build for production using: (must have `uglifyjs` installed)
+Build for production using: (must have `uglify-js` installed)
 
 ```bash
 elm make src/Main.elm --optimize --output=public/main.js && uglifyjs public/main.js --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output=public/main.js
@@ -18,6 +18,10 @@ Currently, the *de jure* platform for the W385 community for anything resembling
 
 What if we can combine a written-content platform with the social aspect of, say, the subreddit or the [Discord server](https://discord.gg/RA8bujG)? There are lots of potential ideas here. The Varrock Square project comes in here, as an exploration of some of those ideas.
 
+# Contributions
+
+While contributions are usually appreciated and welcome, I won't be accepting pull requests for this repo, but that is liable to change once the backend and frontend are fleshed out. Thanks for your interest!
+
 # License
 
-This project is licensed under GNU GPL v3. See the `LICENSE` for details.
+This project is licensed under the `GNU GPL v3`. See the `LICENSE` for details.
