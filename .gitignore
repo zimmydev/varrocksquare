@@ -1,4 +1,13 @@
+# MacOS
+.DS_Store
+# elm make
+public/*.js
+build
 # elm-package generated files
 elm-stuff
 # elm-repl generated files
 repl-temp-*
+# elmjutsu
+Elmjutsu*
+# Zimmy
+etc
