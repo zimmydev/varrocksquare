@@ -1,4 +1,4 @@
-module Notification.Queue exposing (Queue, count, empty, isEmpty, push, remove, view, toList)
+module Notification.Queue exposing (Queue, count, empty, isEmpty, push, remove, toList, view)
 
 import Config.Styles as Styles
 import Element exposing (Element)
@@ -68,4 +68,4 @@ view queue =
 
     else
         Element.column Styles.notificationArea
-            (queue |> toList |> List.reverse |> List.take 8 |> List.map Notification.view)
+            (queue |> toList |> List.take 8 |> List.reverse |> List.map Notification.view)
