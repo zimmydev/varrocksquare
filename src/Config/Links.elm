@@ -1,4 +1,4 @@
-module Config.Links exposing (Href, assets, debugAvatar, dummy, external, icon, internal)
+module Config.Links exposing (Href, assets, dummy, external, icon, internal)
 
 import Url.Builder as Builder
 
@@ -89,12 +89,3 @@ external =
     , icons8 =
         Builder.crossOrigin "https://icons8.com" [] []
     }
-
-
-
--- DEBUG
-
-
-debugAvatar : Href
-debugAvatar =
-    asset "bart.png"

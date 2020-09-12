@@ -1,24 +1,35 @@
-module Post exposing (Post)
+module Post exposing (Full, Post, Preview)
 
 import Post.Body exposing (Body)
+import Post.Slug exposing (Slug)
 import Time
+import Username exposing (Username)
 
 
 
 -- TYPES
 
 
-type Post
-    = Preview Metadata
-    | Post Body Metadata
+type Post p
+    = Post p Metadata
+
+
+type Preview
+    = Preview String
+
+
+type Full
+    = Full Body
 
 
 type alias Metadata =
-    { slug : String
+    { slug : Slug
     , title : String
-    , description : String
-    , author : String
+    , author : Username
     , createdAt : Time.Posix
-    , starred : Bool
-    , starredCount : Int
+    , commentCount : Int
+    , viewCount : Int
+    , savedCount : Int
+    , saved : Bool
+    , tags : List String
     }

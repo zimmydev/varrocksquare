@@ -1,6 +1,6 @@
-module Username exposing (Username, debug, decoder, encode, view, toString, urlParser)
+module Username exposing (Username, debug, decoder, encode, toString, urlParser, view)
 
-import Element exposing (Element, text)
+import Element exposing (Element)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Url.Parser exposing (Parser)
@@ -15,21 +15,22 @@ type Username
 
 
 
--- CREATE
+-- CREATION
 
 
 decoder : Decoder Username
 decoder =
-    Decode.map Username Decode.string
+    Decode.string
+        |> Decode.map Username
 
 
 
--- TRANSFORM
+-- TRANSFORMATION
 
 
 encode : Username -> Value
-encode (Username username) =
-    Encode.string username
+encode (Username rawUsername) =
+    Encode.string rawUsername
 
 
 toString : Username -> String
@@ -39,7 +40,11 @@ toString (Username username) =
 
 view : Username -> Element msg
 view (Username username) =
-    text username
+    Element.text username
+
+
+
+-- URL PARSING
 
 
 urlParser : Parser (Username -> a) a
