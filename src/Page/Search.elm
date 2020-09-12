@@ -7,6 +7,7 @@ import Element exposing (..)
 import Element.Input as Input
 import Element.Lazy exposing (..)
 import Task
+import Ui
 
 
 
@@ -27,8 +28,7 @@ view changeQuery maybeQuery =
     column Styles.page
         [ lazy2 viewSearchbar changeQuery maybeQuery
         , if maybeQuery /= Nothing then
-            el Styles.content
-                (text "Loading search results…")
+            el Styles.content Ui.spinner
 
           else
             none

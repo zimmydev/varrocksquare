@@ -1,38 +1,48 @@
-module Ui exposing (DeviceSize, isCompact, labelRight, pill, responsive)
+module Ui exposing (DeviceSize, isCompact, labelRight, pill, responsive, spinner)
 
 import Config.Links as Links
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Element exposing (..)
+import Html
+import Html.Attributes
 
 
 
-{- THIS MODULE FOR REUSABLE VISUAL ELEMENTS -}
+-- VISUAL ELEMENTS
+
+
+spinner : Element msg
+spinner =
+    el [ centerX ] <|
+        html <|
+            Html.div
+                [ Html.Attributes.class "spinner" ]
+                [ Html.div [] []
+                , Html.div [] []
+                , Html.div [] []
+                , Html.div [] []
+                ]
+
+
+
+-- VISUAL ELEMENT MODIFIERS
 
 
 labelRight : String -> Element msg -> Element msg
 labelRight label element =
-    row [ spacing space ]
+    row [ spacing 6 ]
         [ element, text label ]
 
 
 pill : Int -> Element msg -> Element msg
 pill count element =
     if count > 0 then
-        row [ spacing space ]
+        row [ spacing 6 ]
             [ element, el Styles.pill (text (String.fromInt count)) ]
 
     else
         element
-
-
-
--- HELPERS
-
-
-space : Int
-space =
-    6
 
 
 
