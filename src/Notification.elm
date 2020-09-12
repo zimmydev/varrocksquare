@@ -1,4 +1,4 @@
-module Notification exposing (Id, Notification(..), canSilence, expire, id, loggedIn, loggedOut, notify, passwordsDontMatch, payload, receivedLink, receivedMessage, view)
+module Notification exposing (Id, Notification(..), canSilence, expire, id, loggedIn, loggedOut, notify, passwordsDontMatch, payload, receivedMessage, view)
 
 import Config.App as App
 import Config.Links exposing (Href)
@@ -7,18 +7,17 @@ import Config.Styles.Colors as Colors
 import Element exposing (Attribute, Color, Element)
 import Icon exposing (Icon)
 import Process
+import Session exposing (Session)
 import Task
 import Time
 import Username exposing (Username)
-import Viewer exposing (Viewer)
 
 
 type Notification
     = Info String Id
     | Success String Id
     | Error String Id
-    | ReceivedMessage String Viewer Id
-    | ReceivedLink String Href Viewer Id
+    | ReceivedMessage String Id
 
 
 type alias Id =
@@ -28,10 +27,7 @@ type alias Id =
 canSilence : Notification -> Bool
 canSilence notif =
     case notif of
-        ReceivedMessage _ _ _ ->
-            True
-
-        ReceivedLink _ _ _ _ ->
+        ReceivedMessage _ _ ->
             True
 
         _ ->
@@ -57,8 +53,8 @@ passwordsDontMatch =
     Error "The password fields don't match one another!"
 
 
-receivedMessage : Username -> String -> Viewer -> Id -> Notification
-receivedMessage sender mess =
+receivedMessage : Session -> Username -> String -> Id -> Notification
+receivedMessage _ sender mess =
     let
         charBalance =
             String.length mess - App.messagePreviewLength
@@ -71,11 +67,6 @@ receivedMessage sender mess =
                 mess
     in
     ReceivedMessage (Username.toString sender ++ ": " ++ preview)
-
-
-receivedLink : Username -> String -> Href -> Viewer -> Id -> Notification
-receivedLink sender title =
-    ReceivedLink (Username.toString sender ++ " sent you a link: " ++ title)
 
 
 
@@ -94,30 +85,24 @@ id notif =
         Error _ i ->
             i
 
-        ReceivedMessage _ _ i ->
-            i
-
-        ReceivedLink _ _ _ i ->
+        ReceivedMessage _ i ->
             i
 
 
 payload : Notification -> String
 payload notif =
     case notif of
-        Info str _ ->
-            str
+        Info pl _ ->
+            pl
 
-        Success str _ ->
-            str
+        Success pl _ ->
+            pl
 
-        Error str _ ->
-            str
+        Error pl _ ->
+            pl
 
-        ReceivedMessage str _ _ ->
-            str
-
-        ReceivedLink str _ _ _ ->
-            str
+        ReceivedMessage pl _ ->
+            pl
 
 
 
@@ -172,8 +157,5 @@ visualElements notif =
         Error _ _ ->
             ( Icon.error size, Colors.red )
 
-        ReceivedMessage _ _ _ ->
+        ReceivedMessage _ _ ->
             ( Icon.envelope size, Colors.blue )
-
-        ReceivedLink _ _ _ _ ->
-            ( Icon.linkEnvelope size, Colors.indigo )

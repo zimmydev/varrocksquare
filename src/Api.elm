@@ -1,4 +1,4 @@
-module Api exposing (AuthToken, authHeader, debug)
+module Api exposing (AuthToken, authHeader, debugToken)
 
 import Http
 
@@ -25,6 +25,6 @@ authHeader (AuthToken token) =
 -- DEBUG
 
 
-debug : AuthToken
-debug =
-    AuthToken "$DEBUGTOKENVALUE$"
+debugToken : AuthToken
+debugToken =
+    AuthToken "DEBUG_TOKEN"

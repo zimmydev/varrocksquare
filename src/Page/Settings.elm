@@ -7,8 +7,8 @@ import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
 import Notification exposing (Notification)
+import Session exposing (Session)
 import Username
-import Viewer exposing (Viewer)
 
 
 
@@ -37,7 +37,7 @@ init =
 type Msg
     = RequestedNotification (Notification.Id -> Notification)
     | NotificationFired Notification
-    | LoggedIn Viewer
+    | LoggedIn Session
     | LoggedOut
     | Toggled SettingsToggle
 
@@ -68,8 +68,8 @@ update msg model =
 -- VIEW
 
 
-view : Maybe Viewer -> Model -> Element Msg
-view maybeViewer model =
+view : Maybe Session -> Model -> Element Msg
+view maybeSession model =
     column Styles.page
         [ textColumn Styles.content
             [ el
@@ -81,7 +81,7 @@ view maybeViewer model =
                 , label = text "Log out"
                 }
             , link
-                [ Events.onClick (LoggedIn Viewer.debug) ]
+                [ Events.onClick (LoggedIn Session.debug) ]
                 { url = Links.internal.inert
                 , label = text "Log in"
                 }
@@ -95,15 +95,15 @@ view maybeViewer model =
                 { url = Links.internal.inert
                 , label = text "Mismatch passwords"
                 }
-            , case maybeViewer of
-                Just viewer ->
+            , case maybeSession of
+                Just session ->
                     link
                         [ Events.onClick <|
                             RequestedNotification <|
                                 Notification.receivedMessage
+                                    session
                                     (Username.debug "bonecrusher69")
                                     "A little bit of technique"
-                                    viewer
                         ]
                         { url = Links.internal.inert
                         , label = text "Short message"
@@ -111,35 +111,18 @@ view maybeViewer model =
 
                 Nothing ->
                     none
-            , case maybeViewer of
-                Just viewer ->
+            , case maybeSession of
+                Just session ->
                     link
                         [ Events.onClick <|
                             RequestedNotification <|
                                 Notification.receivedMessage
+                                    session
                                     (Username.debug "Jingle Bells")
                                     "I can double your GP just meet me at the chaos altar"
-                                    viewer
                         ]
                         { url = Links.internal.inert
                         , label = text "Long message"
-                        }
-
-                Nothing ->
-                    none
-            , case maybeViewer of
-                Just viewer ->
-                    link
-                        [ Events.onClick <|
-                            RequestedNotification <|
-                                Notification.receivedLink
-                                    (Username.debug "Sportball")
-                                    "Why EHP is Bullshit"
-                                    "http://example.com"
-                                    viewer
-                        ]
-                        { url = Links.internal.inert
-                        , label = text "Post share"
                         }
 
                 Nothing ->

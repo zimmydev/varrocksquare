@@ -11,17 +11,18 @@ import Element exposing (..)
 import Element.Font as Font
 import Element.Lazy exposing (..)
 import Icon
+import Inbox
 import Notification exposing (Notification, notify)
 import Notification.Queue
 import Page.Home
 import Page.Search
 import Page.Settings
 import Route exposing (Route)
+import Session exposing (Session)
 import Time
 import Ui exposing (DeviceSize, responsive)
 import Url exposing (Url)
 import Username
-import Viewer exposing (Viewer)
 
 
 
@@ -31,7 +32,7 @@ import Viewer exposing (Viewer)
 type alias Model =
     { key : Nav.Key
     , currentRoute : Route
-    , viewer : Maybe Viewer
+    , session : Maybe Session -- to exist, we require a logged-in user
     , deviceSize : DeviceSize
     , notifications : Notification.Queue.Queue
     , searchQuery : Maybe String
@@ -55,7 +56,7 @@ init deviceSize url key =
         model =
             { key = key
             , currentRoute = initialRoute
-            , viewer = Just Viewer.debug
+            , session = Just Session.debug
             , deviceSize = deviceSize
             , notifications = Notification.Queue.empty
             , searchQuery = Nothing
@@ -167,17 +168,18 @@ update msg model =
 
         ChangedSettings Page.Settings.LoggedOut ->
             -- Dispatching to Page.Settings is curtailed in this particular case
-            ( { model | viewer = Nothing }
+            -- TODO: Clear out the session from the localStorage
+            ( { model | session = Nothing }
             , notify Notification.loggedOut NotificationFired
             )
 
-        ChangedSettings (Page.Settings.LoggedIn viewer) ->
+        ChangedSettings (Page.Settings.LoggedIn session) ->
             -- Dispatching to Page.Settings is curtailed in this particular case
             let
                 notif =
-                    Notification.loggedIn (Viewer.username viewer)
+                    Notification.loggedIn (Session.username session)
             in
-            ( { model | viewer = Just viewer }
+            ( { model | session = Just session }
             , notify notif NotificationFired
             )
 
@@ -194,10 +196,10 @@ update msg model =
 
 
 document : Model -> Document Msg
-document ({ currentRoute, deviceSize, viewer, notifications } as model) =
+document ({ currentRoute, deviceSize, session, notifications } as model) =
     let
         navbar =
-            inFront (lazy2 viewNavbar deviceSize viewer)
+            inFront (lazy2 viewNavbar session deviceSize)
 
         notificationArea =
             inFront (lazy Notification.Queue.view notifications)
@@ -220,33 +222,34 @@ document ({ currentRoute, deviceSize, viewer, notifications } as model) =
     }
 
 
-viewNavbar : DeviceSize -> Maybe Viewer -> Element msg
-viewNavbar deviceSize viewer =
+viewNavbar : Maybe Session -> DeviceSize -> Element msg
+viewNavbar maybeSession deviceSize =
     let
         iconSize =
             Icon.size.small
 
         ( username, avatar, messages ) =
-            ( viewer
-                |> Maybe.map Viewer.username
+            ( maybeSession
+                |> Maybe.map Session.username
                 |> Maybe.map Username.toString
                 |> Maybe.map ((++) "@")
                 |> Maybe.withDefault "Guest"
-            , viewer
-                |> Maybe.map Viewer.avatar
+            , maybeSession
+                |> Maybe.map Session.avatar
                 |> Maybe.withDefault Avatar.default
-            , viewer
-                |> Maybe.map Viewer.messages
+            , maybeSession
+                |> Maybe.map Session.inbox
+                |> Maybe.map Inbox.messageCount
                 |> Maybe.withDefault 0
             )
 
-        linkIfLoggedIn =
-            case viewer of
-                Just _ ->
-                    link
+        linkIfLoggedIn attrs f =
+            case maybeSession of
+                Just session ->
+                    link attrs (f session)
 
                 Nothing ->
-                    always (always none)
+                    none
     in
     row Styles.navbar
         [ link []
@@ -280,20 +283,24 @@ viewNavbar deviceSize viewer =
                         Icon.search iconSize
             }
         , linkIfLoggedIn []
-            { url = Links.internal.saved
-            , label =
-                Ui.labelRight "Saved" <|
-                    Icon.view <|
-                        Icon.starBox iconSize
-            }
-        , linkIfLoggedIn []
-            { url = Links.internal.messages
-            , label =
-                Ui.pill 69 <|
-                    Ui.labelRight "Messages" <|
+            (\_ ->
+                { url = Links.internal.saved
+                , label =
+                    Ui.labelRight "Saved" <|
                         Icon.view <|
-                            Icon.paperPlane iconSize
-            }
+                            Icon.starBox iconSize
+                }
+            )
+        , linkIfLoggedIn []
+            (\session ->
+                { url = Links.internal.messages
+                , label =
+                    Ui.pill (Inbox.messageCount (Session.inbox session)) <|
+                        Ui.labelRight "Messages" <|
+                            Icon.view <|
+                                Icon.paperPlane iconSize
+                }
+            )
         , link []
             { url = Links.internal.tools
             , label =
@@ -364,7 +371,7 @@ renderPage model =
             lazy2 Page.Search.view ChangedQuery model.searchQuery
 
         Route.Settings ->
-            lazy2 Page.Settings.view model.viewer model.settings
+            lazy2 Page.Settings.view model.session model.settings
                 |> Element.map ChangedSettings
 
         _ ->
