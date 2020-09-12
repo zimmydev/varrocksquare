@@ -26,7 +26,7 @@ elm make src/Main.elm --optimize --output=public/main.js && uglifyjs public/main
 ## To-do
 - Write tests
 	- Travis integration
-- HTTP API
+- `Http` API
 
 ## Contributions
 
@@ -34,4 +34,4 @@ While contributions are usually appreciated and welcome, I won't be accepting pu
 
 ## License
 
-This project is licensed under the `GNU GPL v3`. See the `LICENSE` for details.
+This project is licensed under the `GNU GPL v3`. See the [`LICENSE`](https://github.com/zimmydev/varrocksquare/blob/master/LICENSE) for details.
