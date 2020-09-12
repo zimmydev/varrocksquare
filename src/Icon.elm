@@ -38,6 +38,7 @@ type Size
     | Large
 
 
+size : { large : Size, medium : Size, small : Size }
 size =
     { small =
         Small
@@ -142,7 +143,7 @@ view icon =
 
 source : Icon -> Href
 source icon =
-    Links.icon (filename icon)
+    Links.assets.icon (filename icon)
 
 
 filename : Icon -> String

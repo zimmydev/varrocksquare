@@ -51,4 +51,4 @@ view size (Avatar href) =
 
 debug : Avatar
 debug =
-    Avatar (Links.asset "bart.png")
+    Avatar (Links.debugAsset "bart.png")

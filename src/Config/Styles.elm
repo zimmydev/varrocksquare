@@ -49,7 +49,7 @@ root =
     , clipX
     , Font.color Colors.white
     , Font.size (fontSizeBy 1)
-    , Font.family [ Font.typeface "Nunito Sans", Font.sansSerif ]
+    , Font.family [ Font.typeface "Nunito", Font.sansSerif ]
     , Background.tiled Links.assets.appBackgroundDark
     ]
 
@@ -111,8 +111,7 @@ notification backgroundColor =
 
 notificationArea : List (Attribute msg)
 notificationArea =
-    [ width fill
-    , alignBottom
+    [ alignBottom
     , moveUp 24
     , moveRight 24
     , spacing 12
@@ -214,7 +213,7 @@ contentHeader heading =
             heading |> max 1 |> min 6
     in
     [ Region.heading h
-    , Font.bold
+    , Font.semiBold
     , Font.size <| fontSizeBy (4 - min 3 h)
     , Font.family [ Font.typeface "Cinzel", Font.serif ]
     ]

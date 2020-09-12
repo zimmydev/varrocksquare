@@ -1,4 +1,4 @@
-module Notification exposing (Id, Notification(..), canSilence, delayFor, expire, id, loggedIn, loggedOut, notify, passwordsDontMatch, payload, receivedLink, receivedMessage, view)
+module Notification exposing (Id, Notification(..), canSilence, expire, id, loggedIn, loggedOut, notify, passwordsDontMatch, payload, receivedLink, receivedMessage, view)
 
 import Config.App as App
 import Config.Links exposing (Href)
@@ -162,20 +162,8 @@ notify notif fireNotif =
 
 expire : Notification -> (Notification -> msg) -> Cmd msg
 expire notif expireNotif =
-    delayFor notif
-        |> Process.sleep
+    Process.sleep 5000
         |> Task.perform (always (expireNotif notif))
-
-
-delayFor : Notification -> Float
-delayFor notif =
-    notif
-        |> payload
-        |> String.length
-        |> toFloat
-        |> (*) 50
-        |> (+) 3500
-        |> min 60000
 
 
 
