@@ -27,11 +27,12 @@ view : (String -> msg) -> Maybe String -> Element msg
 view changeQuery maybeQuery =
     column Styles.page
         [ lazy2 viewSearchbar changeQuery maybeQuery
-        , if maybeQuery /= Nothing then
-            el Styles.content Ui.spinner
+        , case maybeQuery of
+            Just _ ->
+                el Styles.content (Ui.spinner [ centerX ])
 
-          else
-            none
+            Nothing ->
+                none
         ]
 
 

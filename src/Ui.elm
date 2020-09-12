@@ -12,9 +12,9 @@ import Html.Attributes
 -- VISUAL ELEMENTS
 
 
-spinner : Element msg
-spinner =
-    el [ centerX ] <|
+spinner : List (Attribute msg) -> Element msg
+spinner attrs =
+    el attrs <|
         html <|
             Html.div
                 [ Html.Attributes.class "spinner" ]
