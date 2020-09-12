@@ -21,20 +21,6 @@ type Notification
     | ReceivedLink String Href Viewer Id
 
 
-
-{-
-   type Notification
-       = Notification Category String Id
-
-
-   type Category
-       = Info
-       | Success
-       | Error
-       | Message -- These notifications are noisy but can be silenced
--}
-
-
 type alias Id =
     Int
 
