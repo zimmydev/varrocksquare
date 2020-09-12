@@ -1,4 +1,4 @@
-module Icon exposing (Icon, Size, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, linkEnvelope, paperPlane, search, size, starBox, success, toolbox, view)
+module Icon exposing (Icon, Size, binoculars, discord, donate, downArrow, envelope, error, espresso, github, help, icons8, paperPlane, search, size, starBox, success, upArrow, view, wrench)
 
 import Config.Links as Links exposing (Href)
 import Element exposing (Element)
@@ -14,14 +14,15 @@ type Glyph
     | StarBox
     | PaperPlane
     | Envelope
-    | LinkEnvelope
-    | Toolbox
+    | Wrench
     | Espresso
     | Donate
       -- Abstract
     | Success
     | Error
     | Help
+    | DownArrow
+    | UpArrow
       -- Logos
     | Github
     | Discord
@@ -78,14 +79,9 @@ envelope =
     Icon Envelope
 
 
-linkEnvelope : Size -> Icon
-linkEnvelope =
-    Icon LinkEnvelope
-
-
-toolbox : Size -> Icon
-toolbox =
-    Icon Toolbox
+wrench : Size -> Icon
+wrench =
+    Icon Wrench
 
 
 espresso : Size -> Icon
@@ -111,6 +107,16 @@ error =
 help : Size -> Icon
 help =
     Icon Help
+
+
+upArrow : Size -> Icon
+upArrow =
+    Icon UpArrow
+
+
+downArrow : Size -> Icon
+downArrow =
+    Icon DownArrow
 
 
 github : Size -> Icon
@@ -170,11 +176,8 @@ identifier glyph =
         Envelope ->
             "mail"
 
-        LinkEnvelope ->
-            "message-link"
-
-        Toolbox ->
-            "toolbox"
+        Wrench ->
+            "wrench"
 
         Espresso ->
             "espresso-cup"
@@ -190,6 +193,12 @@ identifier glyph =
 
         Help ->
             "help"
+
+        DownArrow ->
+            "drop-down"
+
+        UpArrow ->
+            "up-squared"
 
         Github ->
             "github"

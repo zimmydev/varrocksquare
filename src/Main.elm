@@ -2,12 +2,13 @@ module Main exposing (main)
 
 import Avatar
 import Browser exposing (Document, UrlRequest)
-import Browser.Events as Events
+import Browser.Events
 import Browser.Navigation as Nav
 import Config.Links as Links
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Element exposing (..)
+import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (..)
 import Icon
@@ -34,6 +35,7 @@ type alias Model =
     , currentRoute : Route
     , session : Maybe Session -- to exist, we require a logged-in user
     , deviceSize : DeviceSize
+    , menuIsExtended : Bool
     , notifications : Notification.Queue.Queue
     , searchQuery : Maybe String
     , settings : Page.Settings.Model
@@ -58,6 +60,7 @@ init deviceSize url key =
             , currentRoute = initialRoute
             , session = Just Session.debug
             , deviceSize = deviceSize
+            , menuIsExtended = False
             , notifications = Notification.Queue.empty
             , searchQuery = Nothing
             , settings = settings
@@ -96,6 +99,7 @@ type Msg
     | ClickedLink UrlRequest
     | ChangedRoute Route
     | ResizedDevice DeviceSize
+    | ClickedMenu
     | NotificationFired Notification
     | NotificationExpired Notification
     | ChangedQuery String
@@ -105,7 +109,7 @@ type Msg
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Events.onResize (\w h -> ResizedDevice (DeviceSize w h)) ]
+        [ Browser.Events.onResize (\w h -> ResizedDevice (DeviceSize w h)) ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -140,6 +144,9 @@ update msg model =
 
         ResizedDevice size ->
             ( { model | deviceSize = size }, Cmd.none )
+
+        ClickedMenu ->
+            ( { model | menuIsExtended = not model.menuIsExtended }, Cmd.none )
 
         NotificationFired notif ->
             ( { model
@@ -196,10 +203,10 @@ update msg model =
 
 
 document : Model -> Document Msg
-document ({ currentRoute, deviceSize, session, notifications } as model) =
+document ({ currentRoute, deviceSize, menuIsExtended, session, notifications } as model) =
     let
         navbar =
-            inFront (lazy2 viewNavbar session deviceSize)
+            inFront (lazy3 viewNavbar session deviceSize menuIsExtended)
 
         notificationArea =
             inFront (lazy Notification.Queue.view notifications)
@@ -222,8 +229,8 @@ document ({ currentRoute, deviceSize, session, notifications } as model) =
     }
 
 
-viewNavbar : Maybe Session -> DeviceSize -> Element msg
-viewNavbar maybeSession deviceSize =
+viewNavbar : Maybe Session -> DeviceSize -> Bool -> Element Msg
+viewNavbar maybeSession deviceSize menuIsExtended =
     let
         iconSize =
             Icon.size.small
@@ -243,6 +250,24 @@ viewNavbar maybeSession deviceSize =
                 |> Maybe.withDefault 0
             )
 
+        logo =
+            link []
+                { url = Links.internal.home
+                , label =
+                    row Styles.logo
+                        [ image []
+                            { src = Links.assets.logo
+                            , description = "The " ++ Strings.appName ++ " logo"
+                            }
+                        , text
+                            (responsive deviceSize
+                                { compact = Strings.appNameShort
+                                , full = Strings.appName
+                                }
+                            )
+                        ]
+                }
+
         linkIfLoggedIn attrs f =
             case maybeSession of
                 Just session ->
@@ -250,92 +275,107 @@ viewNavbar maybeSession deviceSize =
 
                 Nothing ->
                     none
-    in
-    row Styles.navbar
-        [ link []
-            { url = Links.internal.home
-            , label =
-                row Styles.logo
-                    [ image []
-                        { src = Links.assets.logo
-                        , description = "The " ++ Strings.appName ++ " logo"
-                        }
-                    , text
-                        (responsive deviceSize
-                            { compact = Strings.appNameShort
-                            , full = Strings.appName
-                            }
-                        )
-                    ]
-            }
-        , link []
-            { url = Links.internal.explore
-            , label =
-                Ui.labelRight "Explore" <|
-                    Icon.view <|
-                        Icon.binoculars iconSize
-            }
-        , link []
-            { url = Links.internal.search
-            , label =
-                Ui.labelRight "Search" <|
-                    Icon.view <|
-                        Icon.search iconSize
-            }
-        , linkIfLoggedIn []
-            (\_ ->
-                { url = Links.internal.saved
-                , label =
-                    Ui.labelRight "Saved" <|
-                        Icon.view <|
-                            Icon.starBox iconSize
-                }
-            )
-        , linkIfLoggedIn []
-            (\session ->
-                { url = Links.internal.messages
-                , label =
-                    Ui.pill (Inbox.messageCount (Session.inbox session)) <|
-                        Ui.labelRight "Messages" <|
-                            Icon.view <|
-                                Icon.paperPlane iconSize
-                }
-            )
-        , link []
-            { url = Links.internal.tools
-            , label =
-                Ui.labelRight "Toolbox" <|
-                    Icon.view <|
-                        Icon.toolbox iconSize
-            }
 
-        -- TODO: change to newTabLink with a proper link
-        , link [ alignRight ]
-            { url = Links.external.donate
-            , label =
-                Ui.labelRight "Donate!" <|
-                    Icon.view <|
-                        Icon.donate iconSize
-            }
-        , newTabLink []
-            { url = Links.external.github
-            , label = Icon.view (Icon.github iconSize)
-            }
-        , newTabLink []
-            { url = Links.external.discord
-            , label = Icon.view (Icon.discord iconSize)
-            }
-        , link []
-            { url = Links.internal.help
-            , label = Icon.view (Icon.help iconSize)
-            }
-        , link Styles.highlighted
-            { url = Links.internal.settings
-            , label =
-                Ui.labelRight username <|
-                    Avatar.view 24 avatar
-            }
-        ]
+        primaryLinks =
+            [ link []
+                { url = Links.internal.explore
+                , label =
+                    Ui.labelRight "Explore" <|
+                        Icon.view <|
+                            Icon.binoculars iconSize
+                }
+            , link []
+                { url = Links.internal.search
+                , label =
+                    Ui.labelRight "Search" <|
+                        Icon.view <|
+                            Icon.search iconSize
+                }
+            , link []
+                { url = Links.internal.tools
+                , label =
+                    Ui.labelRight "Tools" <|
+                        Icon.view <|
+                            Icon.wrench iconSize
+                }
+            , linkIfLoggedIn []
+                (\_ ->
+                    { url = Links.internal.saved
+                    , label =
+                        Ui.labelRight "Saved" <|
+                            Icon.view <|
+                                Icon.starBox iconSize
+                    }
+                )
+            , linkIfLoggedIn []
+                (\session ->
+                    { url = Links.internal.messages
+                    , label =
+                        Ui.pill (Inbox.messageCount (Session.inbox session)) <|
+                            Ui.labelRight "Messages" <|
+                                Icon.view <|
+                                    Icon.paperPlane iconSize
+                    }
+                )
+            ]
+
+        secondaryLinks =
+            [ link [ alignRight ]
+                { url = Links.external.donate
+                , label =
+                    Ui.labelRight "Donate!" <|
+                        Icon.view <|
+                            Icon.donate iconSize
+                }
+            , newTabLink []
+                { url = Links.external.github
+                , label = Icon.view (Icon.github iconSize)
+                }
+            , newTabLink []
+                { url = Links.external.discord
+                , label = Icon.view (Icon.discord iconSize)
+                }
+            , link []
+                { url = Links.internal.help
+                , label = Icon.view (Icon.help iconSize)
+                }
+            , link Styles.highlighted
+                { url = Links.internal.settings
+                , label =
+                    Ui.labelRight username <|
+                        Avatar.view 24 avatar
+                }
+            ]
+    in
+    row Styles.navbar <|
+        List.concat <|
+            [ List.singleton logo
+            , if Ui.isCompact deviceSize then
+                List.singleton <|
+                    link
+                        [ Events.onClick ClickedMenu -- has the convenient side-effect of firing this message when a child is clicked, thereby closing the menu; happens to be the behavior we want!
+                        , if menuIsExtended then
+                            below <|
+                                column Styles.menu primaryLinks
+
+                          else
+                            below none
+                        ]
+                        { url = Links.internal.inert
+                        , label =
+                            Ui.labelRight "Menu" <|
+                                Icon.view <|
+                                    if menuIsExtended then
+                                        Icon.upArrow iconSize
+
+                                    else
+                                        Icon.downArrow iconSize
+                        }
+
+              else
+                primaryLinks
+            , secondaryLinks
+            ]
 
 
 footer : Element msg

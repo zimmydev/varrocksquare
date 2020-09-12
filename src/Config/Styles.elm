@@ -1,4 +1,4 @@
-module Config.Styles exposing (content, contentHeader, focus, footer, footerCenter, footerLeft, footerRight, highlighted, labeledElement, logo, navatar, navbar, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar)
+module Config.Styles exposing (content, contentHeader, focus, footer, footerCenter, footerLeft, footerRight, highlighted, labeledElement, logo, menu, navatar, navbar, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar)
 
 import Config.Links as Links exposing (Href)
 import Config.Styles.Colors as Colors
@@ -61,6 +61,15 @@ navbar =
     , paddingXY 24 16
     , spacing 24
     , Font.size 14
+    , navbarBg
+    , Border.shadow shadow
+    ]
+
+
+menu : List (Attribute msg)
+menu =
+    [ padding 16
+    , spacing 16
     , navbarBg
     , Border.shadow shadow
     ]

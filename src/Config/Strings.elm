@@ -45,7 +45,7 @@ titles =
     , messages =
         "Messages"
     , tools =
-        "Free-to-Play Toolbox"
+        "Free-to-Play Tools"
     , help =
         "Help"
     , profileFor =
