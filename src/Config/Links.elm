@@ -1,6 +1,7 @@
-module Config.Links exposing (Href, assets, dummy, external, icon, internal)
+module Config.Links exposing (Href, asset, assets, external, icon, internal)
 
 import Url.Builder as Builder
+import Username
 
 
 
@@ -45,31 +46,33 @@ assets =
 -- INTERNAL LINKS
 
 
-dummy : Href
-dummy =
-    Builder.relative [] []
+path : List String -> Href
+path p =
+    Builder.absolute p []
 
 
 internal =
-    { home =
-        Builder.absolute [] []
+    { inert =
+        Builder.relative [] []
+    , home =
+        path []
     , explore =
-        Builder.absolute [ "explore" ] []
+        path [ "explore" ]
     , search =
-        Builder.absolute [ "search" ] []
+        path [ "search" ]
     , saved =
-        Builder.absolute [ "saved" ] []
+        path [ "saved" ]
     , messages =
-        Builder.absolute [ "messages" ] []
+        path [ "messages" ]
     , tools =
-        Builder.absolute [ "tools" ] []
+        path [ "tools" ]
     , help =
-        Builder.absolute [ "help" ] []
+        path [ "help" ]
     , profileFor =
         \username ->
-            Builder.absolute [ "profile" ] [ Builder.string "user" username ]
+            path [ "profile", Username.toString username ]
     , settings =
-        Builder.absolute [ "settings" ] []
+        path [ "settings" ]
     }
 
 
@@ -85,7 +88,7 @@ external =
         Builder.crossOrigin "https://discord.gg" [ "RA8bujG" ] []
     , donate =
         -- TODO: establish a proper donation link
-        Builder.absolute [] []
+        internal.inert
     , icons8 =
         Builder.crossOrigin "https://icons8.com" [] []
     }

@@ -45,13 +45,13 @@ type alias DeviceSize =
     }
 
 
-responsive : DeviceSize -> a -> a -> a
-responsive deviceSize a b =
+responsive : DeviceSize -> { compact : a, full : a } -> a
+responsive deviceSize { compact, full } =
     if isCompact deviceSize then
-        b
+        compact
 
     else
-        a
+        full
 
 
 isCompact : DeviceSize -> Bool

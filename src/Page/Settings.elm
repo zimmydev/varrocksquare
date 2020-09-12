@@ -77,12 +77,12 @@ view maybeViewer model =
                 (text "• Master Debug Menu •")
             , link
                 [ Events.onClick LoggedOut ]
-                { url = Links.dummy
+                { url = Links.internal.inert
                 , label = text "Log out"
                 }
             , link
                 [ Events.onClick (LoggedIn Viewer.debug) ]
-                { url = Links.dummy
+                { url = Links.internal.inert
                 , label = text "Log in"
                 }
             , el
@@ -92,7 +92,7 @@ view maybeViewer model =
                 [ Events.onClick <|
                     RequestedNotification Notification.passwordsDontMatch
                 ]
-                { url = Links.dummy
+                { url = Links.internal.inert
                 , label = text "Mismatch passwords"
                 }
             , case maybeViewer of
@@ -105,7 +105,7 @@ view maybeViewer model =
                                     "A little bit of technique"
                                     viewer
                         ]
-                        { url = Links.dummy
+                        { url = Links.internal.inert
                         , label = text "Short message"
                         }
 
@@ -121,7 +121,7 @@ view maybeViewer model =
                                     "I can double your GP just meet me at the chaos altar"
                                     viewer
                         ]
-                        { url = Links.dummy
+                        { url = Links.internal.inert
                         , label = text "Long message"
                         }
 
@@ -138,7 +138,7 @@ view maybeViewer model =
                                     "http://example.com"
                                     viewer
                         ]
-                        { url = Links.dummy
+                        { url = Links.internal.inert
                         , label = text "Post share"
                         }
 
@@ -150,7 +150,7 @@ view maybeViewer model =
             , link
                 [ Events.onClick (Toggled Notifications)
                 ]
-                { url = Links.dummy
+                { url = Links.internal.inert
                 , label =
                     text <|
                         "Toggle message notifications (currently "
@@ -164,7 +164,7 @@ view maybeViewer model =
                 }
             , link
                 [ Events.onClick (Toggled Shortcuts) ]
-                { url = Links.dummy
+                { url = Links.internal.inert
                 , label =
                     text <|
                         "Toggle shortcuts (currently "

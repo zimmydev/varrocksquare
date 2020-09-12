@@ -1,4 +1,4 @@
-module Icon exposing (Icon, Size, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, large, linkEnvelope, medium, paperPlane, search, small, starBox, success, view, toolbox)
+module Icon exposing (Icon, Size, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, linkEnvelope, paperPlane, search, size, starBox, success, toolbox, view)
 
 import Config.Links as Links exposing (Href)
 import Element exposing (Element)
@@ -38,19 +38,14 @@ type Size
     | Large
 
 
-small : Size
-small =
-    Small
-
-
-medium : Size
-medium =
-    Medium
-
-
-large : Size
-large =
-    Large
+size =
+    { small =
+        Small
+    , medium =
+        Medium
+    , large =
+        Large
+    }
 
 
 
@@ -151,8 +146,8 @@ source icon =
 
 
 filename : Icon -> String
-filename (Icon glyph size) =
-    String.join "-" [ "icons8", identifier glyph, String.fromInt (intSize size) ]
+filename (Icon glyph sz) =
+    String.join "-" [ "icons8", identifier glyph, String.fromInt (sizeToInt sz) ]
         ++ ".png"
 
 
@@ -205,9 +200,9 @@ identifier glyph =
             "icons8"
 
 
-intSize : Size -> Int
-intSize size =
-    case size of
+sizeToInt : Size -> Int
+sizeToInt sz =
+    case sz of
         Small ->
             16
 

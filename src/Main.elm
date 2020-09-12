@@ -224,7 +224,7 @@ viewNavbar : DeviceSize -> Maybe Viewer -> Element msg
 viewNavbar deviceSize viewer =
     let
         iconSize =
-            Icon.small
+            Icon.size.small
 
         ( username, avatar, messages ) =
             ( viewer
@@ -257,7 +257,12 @@ viewNavbar deviceSize viewer =
                         { src = Links.assets.logo
                         , description = "The " ++ Strings.appName ++ " logo"
                         }
-                    , text (responsive deviceSize Strings.appName Strings.appNameShort)
+                    , text
+                        (responsive deviceSize
+                            { compact = Strings.appNameShort
+                            , full = Strings.appName
+                            }
+                        )
                     ]
             }
         , link []
@@ -296,7 +301,9 @@ viewNavbar deviceSize viewer =
                     Icon.view <|
                         Icon.toolbox iconSize
             }
-        , newTabLink [ alignRight ]
+
+        -- TODO: change to newTabLink with a proper link
+        , link [ alignRight ]
             { url = Links.external.donate
             , label =
                 Ui.labelRight "Donate!" <|
@@ -334,7 +341,7 @@ footer =
                 [ text "Icons by "
                 , newTabLink []
                     { url = Links.external.icons8
-                    , label = Icon.view (Icon.icons8 Icon.small)
+                    , label = Icon.view (Icon.icons8 Icon.size.small)
                     }
                 ]
         , el Styles.footerCenter (text "Privacy Policy")

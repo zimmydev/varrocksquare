@@ -186,7 +186,7 @@ visualElements : Notification -> ( Icon, Color )
 visualElements notif =
     let
         size =
-            Icon.small
+            Icon.size.small
     in
     case notif of
         Info _ _ ->
