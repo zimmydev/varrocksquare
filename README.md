@@ -2,6 +2,10 @@
 
 Varrock Square is a social blogging platform designed for the free-to-play [Old School RuneScape](https://oldschool.runescape.com) community. It's perfect if you want to write a guide for your fellow players, or simply keep a log of your daily progress. Perhaps you want to write an article discussing potential updates to the game, attaching a poll for quick feedback? On Varrock Square, you can do all this and more!
 
+## Project Status
+
+*Pre-alpha (under development)*
+
 ## Why does this project exist?
 The answer is twofold. Primarily, it's merely a pet project for me to use to hone my full-stack web development and design skills; in that regard, therefore, the project exists for its own sake. On the other hand, I can see the potential value of just such a platform for some people in the F2P community.
 
