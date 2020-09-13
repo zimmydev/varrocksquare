@@ -25,7 +25,7 @@ assets =
         asset "bg-content-dark.png"
     , icon =
         icon
-    , defaultAvatar =
+    , guestAvatar =
         asset "default-avatar.png"
     }
 

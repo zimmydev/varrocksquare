@@ -1,5 +1,6 @@
 module Page.Settings exposing (Model, Msg(..), init, update, view)
 
+import Browser.Navigation as Nav
 import Config.Links as Links
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
@@ -7,7 +8,8 @@ import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
 import Notification exposing (Notification)
-import Session exposing (Session)
+import Session exposing (Session(..))
+import Ui
 import Username
 
 
@@ -37,8 +39,8 @@ init =
 type Msg
     = RequestedNotification (Notification.Id -> Notification)
     | NotificationFired Notification
-    | LoggedIn Session
-    | LoggedOut
+    | ClickedLogin Nav.Key
+    | ClickedLogout Nav.Key
     | Toggled SettingsToggle
 
 
@@ -68,22 +70,27 @@ update msg model =
 -- VIEW
 
 
-view : Maybe Session -> Model -> Element Msg
-view maybeSession model =
+view : Session -> Model -> Element Msg
+view session model =
     column Styles.page
         [ textColumn Styles.content
             [ el
                 [ Font.color Colors.fadedInk ]
                 (text "• Master Debug Menu •")
-            , link
-                [ Events.onClick LoggedOut ]
-                { url = Links.internal.inert
-                , label = text "Log out"
-                }
-            , link
-                [ Events.onClick (LoggedIn Session.debug) ]
-                { url = Links.internal.inert
-                , label = text "Log in"
+            , Ui.credentialed session
+                { loggedIn =
+                    \_ ->
+                        link
+                            [ Events.onClick (ClickedLogout (Session.navKey session)) ]
+                            { url = Links.internal.inert
+                            , label = text "Log out"
+                            }
+                , guest =
+                    link
+                        [ Events.onClick (ClickedLogin (Session.navKey session)) ]
+                        { url = Links.internal.inert
+                        , label = text "Log in"
+                        }
                 }
             , el
                 [ Font.color Colors.fadedInk ]
@@ -95,38 +102,38 @@ view maybeSession model =
                 { url = Links.internal.inert
                 , label = text "Mismatch passwords"
                 }
-            , case maybeSession of
-                Just session ->
-                    link
-                        [ Events.onClick <|
-                            RequestedNotification <|
-                                Notification.receivedMessage
-                                    session
-                                    (Username.debug "bonecrusher69")
-                                    "A little bit of technique"
-                        ]
-                        { url = Links.internal.inert
-                        , label = text "Short message"
-                        }
-
-                Nothing ->
-                    none
-            , case maybeSession of
-                Just session ->
-                    link
-                        [ Events.onClick <|
-                            RequestedNotification <|
-                                Notification.receivedMessage
-                                    session
-                                    (Username.debug "Jingle Bells")
-                                    "I can double your GP just meet me at the chaos altar"
-                        ]
-                        { url = Links.internal.inert
-                        , label = text "Long message"
-                        }
-
-                Nothing ->
-                    none
+            , Ui.credentialed session
+                { loggedIn =
+                    \cred ->
+                        link
+                            [ Events.onClick <|
+                                RequestedNotification <|
+                                    Notification.receivedMessage
+                                        cred
+                                        (Username.debug "bonecrusher69")
+                                        "A little bit of technique"
+                            ]
+                            { url = Links.internal.inert
+                            , label = text "Short message"
+                            }
+                , guest = none
+                }
+            , Ui.credentialed session
+                { loggedIn =
+                    \cred ->
+                        link
+                            [ Events.onClick <|
+                                RequestedNotification <|
+                                    Notification.receivedMessage
+                                        cred
+                                        (Username.debug "Jingle Bells")
+                                        "I can double your GP just meet me at the chaos altar"
+                            ]
+                            { url = Links.internal.inert
+                            , label = text "Long message"
+                            }
+                , guest = none
+                }
             , el
                 [ Font.color Colors.fadedInk ]
                 (text "– Toggles –")
@@ -135,28 +142,34 @@ view maybeSession model =
                 ]
                 { url = Links.internal.inert
                 , label =
+                    let
+                        status =
+                            if model.notifications then
+                                "on"
+
+                            else
+                                "off"
+                    in
                     text <|
                         "Toggle message notifications (currently "
-                            ++ (if model.notifications then
-                                    "on"
-
-                                else
-                                    "off"
-                               )
+                            ++ status
                             ++ ")"
                 }
             , link
                 [ Events.onClick (Toggled Shortcuts) ]
                 { url = Links.internal.inert
                 , label =
+                    let
+                        status =
+                            if model.shortcuts then
+                                "on"
+
+                            else
+                                "off"
+                    in
                     text <|
                         "Toggle shortcuts (currently "
-                            ++ (if model.shortcuts then
-                                    "on"
-
-                                else
-                                    "off"
-                               )
+                            ++ status
                             ++ ")"
                 }
             ]

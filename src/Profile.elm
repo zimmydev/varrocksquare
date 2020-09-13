@@ -1,4 +1,4 @@
-module Profile exposing (Profile, avatar, bio, decoder)
+module Profile exposing (Profile, avatar, bio, debug, decoder)
 
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder, field, nullable, string)
@@ -46,3 +46,16 @@ avatar (Profile prof) =
 bio : Profile -> Maybe String
 bio (Profile prof) =
     prof.bio
+
+
+
+-- DEBUG
+
+
+debug : Profile
+debug =
+    Profile
+        { avatar = Avatar.debug
+        , joinDate = Time.millisToPosix 0
+        , bio = Just "I am an account meant for debugging purposes!"
+        }

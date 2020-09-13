@@ -1,8 +1,11 @@
-module Session exposing (Session, authToken, avatar, debug, inbox, username)
+module Session exposing (Session(..), avatar, credentials, debug, displayName, inbox, isGuest, navKey, profile)
 
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
+import Browser.Navigation as Nav
+import Credentials exposing (Credentials)
 import Inbox exposing (Inbox)
+import Profile exposing (Profile)
 import Username exposing (Username)
 
 
@@ -11,50 +14,94 @@ import Username exposing (Username)
 
 
 type Session
-    = Session Internals
-
-
-type alias Internals =
-    { authToken : AuthToken
-    , username : Username
-    , avatar : Avatar
-    , inbox : Inbox
-    }
+    = Guest Nav.Key
+    | LoggedIn Nav.Key Credentials Profile Inbox
 
 
 
 -- INFO
 
 
-authToken : Session -> AuthToken
-authToken (Session sess) =
-    sess.authToken
+isGuest : Session -> Bool
+isGuest sess =
+    case sess of
+        Guest _ ->
+            True
+
+        LoggedIn _ _ _ _ ->
+            False
 
 
-username : Session -> Username
-username (Session sess) =
-    sess.username
+navKey : Session -> Nav.Key
+navKey sess =
+    case sess of
+        Guest key ->
+            key
+
+        LoggedIn key _ _ _ ->
+            key
+
+
+credentials : Session -> Maybe Credentials
+credentials sess =
+    case sess of
+        Guest _ ->
+            Nothing
+
+        LoggedIn _ cred _ _ ->
+            Just cred
+
+
+profile : Session -> Maybe Profile
+profile sess =
+    case sess of
+        Guest _ ->
+            Nothing
+
+        LoggedIn _ _ prof _ ->
+            Just prof
+
+
+displayName : Session -> String
+displayName sess =
+    case sess of
+        Guest _ ->
+            "Guest"
+
+        LoggedIn _ cred _ _ ->
+            cred
+                |> Credentials.username
+                |> Username.toString
+                |> (++) "@"
 
 
 avatar : Session -> Avatar
-avatar (Session sess) =
-    sess.avatar
+avatar sess =
+    case sess of
+        Guest _ ->
+            Avatar.guest
+
+        LoggedIn _ _ prof _ ->
+            Profile.avatar prof
 
 
-inbox : Session -> Inbox
-inbox (Session sess) =
-    sess.inbox
+inbox : Session -> Maybe Inbox
+inbox sess =
+    case sess of
+        Guest _ ->
+            Nothing
+
+        LoggedIn _ _ _ inb ->
+            Just inb
 
 
 
 -- DEBUG
 
 
-debug : Session
-debug =
-    Session
-        { authToken = Api.debugToken
-        , username = Username.debug "DebugUser"
-        , avatar = Avatar.debug
-        , inbox = Inbox.debug
-        }
+debug : Nav.Key -> Session
+debug key =
+    LoggedIn key
+        Credentials.debug
+        Profile.debug
+        Inbox.debug

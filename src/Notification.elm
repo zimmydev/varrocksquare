@@ -4,10 +4,10 @@ import Config.App as App
 import Config.Links exposing (Href)
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
+import Credentials exposing (Credentials)
 import Element exposing (Attribute, Color, Element)
 import Icon exposing (Icon)
 import Process
-import Session exposing (Session)
 import Task
 import Time
 import Username exposing (Username)
@@ -53,7 +53,7 @@ passwordsDontMatch =
     Error "The password fields don't match one another!"
 
 
-receivedMessage : Session -> Username -> String -> Id -> Notification
+receivedMessage : Credentials -> Username -> String -> Id -> Notification
 receivedMessage _ sender mess =
     let
         charBalance =

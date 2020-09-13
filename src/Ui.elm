@@ -1,11 +1,13 @@
-module Ui exposing (DeviceSize, isCompact, labelRight, pill, responsive, spinner)
+module Ui exposing (DeviceSize, credentialed, isCompact, labelRight, pill, responsive, spinner)
 
 import Config.Links as Links
 import Config.Strings as Strings
 import Config.Styles as Styles
+import Credentials exposing (Credentials)
 import Element exposing (..)
 import Html
 import Html.Attributes
+import Session exposing (Session(..))
 
 
 
@@ -43,6 +45,16 @@ pill count element =
 
     else
         element
+
+
+credentialed : Session -> { loggedIn : Credentials -> Element msg, guest : Element msg } -> Element msg
+credentialed sess { loggedIn, guest } =
+    case sess of
+        Guest _ ->
+            guest
+
+        LoggedIn _ cred _ _ ->
+            loggedIn cred
 
 
 

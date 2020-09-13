@@ -7,6 +7,7 @@ import Browser.Navigation as Nav
 import Config.Links as Links
 import Config.Strings as Strings
 import Config.Styles as Styles
+import Credentials exposing (Credentials)
 import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
@@ -19,9 +20,9 @@ import Page.Home
 import Page.Search
 import Page.Settings
 import Route exposing (Route)
-import Session exposing (Session)
+import Session exposing (Session(..))
 import Time
-import Ui exposing (DeviceSize, responsive)
+import Ui exposing (DeviceSize)
 import Url exposing (Url)
 import Username
 
@@ -31,9 +32,8 @@ import Username
 
 
 type alias Model =
-    { key : Nav.Key
+    { session : Session
     , currentRoute : Route
-    , session : Maybe Session -- to exist, we require a logged-in user
     , deviceSize : DeviceSize
     , menuIsExtended : Bool
     , notifications : Notification.Queue.Queue
@@ -56,9 +56,8 @@ init deviceSize url key =
             Page.Settings.init
 
         model =
-            { key = key
+            { session = Session.debug key
             , currentRoute = initialRoute
-            , session = Just Session.debug
             , deviceSize = deviceSize
             , menuIsExtended = False
             , notifications = Notification.Queue.empty
@@ -137,7 +136,7 @@ update msg model =
                 update Ignored model
 
             else
-                ( model, Nav.pushUrl model.key (Url.toString url) )
+                ( model, Nav.pushUrl (Session.navKey model.session) (Url.toString url) )
 
         ClickedLink (Browser.External href) ->
             ( model, Nav.load href )
@@ -173,20 +172,20 @@ update msg model =
             -- Re-route to NotificationFired event
             model |> update (NotificationFired notif)
 
-        ChangedSettings Page.Settings.LoggedOut ->
+        ChangedSettings (Page.Settings.ClickedLogout key) ->
             -- Dispatching to Page.Settings is curtailed in this particular case
             -- TODO: Clear out the session from the localStorage
-            ( { model | session = Nothing }
+            ( { model | session = Guest key }
             , notify Notification.loggedOut NotificationFired
             )
 
-        ChangedSettings (Page.Settings.LoggedIn session) ->
+        ChangedSettings (Page.Settings.ClickedLogin key) ->
             -- Dispatching to Page.Settings is curtailed in this particular case
             let
                 notif =
-                    Notification.loggedIn (Session.username session)
+                    Notification.loggedIn (Username.debug "zimmy")
             in
-            ( { model | session = Just session }
+            ( { model | session = Session.debug key }
             , notify notif NotificationFired
             )
 
@@ -229,23 +228,17 @@ document ({ currentRoute, deviceSize, menuIsExtended, session, notifications } a
     }
 
 
-viewNavbar : Maybe Session -> DeviceSize -> Bool -> Element Msg
-viewNavbar maybeSession deviceSize menuIsExtended =
+viewNavbar : Session -> DeviceSize -> Bool -> Element Msg
+viewNavbar session deviceSize menuIsExtended =
     let
         iconSize =
             Icon.size.small
 
-        ( username, avatar, messages ) =
-            ( maybeSession
-                |> Maybe.map Session.username
-                |> Maybe.map Username.toString
-                |> Maybe.map ((++) "@")
-                |> Maybe.withDefault "Guest"
-            , maybeSession
-                |> Maybe.map Session.avatar
-                |> Maybe.withDefault Avatar.default
-            , maybeSession
-                |> Maybe.map Session.inbox
+        ( displayName, avatar, messageCount ) =
+            ( Session.displayName session
+            , Session.avatar session
+            , session
+                |> Session.inbox
                 |> Maybe.map Inbox.messageCount
                 |> Maybe.withDefault 0
             )
@@ -260,7 +253,7 @@ viewNavbar maybeSession deviceSize menuIsExtended =
                             , description = "The " ++ Strings.appName ++ " logo"
                             }
                         , text
-                            (responsive deviceSize
+                            (Ui.responsive deviceSize
                                 { compact = Strings.appNameShort
                                 , full = Strings.appName
                                 }
@@ -268,13 +261,11 @@ viewNavbar maybeSession deviceSize menuIsExtended =
                         ]
                 }
 
-        linkIfLoggedIn attrs f =
-            case maybeSession of
-                Just session ->
-                    link attrs (f session)
-
-                Nothing ->
-                    none
+        linkIfLoggedIn attrs linkInfo =
+            Ui.credentialed session
+                { loggedIn = \_ -> link attrs linkInfo
+                , guest = none
+                }
 
         primaryLinks =
             [ link []
@@ -299,24 +290,20 @@ viewNavbar maybeSession deviceSize menuIsExtended =
                             Icon.wrench iconSize
                 }
             , linkIfLoggedIn []
-                (\_ ->
-                    { url = Links.internal.saved
-                    , label =
-                        Ui.labelRight "Saved" <|
-                            Icon.view <|
-                                Icon.starBox iconSize
-                    }
-                )
+                { url = Links.internal.saved
+                , label =
+                    Ui.labelRight "Saved" <|
+                        Icon.view <|
+                            Icon.starBox iconSize
+                }
             , linkIfLoggedIn []
-                (\session ->
-                    { url = Links.internal.messages
-                    , label =
-                        Ui.pill (Inbox.messageCount (Session.inbox session)) <|
-                            Ui.labelRight "Messages" <|
-                                Icon.view <|
-                                    Icon.paperPlane iconSize
-                    }
-                )
+                { url = Links.internal.messages
+                , label =
+                    Ui.pill messageCount <|
+                        Ui.labelRight "Messages" <|
+                            Icon.view <|
+                                Icon.paperPlane iconSize
+                }
             ]
 
         secondaryLinks =
@@ -342,7 +329,7 @@ viewNavbar maybeSession deviceSize menuIsExtended =
             , link Styles.highlighted
                 { url = Links.internal.settings
                 , label =
-                    Ui.labelRight username <|
+                    Ui.labelRight displayName <|
                         Avatar.view 24 avatar
                 }
             ]
