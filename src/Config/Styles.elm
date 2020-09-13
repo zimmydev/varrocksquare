@@ -1,4 +1,4 @@
-module Config.Styles exposing (content, contentHeader, focus, footer, footerCenter, footerLeft, footerRight, highlighted, labeledElement, logo, menu, navatar, navbar, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar)
+module Config.Styles exposing (content, contentHeader, focus, footer, footerCenter, footerLeft, footerRight, highlighted, labeledElement, logo, menu, navatar, navbar, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, toggleButton)
 
 import Config.Links as Links exposing (Href)
 import Config.Styles.Colors as Colors
@@ -193,7 +193,39 @@ searchPlaceholder =
 
 highlighted : List (Attribute msg)
 highlighted =
-    [ Font.bold, Font.color Colors.blue ]
+    [ Font.bold
+    , Font.color Colors.blue
+    ]
+
+
+toggleButton : Bool -> List (Attribute msg)
+toggleButton toggle =
+    let
+        button =
+            [ paddingXY 15 10
+            , Border.width 3
+            , Border.rounded pageBoxRoundness
+            ]
+
+        activated =
+            let
+                color =
+                    Colors.green
+            in
+            Font.color color :: Border.color color :: button
+
+        deactivated =
+            let
+                color =
+                    Colors.lightGrey 4
+            in
+            Font.color color :: Border.color color :: button
+    in
+    if toggle then
+        activated
+
+    else
+        deactivated
 
 
 footerLeft : List (Attribute msg)

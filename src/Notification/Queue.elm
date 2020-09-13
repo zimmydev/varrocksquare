@@ -68,4 +68,4 @@ view queue =
 
     else
         Element.column Styles.notificationArea
-            (queue |> toList |> List.take 8 |> List.reverse |> List.map Notification.view)
+            (queue |> toList |> List.take 5 |> List.reverse |> List.map Notification.view)

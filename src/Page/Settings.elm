@@ -7,6 +7,8 @@ import Config.Styles.Colors as Colors
 import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
+import Element.Input as Input
+import Icon
 import Notification exposing (Notification)
 import Session exposing (Session(..))
 import Ui
@@ -26,7 +28,7 @@ type alias Model =
 init : ( Model, Cmd msg )
 init =
     ( { notifications = True
-      , shortcuts = False
+      , shortcuts = True
       }
     , Cmd.none
     )
@@ -73,7 +75,23 @@ update msg model =
 view : Session -> Model -> Element Msg
 view session model =
     column Styles.page
-        [ textColumn Styles.content
+        [ row [ spacing 24 ]
+            [ Input.button (Styles.toggleButton model.notifications)
+                { onPress = Just (Toggled Notifications)
+                , label =
+                    Ui.label "Message Alerts" <|
+                        Icon.view <|
+                            Icon.notifications model.notifications Icon.size.medium
+                }
+            , Input.button (Styles.toggleButton model.shortcuts)
+                { onPress = Just (Toggled Shortcuts)
+                , label =
+                    Ui.label "Shortcuts" <|
+                        Icon.view <|
+                            Icon.shortcuts model.shortcuts Icon.size.medium
+                }
+            ]
+        , textColumn Styles.content
             [ el
                 [ Font.color Colors.fadedInk ]
                 (text "• Master Debug Menu •")
@@ -133,44 +151,6 @@ view session model =
                             , label = text "Long message"
                             }
                 , guest = none
-                }
-            , el
-                [ Font.color Colors.fadedInk ]
-                (text "« Toggles »")
-            , link
-                [ Events.onClick (Toggled Notifications)
-                ]
-                { url = Links.internal.inert
-                , label =
-                    let
-                        status =
-                            if model.notifications then
-                                "on"
-
-                            else
-                                "off"
-                    in
-                    text <|
-                        "Toggle message notifications (currently "
-                            ++ status
-                            ++ ")"
-                }
-            , link
-                [ Events.onClick (Toggled Shortcuts) ]
-                { url = Links.internal.inert
-                , label =
-                    let
-                        status =
-                            if model.shortcuts then
-                                "on"
-
-                            else
-                                "off"
-                    in
-                    text <|
-                        "Toggle shortcuts [Esc–F4] (currently "
-                            ++ status
-                            ++ ")"
                 }
             ]
         ]

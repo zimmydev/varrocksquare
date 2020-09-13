@@ -1,4 +1,4 @@
-module Icon exposing (Icon, Size, binoculars, discord, donate, downArrow, envelope, error, espresso, github, help, icons8, paperPlane, search, size, starBox, success, upArrow, view, wrench)
+module Icon exposing (Icon, Size, binoculars, discord, donate, downArrow, envelope, error, espresso, github, help, icons8, notifications, paperPlane, search, shortcuts, size, starBox, success, upArrow, view, wrench)
 
 import Config.Links as Links exposing (Href)
 import Element exposing (Element)
@@ -23,6 +23,11 @@ type Glyph
     | Help
     | DownArrow
     | UpArrow
+      -- Setting toggles
+    | NotificationsActive
+    | NotificationsInactive
+    | ShortcutsActive
+    | ShortcutsInactive
       -- Logos
     | Github
     | Discord
@@ -134,6 +139,24 @@ icons8 =
     Icon Icons8
 
 
+notifications : Bool -> Size -> Icon
+notifications toggle =
+    if toggle then
+        Icon NotificationsActive
+
+    else
+        Icon NotificationsInactive
+
+
+shortcuts : Bool -> Size -> Icon
+shortcuts toggle =
+    if toggle then
+        Icon ShortcutsActive
+
+    else
+        Icon ShortcutsInactive
+
+
 
 -- TRANSFORM
 
@@ -199,6 +222,18 @@ identifier glyph =
 
         UpArrow ->
             "up-squared"
+
+        NotificationsActive ->
+            "notifications-active"
+
+        NotificationsInactive ->
+            "notifications-inactive"
+
+        ShortcutsActive ->
+            "shortcuts-active"
+
+        ShortcutsInactive ->
+            "shortcuts-inactive"
 
         Github ->
             "github"
