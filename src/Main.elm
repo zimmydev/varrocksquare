@@ -368,7 +368,7 @@ viewNavbar session deviceSize menuIsExtended =
 footer : Element msg
 footer =
     row Styles.footer
-        [ el Styles.footerCenter (text Strings.credit)
+        [ el Styles.footerLeft (text Strings.credit)
         , el Styles.footerCenter <|
             row
                 [ centerX ]
@@ -379,7 +379,7 @@ footer =
                     }
                 ]
         , el Styles.footerCenter (text "Privacy Policy")
-        , el Styles.footerCenter (text Strings.copyright)
+        , el Styles.footerRight (text Strings.copyright)
         ]
 
 

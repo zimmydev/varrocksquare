@@ -26,7 +26,7 @@ credit =
 
 copyright : String
 copyright =
-    "© 2020 Hammer Forged Code."
+    "© 2020 Hammer Forged Code"
 
 
 
