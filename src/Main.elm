@@ -4,7 +4,7 @@ import Avatar
 import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
-import Config.Links as Links
+import Config.Links as Links exposing (Href)
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Credentials exposing (Credentials)
@@ -14,6 +14,7 @@ import Element.Font as Font
 import Element.Lazy exposing (..)
 import Icon
 import Inbox
+import Keyboard
 import Notification exposing (Notification, notify)
 import Notification.Queue exposing (Queue)
 import Page.Home
@@ -100,6 +101,7 @@ type Msg
     = Ignored
     | ClickedLink UrlRequest
     | ChangedRoute Route
+    | PerformedShortcut Href
     | ResizedDevice DeviceProfile
     | ClickedMenu
     | NotificationFired Notification
@@ -109,9 +111,15 @@ type Msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { deviceProfile } =
+subscriptions { deviceProfile, settings } =
     Sub.batch
-        [ Browser.Events.onResize (handleResize deviceProfile) ]
+        [ Browser.Events.onResize (handleResize deviceProfile)
+        , if settings.shortcuts then
+            Sub.map PerformedShortcut Keyboard.onShortcut
+
+          else
+            Sub.none
+        ]
 
 
 handleResize : DeviceProfile -> Int -> Int -> Msg
@@ -156,6 +164,9 @@ update msg model =
 
         ClickedLink (Browser.External href) ->
             ( model, Nav.load href )
+
+        PerformedShortcut href ->
+            ( model, Nav.pushUrl (Session.navKey model.session) href )
 
         ResizedDevice deviceProfile ->
             ( { model | deviceProfile = deviceProfile }, Cmd.none )

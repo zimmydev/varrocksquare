@@ -26,7 +26,7 @@ type alias Model =
 init : ( Model, Cmd msg )
 init =
     ( { notifications = True
-      , shortcuts = True
+      , shortcuts = False
       }
     , Cmd.none
     )
@@ -94,7 +94,7 @@ view session model =
                 }
             , el
                 [ Font.color Colors.fadedInk ]
-                (text "– Fire Test Notifications –")
+                (text "« Fire Test Notifications »")
             , link
                 [ Events.onClick <|
                     RequestedNotification Notification.passwordsDontMatch
@@ -136,7 +136,7 @@ view session model =
                 }
             , el
                 [ Font.color Colors.fadedInk ]
-                (text "– Toggles –")
+                (text "« Toggles »")
             , link
                 [ Events.onClick (Toggled Notifications)
                 ]
@@ -168,7 +168,7 @@ view session model =
                                 "off"
                     in
                     text <|
-                        "Toggle shortcuts (currently "
+                        "Toggle shortcuts [Esc–F4] (currently "
                             ++ status
                             ++ ")"
                 }
