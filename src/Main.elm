@@ -15,14 +15,14 @@ import Element.Lazy exposing (..)
 import Icon
 import Inbox
 import Notification exposing (Notification, notify)
-import Notification.Queue
+import Notification.Queue exposing (Queue)
 import Page.Home
 import Page.Search
 import Page.Settings
 import Route exposing (Route)
 import Session exposing (Session(..))
 import Time
-import Ui exposing (DeviceSize)
+import Ui exposing (DeviceProfile(..))
 import Url exposing (Url)
 import Username
 
@@ -34,16 +34,16 @@ import Username
 type alias Model =
     { session : Session
     , currentRoute : Route
-    , deviceSize : DeviceSize
+    , deviceProfile : DeviceProfile
     , menuIsExtended : Bool
-    , notifications : Notification.Queue.Queue
+    , notifications : Queue
     , searchQuery : Maybe String
     , settings : Page.Settings.Model
     }
 
 
 type alias Flags =
-    DeviceSize
+    { width : Int, height : Int }
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -52,13 +52,16 @@ init deviceSize url key =
         initialRoute =
             Route.routeUrl url
 
+        deviceProfile =
+            Ui.profileDevice deviceSize.width
+
         ( settings, settingsCmd ) =
             Page.Settings.init
 
         model =
             { session = Session.debug key
             , currentRoute = initialRoute
-            , deviceSize = deviceSize
+            , deviceProfile = deviceProfile
             , menuIsExtended = False
             , notifications = Notification.Queue.empty
             , searchQuery = Nothing
@@ -97,7 +100,7 @@ type Msg
     = Ignored
     | ClickedLink UrlRequest
     | ChangedRoute Route
-    | ResizedDevice DeviceSize
+    | ResizedDevice DeviceProfile
     | ClickedMenu
     | NotificationFired Notification
     | NotificationExpired Notification
@@ -106,9 +109,22 @@ type Msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions { deviceProfile } =
     Sub.batch
-        [ Browser.Events.onResize (\w h -> ResizedDevice (DeviceSize w h)) ]
+        [ Browser.Events.onResize (handleResize deviceProfile) ]
+
+
+handleResize : DeviceProfile -> Int -> Int -> Msg
+handleResize oldDeviceProfile width _ =
+    let
+        newDeviceProfile =
+            Ui.profileDevice width
+    in
+    if newDeviceProfile /= oldDeviceProfile then
+        ResizedDevice newDeviceProfile
+
+    else
+        Ignored
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -141,8 +157,8 @@ update msg model =
         ClickedLink (Browser.External href) ->
             ( model, Nav.load href )
 
-        ResizedDevice size ->
-            ( { model | deviceSize = size }, Cmd.none )
+        ResizedDevice deviceProfile ->
+            ( { model | deviceProfile = deviceProfile }, Cmd.none )
 
         ClickedMenu ->
             ( { model | menuIsExtended = not model.menuIsExtended }, Cmd.none )
@@ -202,10 +218,10 @@ update msg model =
 
 
 document : Model -> Document Msg
-document ({ currentRoute, deviceSize, menuIsExtended, session, notifications } as model) =
+document ({ currentRoute, deviceProfile, menuIsExtended, session, notifications } as model) =
     let
         navbar =
-            inFront (lazy3 viewNavbar session deviceSize menuIsExtended)
+            inFront (lazy3 viewNavbar session deviceProfile menuIsExtended)
 
         notificationArea =
             inFront (lazy Notification.Queue.view notifications)
@@ -228,8 +244,8 @@ document ({ currentRoute, deviceSize, menuIsExtended, session, notifications } a
     }
 
 
-viewNavbar : Session -> DeviceSize -> Bool -> Element Msg
-viewNavbar session deviceSize menuIsExtended =
+viewNavbar : Session -> DeviceProfile -> Bool -> Element Msg
+viewNavbar session deviceProfile menuIsExtended =
     let
         iconSize =
             Icon.size.small
@@ -244,22 +260,23 @@ viewNavbar session deviceSize menuIsExtended =
             )
 
         logo =
-            link []
-                { url = Links.internal.home
-                , label =
-                    row Styles.logo
-                        [ image []
-                            { src = Links.images.logo
-                            , description = "The " ++ Strings.appName ++ " logo"
-                            }
-                        , text
-                            (Ui.responsive deviceSize
-                                { compact = Strings.appNameShort
-                                , full = Strings.appName
+            List.singleton <|
+                link []
+                    { url = Links.internal.home
+                    , label =
+                        row Styles.logo
+                            [ image []
+                                { src = Links.images.logo
+                                , description = "The " ++ Strings.appName ++ " logo"
                                 }
-                            )
-                        ]
-                }
+                            , text
+                                (Ui.responsive deviceProfile
+                                    { compact = Strings.appNameShort
+                                    , full = Strings.appName
+                                    }
+                                )
+                            ]
+                    }
 
         linkIfLoggedIn attrs linkInfo =
             Ui.credentialed session
@@ -271,28 +288,28 @@ viewNavbar session deviceSize menuIsExtended =
             [ link []
                 { url = Links.internal.explore
                 , label =
-                    Ui.labelRight "Explore" <|
+                    Ui.label "Explore" <|
                         Icon.view <|
                             Icon.binoculars iconSize
                 }
             , link []
                 { url = Links.internal.search
                 , label =
-                    Ui.labelRight "Search" <|
+                    Ui.label "Search" <|
                         Icon.view <|
                             Icon.search iconSize
                 }
             , link []
                 { url = Links.internal.tools
                 , label =
-                    Ui.labelRight "Tools" <|
+                    Ui.label "Tools" <|
                         Icon.view <|
                             Icon.wrench iconSize
                 }
             , linkIfLoggedIn []
                 { url = Links.internal.saved
                 , label =
-                    Ui.labelRight "Saved" <|
+                    Ui.label "Saved" <|
                         Icon.view <|
                             Icon.starBox iconSize
                 }
@@ -300,7 +317,7 @@ viewNavbar session deviceSize menuIsExtended =
                 { url = Links.internal.messages
                 , label =
                     Ui.pill messageCount <|
-                        Ui.labelRight "Messages" <|
+                        Ui.label "Messages" <|
                             Icon.view <|
                                 Icon.paperPlane iconSize
                 }
@@ -310,7 +327,7 @@ viewNavbar session deviceSize menuIsExtended =
             [ link [ alignRight ]
                 { url = Links.external.donate
                 , label =
-                    Ui.labelRight "Donate!" <|
+                    Ui.label "Donate!" <|
                         Icon.view <|
                             Icon.donate iconSize
                 }
@@ -329,38 +346,42 @@ viewNavbar session deviceSize menuIsExtended =
             , link Styles.highlighted
                 { url = Links.internal.settings
                 , label =
-                    Ui.labelRight displayName <|
+                    Ui.label displayName <|
                         Avatar.view 24 avatar
                 }
             ]
+
+        siteMenu =
+            case deviceProfile of
+                Full ->
+                    primaryLinks
+
+                Compact ->
+                    List.singleton <|
+                        link
+                            [ Events.onClick ClickedMenu -- has the convenient side-effect of firing this message when a child is clicked, thereby closing the menu; happens to be the behavior we want!
+                            , if menuIsExtended then
+                                below <|
+                                    column Styles.menu primaryLinks
+
+                              else
+                                below none
+                            ]
+                            { url = Links.internal.inert
+                            , label =
+                                Ui.label "Menu" <|
+                                    Icon.view <|
+                                        if menuIsExtended then
+                                            Icon.upArrow iconSize
+
+                                        else
+                                            Icon.downArrow iconSize
+                            }
     in
     row Styles.navbar <|
         List.concat <|
-            [ List.singleton logo
-            , if Ui.isCompact deviceSize then
-                List.singleton <|
-                    link
-                        [ Events.onClick ClickedMenu -- has the convenient side-effect of firing this message when a child is clicked, thereby closing the menu; happens to be the behavior we want!
-                        , if menuIsExtended then
-                            below <|
-                                column Styles.menu primaryLinks
-
-                          else
-                            below none
-                        ]
-                        { url = Links.internal.inert
-                        , label =
-                            Ui.labelRight "Menu" <|
-                                Icon.view <|
-                                    if menuIsExtended then
-                                        Icon.upArrow iconSize
-
-                                    else
-                                        Icon.downArrow iconSize
-                        }
-
-              else
-                primaryLinks
+            [ logo
+            , siteMenu
             , secondaryLinks
             ]
 

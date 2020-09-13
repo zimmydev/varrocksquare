@@ -71,6 +71,7 @@ menu =
     [ padding 16
     , spacing 16
     , navbarBg
+    , Border.rounded pageBoxRoundness
     , Border.shadow shadow
     ]
 

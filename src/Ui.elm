@@ -1,4 +1,4 @@
-module Ui exposing (DeviceSize, credentialed, isCompact, labelRight, pill, responsive, spinner)
+module Ui exposing (DeviceProfile(..), credentialed, label, pill, profileDevice, responsive, spinner)
 
 import Config.Links as Links
 import Config.Strings as Strings
@@ -31,10 +31,10 @@ spinner attrs =
 -- VISUAL ELEMENT MODIFIERS
 
 
-labelRight : String -> Element msg -> Element msg
-labelRight label element =
+label : String -> Element msg -> Element msg
+label str element =
     row [ spacing 6 ]
-        [ element, text label ]
+        [ element, text str ]
 
 
 pill : Int -> Element msg -> Element msg
@@ -61,21 +61,25 @@ credentialed sess { loggedIn, guest } =
 -- RESPONSIVENESS
 
 
-type alias DeviceSize =
-    { width : Int
-    , height : Int
-    }
+type DeviceProfile
+    = Full
+    | Compact
 
 
-responsive : DeviceSize -> { compact : a, full : a } -> a
-responsive deviceSize { compact, full } =
-    if isCompact deviceSize then
-        compact
+responsive : DeviceProfile -> { compact : a, full : a } -> a
+responsive deviceProfile { compact, full } =
+    case deviceProfile of
+        Compact ->
+            compact
+
+        Full ->
+            full
+
+
+profileDevice : Int -> DeviceProfile
+profileDevice width =
+    if width >= 1180 then
+        Full
 
     else
-        full
-
-
-isCompact : DeviceSize -> Bool
-isCompact { width } =
-    width < 1180
+        Compact
