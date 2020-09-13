@@ -1,4 +1,4 @@
-module Ui exposing (DeviceProfile(..), credentialed, label, pill, profileDevice, responsive, spinner)
+module Ui exposing (DeviceProfile(..), abridge, credentialed, label, pill, profileDevice, responsive, spinner)
 
 import Config.Links as Links
 import Config.Strings as Strings
@@ -55,6 +55,26 @@ credentialed sess { loggedIn, guest } =
 
         LoggedIn _ cred _ _ ->
             loggedIn cred
+
+
+
+-- PRESENTING STRINGS
+
+
+abridge : Int -> String -> String
+abridge length str =
+    let
+        ellipses s =
+            if String.length str > length then
+                s ++ "…"
+
+            else
+                s
+    in
+    str
+        |> String.left length
+        |> String.trimRight
+        |> ellipses
 
 
 

@@ -10,6 +10,7 @@ import Icon exposing (Icon)
 import Process
 import Task
 import Time
+import Ui exposing (abridge)
 import Username exposing (Username)
 
 
@@ -56,15 +57,8 @@ passwordsDontMatch =
 receivedMessage : Credentials -> Username -> String -> Id -> Notification
 receivedMessage _ sender mess =
     let
-        charBalance =
-            String.length mess - App.messagePreviewLength
-
         preview =
-            if charBalance > 0 then
-                String.trimRight (String.dropRight charBalance mess) ++ "…"
-
-            else
-                mess
+            abridge App.messagePreviewLength mess
     in
     ReceivedMessage (Username.toString sender ++ ": " ++ preview)
 
