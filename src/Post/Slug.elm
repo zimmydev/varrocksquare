@@ -19,8 +19,7 @@ type Slug
 
 decoder : Decoder Slug
 decoder =
-    Decode.string
-        |> Decode.map Slug
+    Decode.map Slug Decode.string
 
 
 

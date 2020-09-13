@@ -20,8 +20,7 @@ type Username
 
 decoder : Decoder Username
 decoder =
-    Decode.string
-        |> Decode.map Username
+    Decode.map Username Decode.string
 
 
 
@@ -29,18 +28,18 @@ decoder =
 
 
 encode : Username -> Value
-encode (Username rawUsername) =
-    Encode.string rawUsername
+encode (Username raw) =
+    Encode.string raw
 
 
 toString : Username -> String
-toString (Username username) =
-    username
+toString (Username raw) =
+    raw
 
 
 view : Username -> Element msg
-view (Username username) =
-    Element.text username
+view username =
+    Element.text (toString username)
 
 
 

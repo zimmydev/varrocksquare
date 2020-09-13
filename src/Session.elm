@@ -79,7 +79,7 @@ avatar : Session -> Avatar
 avatar sess =
     case sess of
         Guest _ ->
-            Avatar.guest
+            Avatar.default
 
         LoggedIn _ _ prof _ ->
             Profile.avatar prof

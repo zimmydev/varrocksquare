@@ -1,4 +1,4 @@
-module Avatar exposing (Avatar, debug, decoder, encode, guest, view)
+module Avatar exposing (Avatar, debug, decoder, default, encode, view)
 
 import Config.Links as Links exposing (Href)
 import Config.Styles as Styles
@@ -19,15 +19,14 @@ type Avatar
 -- CREATE
 
 
-guest : Avatar
-guest =
+default : Avatar
+default =
     Avatar Links.assets.guestAvatar
 
 
 decoder : Decoder Avatar
 decoder =
-    Decode.string
-        |> Decode.map Avatar
+    Decode.map Avatar Decode.string
 
 
 
