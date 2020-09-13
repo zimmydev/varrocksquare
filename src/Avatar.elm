@@ -21,7 +21,7 @@ type Avatar
 
 default : Avatar
 default =
-    Avatar Links.assets.guestAvatar
+    Avatar Links.images.defaultAvatar
 
 
 decoder : Decoder Avatar
@@ -50,4 +50,4 @@ view size (Avatar href) =
 
 debug : Avatar
 debug =
-    Avatar (Links.debugAsset "bart.png")
+    Avatar (Links.images.custom "bart.png")

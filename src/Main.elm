@@ -249,7 +249,7 @@ viewNavbar session deviceSize menuIsExtended =
                 , label =
                     row Styles.logo
                         [ image []
-                            { src = Links.assets.logo
+                            { src = Links.images.logo
                             , description = "The " ++ Strings.appName ++ " logo"
                             }
                         , text

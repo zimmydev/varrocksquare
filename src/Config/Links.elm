@@ -1,4 +1,4 @@
-module Config.Links exposing (Href, api, assets, debugAsset, external, internal)
+module Config.Links exposing (Href, api, external, images, internal)
 
 import Url.Builder as Builder
 import Username
@@ -16,23 +16,25 @@ type alias Href =
 -- ASSETS
 
 
-assets =
+images =
     { logo =
-        asset "logo.png"
-    , appBackgroundDark =
-        asset "bg-dark.png"
-    , contentBackgroundDark =
-        asset "bg-content-dark.png"
+        image "logo.png"
     , icon =
         icon
-    , guestAvatar =
-        asset "default-avatar.png"
+    , appBackground =
+        image "bg.png"
+    , contentBackground =
+        image "content-bg.png"
+    , defaultAvatar =
+        image "default-avatar.png"
+    , custom =
+        image
     }
 
 
-asset : String -> Href
-asset filename =
-    Builder.absolute [ "assets", filename ] []
+image : String -> Href
+image filename =
+    Builder.absolute [ "assets", "images", filename ] []
 
 
 icon : String -> Href
@@ -109,12 +111,3 @@ api =
 apiRoute : List String -> List Builder.QueryParameter -> Href
 apiRoute path =
     Builder.absolute ("api" :: path)
-
-
-
--- DEBUG
-
-
-debugAsset : String -> Href
-debugAsset =
-    asset

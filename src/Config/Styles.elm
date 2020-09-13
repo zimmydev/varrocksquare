@@ -50,7 +50,7 @@ root =
     , Font.color Colors.white
     , Font.size (fontSizeBy 1)
     , Font.family [ Font.typeface "Nunito", Font.sansSerif ]
-    , Background.tiled Links.assets.appBackgroundDark
+    , Background.tiled Links.images.appBackground
     ]
 
 
@@ -157,7 +157,7 @@ content =
         :: spacing 15
         :: Font.color Colors.ink
         :: Font.justify
-        :: Background.tiled Links.assets.contentBackgroundDark
+        :: Background.tiled Links.images.contentBackground
         :: pageBox
 
 

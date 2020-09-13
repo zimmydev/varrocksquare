@@ -149,7 +149,7 @@ view icon =
 
 source : Icon -> Href
 source icon =
-    Links.assets.icon (filename icon)
+    Links.images.icon (filename icon)
 
 
 filename : Icon -> String
