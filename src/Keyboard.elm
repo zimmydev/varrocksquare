@@ -5,7 +5,7 @@ import Json.Decode as Decode
 
 
 type Key
-    = Character String
+    = Character Char
     | Control String
 
 
@@ -28,7 +28,7 @@ toKey : String -> Key
 toKey string =
     case String.uncons string of
         Just ( char, "" ) ->
-            Character (String.fromChar char)
+            Character char
 
         _ ->
             Control string
