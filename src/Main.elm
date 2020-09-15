@@ -249,7 +249,11 @@ viewNavbar session deviceProfile menuIsExtended =
     let
         sizes =
             { avatar = 26
-            , icons = Icon.Small
+            , icons =
+                DeviceProfile.responsive deviceProfile
+                    { compact = Icon.Medium
+                    , full = Icon.Small
+                    }
             }
 
         linkIfLoggedIn attrs config =
@@ -287,7 +291,7 @@ viewNavbar session deviceProfile menuIsExtended =
             ]
 
         secondaryLinks =
-            [ link Styles.donate
+            [ link (Styles.donate deviceProfile)
                 -- TODO: make not inert
                 { url = ExternalHref.donate
                 , label = "Donate!" |> iconified (Icon.donate sizes.icons)
@@ -372,7 +376,7 @@ viewNavbar session deviceProfile menuIsExtended =
                 , full = primaryLinks
                 }
     in
-    row Styles.navbar <|
+    row (Styles.navbar deviceProfile) <|
         List.concat <|
             [ List.singleton (Elements.logo deviceProfile)
             , menuElements

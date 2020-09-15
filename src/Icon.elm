@@ -205,7 +205,7 @@ identifier glyph =
             "espresso-cup"
 
         Donate ->
-            "hand-holding-heart"
+            "donate"
 
         Settings ->
             "settings"
@@ -220,10 +220,10 @@ identifier glyph =
             "help"
 
         DownArrow ->
-            "drop-down"
+            "menu-down"
 
         UpArrow ->
-            "up-squared"
+            "menu-up"
 
         NotificationsActive ->
             "notifications-active"

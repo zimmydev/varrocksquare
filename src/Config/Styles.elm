@@ -2,6 +2,7 @@ module Config.Styles exposing (avatar, content, contentHeader, donate, focus, fo
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
+import DeviceProfile exposing (DeviceProfile(..))
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -62,13 +63,22 @@ root =
     ]
 
 
-navbar : List (Attribute msg)
-navbar =
+navbar : DeviceProfile -> List (Attribute msg)
+navbar deviceProfile =
+    let
+        fontSize =
+            case deviceProfile of
+                Compact ->
+                    fontSizeBy 2
+
+                Full ->
+                    fontSizeBy -1
+    in
     [ Region.navigation
     , width fill
     , paddingXY 24 16
     , navbarSpacing
-    , Font.size 14
+    , Font.size fontSize
     , navbarBg
     , Border.shadow shadow
     ]
@@ -90,7 +100,7 @@ pill =
     , paddingXY 6 3
     , Font.bold
     , Font.color Colors.white
-    , Font.size 11
+    , Font.size (fontSizeBy -2)
     , Background.color Colors.red
     , Border.rounded 8
     ]
@@ -206,10 +216,17 @@ highlighted =
     ]
 
 
-donate : List (Attribute msg)
-donate =
+donate : DeviceProfile -> List (Attribute msg)
+donate deviceProfile =
+    let
+        fontSize =
+            DeviceProfile.responsive deviceProfile
+                { compact = fontSizeBy -1
+                , full = 12
+                }
+    in
     [ alignRight
-    , Font.size 12
+    , Font.size fontSize
     , Font.color Colors.green
     ]
 
@@ -295,4 +312,5 @@ focus =
 
 fontSizeBy : Int -> Int
 fontSizeBy =
-    modular 16 1.25 >> round
+    modular 16 1.25
+        >> round
