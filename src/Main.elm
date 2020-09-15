@@ -290,7 +290,7 @@ viewNavbar session deviceProfile menuIsExtended =
             [ link Styles.donate
                 -- TODO: make not inert
                 { url = ExternalHref.donate
-                , label = "Donate" |> iconified (Icon.donate sizes.icons)
+                , label = "Donate!" |> iconified (Icon.donate sizes.icons)
                 }
             , newTabLinkIfFullscreen []
                 { url = ExternalHref.discord

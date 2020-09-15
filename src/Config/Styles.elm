@@ -1,4 +1,4 @@
-module Config.Styles exposing (content, contentHeader, donate, focus, footer, footerElement, highlighted, logo, menu, navatar, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing, toggleButton)
+module Config.Styles exposing (avatar, content, contentHeader, donate, focus, footer, footerElement, highlighted, logo, menu, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing, toggleButton)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -96,8 +96,8 @@ pill =
     ]
 
 
-navatar : Int -> Href -> List (Attribute msg)
-navatar size href =
+avatar : Int -> Href -> List (Attribute msg)
+avatar size href =
     [ width (px size)
     , height (px size)
     , Background.image href
@@ -209,6 +209,7 @@ highlighted =
 donate : List (Attribute msg)
 donate =
     [ alignRight
+    , Font.size 12
     , Font.color Colors.green
     ]
 

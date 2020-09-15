@@ -44,7 +44,7 @@ encode (Avatar href) =
 
 view : Int -> Avatar -> Element msg
 view size (Avatar href) =
-    Element.el (Styles.navatar size href)
+    Element.el (Styles.avatar size href)
         Element.none
 
 
