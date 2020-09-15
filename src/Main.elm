@@ -248,24 +248,16 @@ viewNavbar session deviceProfile menuIsExtended =
             , icons = Icon.Small
             }
 
-        displayName =
-            session
-                |> Session.viewer
-                |> Maybe.map Viewer.username
-                |> Maybe.map Username.toString
-                |> Maybe.map ((++) "@")
-                |> Maybe.withDefault "Guest"
-
-        avatar =
-            session
-                |> Session.viewer
-                |> Maybe.map Viewer.avatar
-                |> Maybe.withDefault Avatar.default
-
         linkIfLoggedIn attrs config =
             Elements.credentialed session
                 { loggedIn = \_ -> Elements.link attrs config
                 , guest = none
+                }
+
+        newTabLinkIfFullscreen attrs config =
+            DeviceProfile.responsive deviceProfile
+                { compact = none
+                , full = newTabLink attrs config
                 }
 
         primaryLinks =
@@ -283,7 +275,10 @@ viewNavbar session deviceProfile menuIsExtended =
                 }
             , linkIfLoggedIn []
                 { route = Route.Inbox
-                , label = "Inbox" |> iconified (Icon.paperPlane sizes.icons) |> pill 69
+                , label =
+                    "Inbox"
+                        |> iconified (Icon.paperPlane sizes.icons)
+                        |> pill 69
                 }
             ]
 
@@ -292,11 +287,11 @@ viewNavbar session deviceProfile menuIsExtended =
                 { url = ExternalHref.donate
                 , label = "Donate" |> iconified (Icon.donate sizes.icons)
                 }
-            , newTabLink []
+            , newTabLinkIfFullscreen []
                 { url = ExternalHref.discord
                 , label = Icon.discord sizes.icons |> Icon.view
                 }
-            , newTabLink []
+            , newTabLinkIfFullscreen []
                 { url = ExternalHref.github
                 , label = Icon.github sizes.icons |> Icon.view
                 }
@@ -306,11 +301,30 @@ viewNavbar session deviceProfile menuIsExtended =
                 }
             , Elements.credentialed session
                 { loggedIn =
-                    \_ ->
-                        Elements.link []
-                            { route = Route.Logout
-                            , label = text "Logout"
-                            }
+                    \viewer ->
+                        let
+                            username =
+                                Viewer.username viewer
+                        in
+                        row [ Styles.navbarSpacing ]
+                            [ Elements.link []
+                                { route = Route.Settings
+                                , label =
+                                    "Settings"
+                                        |> iconified (Icon.settings sizes.icons)
+                                }
+                            , Elements.link []
+                                { route = Route.Logout
+                                , label = text "Logout"
+                                }
+                            , Elements.link Styles.highlighted
+                                { route = Route.Profile username
+                                , label =
+                                    Viewer.avatar viewer
+                                        |> Avatar.view sizes.avatar
+                                        |> labeledRight ("@" ++ Username.toString username)
+                                }
+                            ]
                 , guest =
                     row [ Styles.navbarSpacing ]
                         [ Elements.link []
@@ -321,11 +335,14 @@ viewNavbar session deviceProfile menuIsExtended =
                             { route = Route.Register
                             , label = text "Register"
                             }
+                        , Elements.link Styles.highlighted
+                            { route = Route.Register
+                            , label =
+                                Avatar.default
+                                    |> Avatar.view sizes.avatar
+                                    |> labeledRight "Guest"
+                            }
                         ]
-                }
-            , Elements.link Styles.highlighted
-                { route = Route.Settings
-                , label = avatar |> Avatar.view sizes.avatar |> labeledRight displayName
                 }
             ]
 

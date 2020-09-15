@@ -1,4 +1,4 @@
-module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, search, starBox, success, view, wrench)
+module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, search, settings, starBox, success, view, wrench)
 
 {-| TODO: Merge into `Config.Assets`!
 -}
@@ -20,6 +20,8 @@ type Glyph
     | Wrench
     | Espresso
     | Donate
+    | Settings
+      --| Logout
       -- Abstract
     | Success
     | Error
@@ -91,6 +93,19 @@ espresso =
 donate : Size -> Icon
 donate =
     Icon Donate
+
+
+settings : Size -> Icon
+settings =
+    Icon Settings
+
+
+
+{-
+   logout : Size -> Icon
+   logout =
+       Icon Logout
+-}
 
 
 success : Size -> Icon
@@ -191,6 +206,9 @@ identifier glyph =
 
         Donate ->
             "donate"
+
+        Settings ->
+            "settings"
 
         Success ->
             "ok"
