@@ -1,7 +1,7 @@
 module Page.Settings exposing (Model, Msg(..), init, update, view)
 
 import Browser.Navigation as Nav
-import Config.Links as Links
+import Config.Elements as Elements
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
 import Element exposing (..)
@@ -10,9 +10,10 @@ import Element.Font as Font
 import Element.Input as Input
 import Icon
 import Notification exposing (Notification)
+import Route
 import Session exposing (Session(..))
-import Ui
 import Username
+import Viewer
 
 
 
@@ -20,16 +21,12 @@ import Username
 
 
 type alias Model =
-    { notifications : Bool
-    , shortcuts : Bool
-    }
+    { notifications : Bool }
 
 
 init : ( Model, Cmd msg )
 init =
-    ( { notifications = True
-      , shortcuts = True
-      }
+    ( { notifications = True }
     , Cmd.none
     )
 
@@ -75,27 +72,26 @@ view session model =
             [ Input.button (Styles.toggleButton model.notifications)
                 { onPress = Just (Toggled Notifications)
                 , label =
-                    Ui.label "Message Alerts" <|
-                        Icon.view <|
-                            Icon.notifications model.notifications Icon.size.medium
+                    "Message Alerts"
+                        |> Elements.iconified (Icon.notifications model.notifications Icon.Medium)
                 }
             ]
         , textColumn Styles.content
             [ el
                 [ Font.color Colors.fadedInk ]
                 (text "• Master Debug Menu •")
-            , Ui.credentialed session
+            , Elements.credentialed session
                 { loggedIn =
                     \_ ->
                         link
                             [ Events.onClick (ClickedLogout (Session.navKey session)) ]
-                            { url = Links.internal.inert
+                            { url = Route.inert
                             , label = text "Log out"
                             }
                 , guest =
                     link
                         [ Events.onClick (ClickedLogin (Session.navKey session)) ]
-                        { url = Links.internal.inert
+                        { url = Route.inert
                         , label = text "Log in"
                         }
                 }
@@ -106,37 +102,37 @@ view session model =
                 [ Events.onClick <|
                     RequestedNotification Notification.passwordsDontMatch
                 ]
-                { url = Links.internal.inert
+                { url = Route.inert
                 , label = text "Mismatch passwords"
                 }
-            , Ui.credentialed session
+            , Elements.credentialed session
                 { loggedIn =
-                    \cred ->
+                    \viewer ->
                         link
                             [ Events.onClick <|
                                 RequestedNotification <|
                                     Notification.receivedMessage
-                                        cred
-                                        (Username.debug "bonecrusher69")
-                                        "A little bit of technique"
+                                        (Viewer.authToken viewer)
+                                        Username.debug
+                                        "A little bit of technique in there as well."
                             ]
-                            { url = Links.internal.inert
+                            { url = Route.inert
                             , label = text "Short message"
                             }
                 , guest = none
                 }
-            , Ui.credentialed session
+            , Elements.credentialed session
                 { loggedIn =
-                    \cred ->
+                    \viewer ->
                         link
                             [ Events.onClick <|
                                 RequestedNotification <|
                                     Notification.receivedMessage
-                                        cred
-                                        (Username.debug "Jingle Bells")
+                                        (Viewer.authToken viewer)
+                                        Username.debug
                                         "I can double your GP just meet me at the chaos altar"
                             ]
-                            { url = Links.internal.inert
+                            { url = Route.inert
                             , label = text "Long message"
                             }
                 , guest = none

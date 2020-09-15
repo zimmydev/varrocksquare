@@ -1,13 +1,13 @@
 module Page.Search exposing (focusSearchbar, view)
 
 import Browser.Dom as Dom
+import Config.Elements as Elements
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Element exposing (..)
 import Element.Input as Input
 import Element.Lazy exposing (..)
 import Task
-import Ui
 
 
 
@@ -23,29 +23,28 @@ focusSearchbar focusedSearchbar =
 -- VIEW
 
 
-view : (String -> msg) -> Maybe String -> Element msg
-view changeQuery maybeQuery =
+view : (String -> msg) -> String -> Element msg
+view toMsg query =
     column Styles.page
-        [ lazy2 viewSearchbar changeQuery maybeQuery
-        , case maybeQuery of
-            Just _ ->
-                el Styles.content (Ui.spinner [ centerX ])
+        [ lazy2 searchbar toMsg query
+        , if String.isEmpty query then
+            none
 
-            Nothing ->
-                none
+          else
+            el Styles.content (Elements.spinner [ centerX ])
         ]
 
 
-viewSearchbar : (String -> msg) -> Maybe String -> Element msg
-viewSearchbar changeQuery maybeQuery =
+searchbar : (String -> msg) -> String -> Element msg
+searchbar toMsg query =
     let
         placeholder =
             Input.placeholder Styles.searchPlaceholder
                 (text Strings.searchPlaceholder)
     in
     Input.text Styles.searchbar
-        { onChange = changeQuery
-        , text = maybeQuery |> Maybe.withDefault ""
+        { onChange = toMsg
+        , text = query |> Debug.log "Query"
         , placeholder = Just placeholder
-        , label = Input.labelHidden "Search Bar"
+        , label = Input.labelHidden "Searchbar"
         }

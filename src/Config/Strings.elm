@@ -1,4 +1,4 @@
-module Config.Strings exposing (appName, appNameShort, appTagline, copyright, credit, iconsCreditee, loremIpsum, privacyPolicy, searchPlaceholder, titles)
+module Config.Strings exposing (appName, appNameCompact, appTagline, copyright, loremIpsum, privacyPolicy, searchPlaceholder)
 
 {- ONLY STRINGS IN THIS MODULE -}
 -- APP METADATA
@@ -9,8 +9,8 @@ appName =
     "Varrock Square"
 
 
-appNameShort : String
-appNameShort =
+appNameCompact : String
+appNameCompact =
     "VSq"
 
 
@@ -19,63 +19,9 @@ appTagline =
     "A community hub for OSRS free-to-play players"
 
 
-credit : String
-credit =
-    "Made with ♥︎ by Zimmy"
-
-
 copyright : String
 copyright =
     "© 2020 Hammer Forged Code"
-
-
-
--- ROUTE TITLES
-
-
-titles =
-    { home =
-        appTagline
-    , explore =
-        "Explore Posts"
-    , search =
-        "Search the land!"
-    , saved =
-        "Saved"
-    , messages =
-        "Messages"
-    , tools =
-        "Free-to-Play Tools"
-    , help =
-        "Help"
-    , profileFor =
-        \username ->
-            possessive username ++ " Profile"
-    , settings =
-        "User Settings"
-    , pageNotFound =
-        "Page not found!"
-    }
-
-
-possessive : String -> String
-possessive username =
-    let
-        lastLetter =
-            username
-                |> String.dropLeft (String.length username - 1)
-                |> String.toLower
-    in
-    if lastLetter == "s" then
-        username ++ "'"
-
-    else
-        username ++ "'s"
-
-
-iconsCreditee : String
-iconsCreditee =
-    "icons8"
 
 
 

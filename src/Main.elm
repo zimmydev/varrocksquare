@@ -5,9 +5,11 @@ import Avatar
 import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
-import Config.Links as Links exposing (Href)
+import Config.Elements as Elements exposing (iconified, labeledRight, pill)
+import Config.ExternalHref as ExternalHref
 import Config.Strings as Strings
 import Config.Styles as Styles
+import DeviceProfile exposing (DeviceProfile(..), DeviceSize)
 import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
@@ -22,7 +24,6 @@ import Page.Settings
 import Route exposing (Route)
 import Session exposing (Session(..))
 import Time
-import Ui exposing (DeviceProfile(..))
 import Url exposing (Url)
 import Username
 import Viewer
@@ -38,7 +39,7 @@ type alias Model =
     , deviceProfile : DeviceProfile
     , menuIsExtended : Bool
     , notifications : Queue
-    , searchQuery : Maybe String
+    , searchQuery : String
     , settings : Page.Settings.Model
     }
 
@@ -54,7 +55,7 @@ init deviceSize url key =
             Route.routeUrl url
 
         deviceProfile =
-            Ui.profileDevice deviceSize.width
+            DeviceProfile.profile deviceSize
 
         ( settings, settingsCmd ) =
             Page.Settings.init
@@ -65,13 +66,13 @@ init deviceSize url key =
             , deviceProfile = deviceProfile
             , menuIsExtended = False
             , notifications = Notification.Queue.empty
-            , searchQuery = Nothing
+            , searchQuery = ""
             , settings = settings
             }
 
         cmd =
             case initialRoute of
-                Route.Search ->
+                Route.Search _ ->
                     Cmd.batch
                         [ Page.Search.focusSearchbar Ignored, Cmd.none ]
 
@@ -101,9 +102,8 @@ type Msg
     = Ignored
     | ClickedLink UrlRequest
     | ChangedRoute Route
-    | PerformedShortcut Href
     | ResizedDevice DeviceProfile
-    | ClickedMenu
+    | ClickedNavbarMenu
     | NotificationFired Notification
     | NotificationExpired Notification
     | ChangedQuery String
@@ -117,10 +117,10 @@ subscriptions { deviceProfile, settings } =
 
 
 handleResize : DeviceProfile -> Int -> Int -> Msg
-handleResize oldProfile width _ =
+handleResize oldProfile width height =
     let
         newProfile =
-            Ui.profileDevice width
+            DeviceProfile.profile (DeviceSize width height)
     in
     if newProfile /= oldProfile then
         ResizedDevice newProfile
@@ -141,10 +141,8 @@ update msg model =
                     { model | currentRoute = route }
             in
             case route of
-                Route.Search ->
-                    ( { routedModel | searchQuery = Nothing }
-                    , Page.Search.focusSearchbar Ignored
-                    )
+                Route.Search maybeQuery ->
+                    ( routedModel, Page.Search.focusSearchbar Ignored )
 
                 _ ->
                     ( routedModel, Cmd.none )
@@ -159,13 +157,10 @@ update msg model =
         ClickedLink (Browser.External href) ->
             ( model, Nav.load href )
 
-        PerformedShortcut href ->
-            ( model, Nav.pushUrl (Session.navKey model.session) href )
-
         ResizedDevice deviceProfile ->
             ( { model | deviceProfile = deviceProfile }, Cmd.none )
 
-        ClickedMenu ->
+        ClickedNavbarMenu ->
             ( { model | menuIsExtended = not model.menuIsExtended }, Cmd.none )
 
         NotificationFired notif ->
@@ -183,11 +178,7 @@ update msg model =
             )
 
         ChangedQuery query ->
-            if String.isEmpty query then
-                ( { model | searchQuery = Nothing }, Cmd.none )
-
-            else
-                ( { model | searchQuery = Just query }, Cmd.none )
+            ( { model | searchQuery = query }, Cmd.none )
 
         ChangedSettings (Page.Settings.NotificationFired notif) ->
             -- Re-route to NotificationFired event
@@ -204,7 +195,7 @@ update msg model =
             -- Dispatching to Page.Settings is curtailed in this particular case
             let
                 notif =
-                    Notification.loggedIn (Username.debug "zimmy")
+                    Notification.loggedIn Username.debug
             in
             ( { model | session = Session.new key (Just Viewer.debug) }
             , notify notif NotificationFired
@@ -252,166 +243,130 @@ document ({ currentRoute, deviceProfile, menuIsExtended, session, notifications 
 viewNavbar : Session -> DeviceProfile -> Bool -> Element Msg
 viewNavbar session deviceProfile menuIsExtended =
     let
-        maybeViewer =
-            Session.viewer session
+        sizes =
+            { avatar = 24
+            , icons = Icon.Small
+            }
 
-        iconSize =
-            Icon.size.small
-
-        ( displayName, avatar ) =
-            ( maybeViewer
+        displayName =
+            session
+                |> Session.viewer
                 |> Maybe.map Viewer.username
                 |> Maybe.map Username.toString
                 |> Maybe.map ((++) "@")
                 |> Maybe.withDefault "Guest"
-            , maybeViewer
+
+        avatar =
+            session
+                |> Session.viewer
                 |> Maybe.map Viewer.avatar
                 |> Maybe.withDefault Avatar.default
-            )
 
-        logo =
-            List.singleton <|
-                link []
-                    { url = Links.internal.home
-                    , label =
-                        row Styles.logo
-                            [ image []
-                                { src = Links.images.logo
-                                , description = "The " ++ Strings.appName ++ " logo"
-                                }
-                            , text
-                                (Ui.responsive deviceProfile
-                                    { compact = Strings.appNameShort
-                                    , full = Strings.appName
-                                    }
-                                )
-                            ]
-                    }
-
-        linkIfLoggedIn attrs linkInfo =
-            Ui.credentialed session
-                { loggedIn = \_ -> link attrs linkInfo
+        linkIfLoggedIn attrs config =
+            Elements.credentialed session
+                { loggedIn = \_ -> Elements.link attrs config
                 , guest = none
                 }
 
         primaryLinks =
-            [ link []
-                { url = Links.internal.explore
-                , label =
-                    Ui.label "Explore" <|
-                        Icon.view <|
-                            Icon.binoculars iconSize
+            [ Elements.link []
+                { route = Route.Search Nothing
+                , label = "Search" |> iconified (Icon.search sizes.icons)
                 }
-            , link []
-                { url = Links.internal.search
-                , label =
-                    Ui.label "Search" <|
-                        Icon.view <|
-                            Icon.search iconSize
-                }
-            , link []
-                { url = Links.internal.tools
-                , label =
-                    Ui.label "Tools" <|
-                        Icon.view <|
-                            Icon.wrench iconSize
+            , Elements.link []
+                { route = Route.Tools
+                , label = "Tools" |> iconified (Icon.wrench sizes.icons)
                 }
             , linkIfLoggedIn []
-                { url = Links.internal.saved
-                , label =
-                    Ui.label "Saved" <|
-                        Icon.view <|
-                            Icon.starBox iconSize
+                { route = Route.Starred
+                , label = "Starred" |> iconified (Icon.starBox sizes.icons)
                 }
             , linkIfLoggedIn []
-                { url = Links.internal.messages
-                , label =
-                    Ui.pill 69 <|
-                        Ui.label "Messages" <|
-                            Icon.view <|
-                                Icon.paperPlane iconSize
+                { route = Route.Inbox
+                , label = "Inbox" |> iconified (Icon.paperPlane sizes.icons) |> pill 69
                 }
             ]
 
         secondaryLinks =
-            [ link [ alignRight ]
-                { url = Links.external.donate
-                , label =
-                    Ui.label "Donate!" <|
-                        Icon.view <|
-                            Icon.donate iconSize
+            [ newTabLink [ alignRight ]
+                { url = ExternalHref.donate
+                , label = "Donate" |> iconified (Icon.donate sizes.icons)
                 }
             , newTabLink []
-                { url = Links.external.github
-                , label = Icon.view (Icon.github iconSize)
+                { url = ExternalHref.discord
+                , label = Icon.discord sizes.icons |> Icon.view
                 }
             , newTabLink []
-                { url = Links.external.discord
-                , label = Icon.view (Icon.discord iconSize)
+                { url = ExternalHref.github
+                , label = Icon.github sizes.icons |> Icon.view
                 }
-            , link []
-                { url = Links.internal.help
-                , label = Icon.view (Icon.help iconSize)
+            , Elements.link []
+                { route = Route.Help
+                , label = Icon.help sizes.icons |> Icon.view
                 }
-            , link Styles.highlighted
-                { url = Links.internal.settings
-                , label =
-                    Ui.label displayName <|
-                        Avatar.view 24 avatar
+            , Elements.credentialed session
+                { loggedIn =
+                    \_ ->
+                        Elements.link []
+                            { route = Route.Logout
+                            , label = text "Logout"
+                            }
+                , guest =
+                    row [ Styles.navbarSpacing ]
+                        [ Elements.link []
+                            { route = Route.Login
+                            , label = text "Login"
+                            }
+                        , Elements.link []
+                            { route = Route.Register
+                            , label = text "Register"
+                            }
+                        ]
+                }
+            , Elements.link Styles.highlighted
+                { route = Route.Settings
+                , label = avatar |> Avatar.view sizes.avatar |> labeledRight displayName
                 }
             ]
 
-        siteMenu =
-            case deviceProfile of
-                Full ->
-                    primaryLinks
+        menuElements =
+            let
+                dropDown =
+                    link
+                        [ Events.onClick ClickedNavbarMenu
+                        , if menuIsExtended then
+                            below <|
+                                column Styles.menu primaryLinks
 
-                Compact ->
-                    List.singleton <|
-                        link
-                            [ Events.onClick ClickedMenu -- has the convenient side-effect of firing this message when a child is clicked, thereby closing the menu; happens to be the behavior we want!
-                            , if menuIsExtended then
-                                below <|
-                                    column Styles.menu primaryLinks
-
-                              else
-                                below none
-                            ]
-                            { url = Links.internal.inert
-                            , label =
-                                Ui.label "Menu" <|
-                                    Icon.view <|
-                                        if menuIsExtended then
-                                            Icon.upArrow iconSize
-
-                                        else
-                                            Icon.downArrow iconSize
-                            }
+                          else
+                            below none
+                        ]
+                        { url = Route.inert
+                        , label = "Menu" |> iconified (Icon.arrow menuIsExtended sizes.icons)
+                        }
+            in
+            DeviceProfile.responsive deviceProfile
+                { compact = List.singleton dropDown
+                , full = primaryLinks
+                }
     in
     row Styles.navbar <|
         List.concat <|
-            [ logo
-            , siteMenu
+            [ List.singleton (Elements.logo deviceProfile)
+            , menuElements
             , secondaryLinks
             ]
 
 
 footer : Element msg
 footer =
-    row Styles.footer
-        [ el Styles.footerLeft (text Strings.credit)
-        , el Styles.footerCenter <|
-            row
-                [ centerX ]
-                [ text "Icons by "
-                , newTabLink []
-                    { url = Links.external.icons8
-                    , label = Icon.view (Icon.icons8 Icon.size.small)
-                    }
-                ]
-        , el Styles.footerCenter (text "Privacy Policy")
-        , el Styles.footerRight (text Strings.copyright)
-        ]
+    row Styles.footer <|
+        List.map (el Styles.footerElement)
+            [ Elements.credit
+            , Elements.iconsCredit
+            , Elements.privacyPolicyLink
+            , Elements.copyright
+            ]
 
 
 
@@ -425,7 +380,8 @@ renderPage model =
         Route.Home ->
             lazy Page.Home.view ()
 
-        Route.Search ->
+        Route.Search maybeQuery ->
+            --(maybeQuery |> Maybe.withDefault model.searchQuery)
             lazy2 Page.Search.view ChangedQuery model.searchQuery
 
         Route.Settings ->

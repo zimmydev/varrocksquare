@@ -1,6 +1,6 @@
 module Avatar exposing (Avatar, debug, decoder, default, encode, view)
 
-import Config.Links as Links exposing (Href)
+import Config.Assets as Assets
 import Config.Styles as Styles
 import Element exposing (Element)
 import Json.Decode as Decode exposing (Decoder)
@@ -15,13 +15,17 @@ type Avatar
     = Avatar Href
 
 
+type alias Href =
+    String
+
+
 
 -- CREATE
 
 
 default : Avatar
 default =
-    Avatar Links.images.defaultAvatar
+    Avatar Assets.defaultAvatar
 
 
 decoder : Decoder Avatar
@@ -50,4 +54,4 @@ view size (Avatar href) =
 
 debug : Avatar
 debug =
-    Avatar (Links.images.custom "bart.png")
+    Avatar (Assets.image "bart.png")

@@ -1,6 +1,5 @@
 module Inbox exposing (Inbox, Message, debug, message, messageCount, sender)
 
-import Config.Links exposing (Href)
 import Username exposing (Username)
 
 
@@ -41,7 +40,7 @@ message (Message _ mess) =
 
 debug : Inbox
 debug =
-    [ Message (Username.debug "MessageSender1") "Test message 1"
-    , Message (Username.debug "MessageSender2") "Test message 2"
-    , Message (Username.debug "MessageSender3") "Test message 3"
+    [ Message Username.debug "Test message 1"
+    , Message Username.debug "Test message 2"
+    , Message Username.debug "Test message 3"
     ]

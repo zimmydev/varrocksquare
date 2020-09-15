@@ -4,7 +4,7 @@ import Config.Strings as Strings
 import Config.Styles as Styles
 import Element exposing (..)
 import Element.Lazy exposing (..)
-import Ui exposing (abridge)
+import Utils.String exposing (abridge)
 
 
 type alias Model =

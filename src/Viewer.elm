@@ -36,11 +36,6 @@ decoder =
 -- INFO
 
 
-authToken : Viewer -> AuthToken
-authToken (Viewer _ _ tok) =
-    tok
-
-
 username : Viewer -> Username
 username (Viewer name _ _) =
     name
@@ -51,13 +46,15 @@ avatar (Viewer _ av _) =
     av
 
 
+authToken : Viewer -> AuthToken
+authToken (Viewer _ _ tok) =
+    tok
+
+
 
 -- DEBUG
 
 
 debug : Viewer
 debug =
-    Viewer
-        (Username.debug "zimmy")
-        Avatar.debug
-        Api.debugToken
+    Viewer Username.debug Avatar.debug Api.debugToken

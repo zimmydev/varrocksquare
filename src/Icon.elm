@@ -1,6 +1,9 @@
-module Icon exposing (Icon, Size, binoculars, discord, donate, downArrow, envelope, error, espresso, github, help, icons8, notifications, paperPlane, search, size, starBox, success, upArrow, view, wrench)
+module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, search, starBox, success, view, wrench)
 
-import Config.Links as Links exposing (Href)
+{-| TODO: Merge into `Config.Assets`!
+-}
+
+import Config.Assets as Assets
 import Element exposing (Element)
 
 
@@ -32,6 +35,10 @@ type Glyph
     | Icons8
 
 
+type alias Href =
+    String
+
+
 
 -- SIZES
 
@@ -40,17 +47,6 @@ type Size
     = Small
     | Medium
     | Large
-
-
-size : { large : Size, medium : Size, small : Size }
-size =
-    { small =
-        Small
-    , medium =
-        Medium
-    , large =
-        Large
-    }
 
 
 
@@ -112,14 +108,13 @@ help =
     Icon Help
 
 
-upArrow : Size -> Icon
-upArrow =
-    Icon UpArrow
+arrow : Bool -> Size -> Icon
+arrow isOpen =
+    if isOpen then
+        Icon UpArrow
 
-
-downArrow : Size -> Icon
-downArrow =
-    Icon DownArrow
+    else
+        Icon DownArrow
 
 
 github : Size -> Icon
@@ -161,7 +156,7 @@ view icon =
 
 source : Icon -> Href
 source icon =
-    Links.images.icon (filename icon)
+    Assets.icon (filename icon)
 
 
 filename : Icon -> String

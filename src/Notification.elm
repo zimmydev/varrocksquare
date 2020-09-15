@@ -2,7 +2,6 @@ module Notification exposing (Id, Notification(..), canSilence, expire, id, logg
 
 import Api exposing (AuthToken)
 import Config.App as App
-import Config.Links exposing (Href)
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
 import Element exposing (Attribute, Color, Element)
@@ -10,8 +9,8 @@ import Icon exposing (Icon)
 import Process
 import Task
 import Time
-import Ui exposing (abridge)
 import Username exposing (Username)
+import Utils.String exposing (abridge)
 
 
 type Notification
@@ -107,10 +106,10 @@ view : Notification -> Element msg
 view notif =
     let
         ( icon, color ) =
-            visualElements notif
+            style notif
     in
     Element.el (Styles.notification color) <|
-        Element.row Styles.labeledElement
+        Element.row [ Styles.smallSpacing ]
             [ Icon.view icon, Element.text (payload notif) ]
 
 
@@ -135,11 +134,11 @@ expire notif expireNotif =
 -- HELPER
 
 
-visualElements : Notification -> ( Icon, Color )
-visualElements notif =
+style : Notification -> ( Icon, Color )
+style notif =
     let
         size =
-            Icon.size.small
+            Icon.Small
     in
     case notif of
         Info _ _ ->

@@ -1,4 +1,4 @@
-module Username exposing (Username, debug, decoder, encode, toString, urlParser, view)
+module Username exposing (Username, appAuthor, debug, decoder, encode, toPossessiveString, toString, urlParser, view)
 
 import Element exposing (Element)
 import Json.Decode as Decode exposing (Decoder)
@@ -37,6 +37,15 @@ toString (Username raw) =
     raw
 
 
+toPossessiveString : Username -> String
+toPossessiveString (Username raw) =
+    if String.right 1 raw == "s" then
+        raw ++ "'"
+
+    else
+        raw ++ "'s"
+
+
 view : Username -> Element msg
 view username =
     Element.text (toString username)
@@ -48,14 +57,23 @@ view username =
 
 urlParser : Parser (Username -> a) a
 urlParser =
-    Url.Parser.custom "USERNAME"
-        (Just << Username)
+    Url.Parser.map Username Url.Parser.string
+
+
+
+-- ETC.
+
+
+appAuthor : Username
+appAuthor =
+    -- An easter egg of sorts
+    Username "TrustNoBanks"
 
 
 
 -- DEBUG
 
 
-debug : String -> Username
+debug : Username
 debug =
-    Username
+    Username "DebugUser"

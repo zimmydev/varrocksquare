@@ -1,86 +1,254 @@
-module Route exposing (Route(..), routeUrl, title)
+module Route exposing (Href, Route(..), inert, pushRoute, replaceRoute, routeUrl, title, toHref)
 
+import Browser.Navigation as Nav
 import Config.Strings as Strings
+import Post.Slug as Slug exposing (Slug)
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), (<?>))
+import Url.Builder as Builder
+import Url.Parser as Parser exposing ((</>), (<?>), Parser, s)
 import Url.Parser.Query as Query
+import Username exposing (Username)
 
 
+
+-- TYPES
+
+
+{-| `Route` represents the current routing of the application. Routes as a
+concept are related to pages, but not 1:1.
+
+Some notes about app-specific routing:
+
+  - `Root` and `Home` will normally be identical routes, but are split into two
+    variants in the case that we want to move our `Home` route to make room for
+    e.g. an announcement on the frontpage/root route.
+  - `Home` is where personal and global feeds are presented.
+  - `NotFound` is always the fallback route when no other route can be parsed.
+
+-}
 type Route
-    = Home
-    | Explore
-    | Search
-    | Saved
-    | Messages
+    = NotFound
+      -- Main routes
+    | Root
+    | Home
+    | Post Slug
+    | Profile Username
+    | Search (Maybe String)
     | Tools
     | Help
-    | Profile String
+    | PrivacyPolicy
+      -- Main routes (credentialed)
+    | NewPost
+    | EditPost Slug
     | Settings
-    | NotFound
+    | Starred
+    | Inbox
+      -- Account actions
+    | Login
+    | Logout
+    | Register
 
 
-type alias GroupId =
+type alias Href =
     String
+
+
+
+-- ROUTE PARSING
+
+
+parser : Parser (Route -> a) a
+parser =
+    Parser.oneOf
+        [ -- Main routes
+          Parser.map Home Parser.top
+        , Parser.map Post (s "post" </> Slug.urlParser)
+        , Parser.map Profile (s "profile" </> Username.urlParser)
+        , Parser.map Search (s "search" <?> Query.string "query")
+        , Parser.map Tools (s "tools")
+
+        -- Main routes (credentialed)
+        , Parser.map NewPost (s "editor")
+        , Parser.map EditPost (s "editor" </> Slug.urlParser)
+        , Parser.map Settings (s "settings")
+        , Parser.map Starred (s "starred")
+        , Parser.map Inbox (s "inbox")
+
+        -- Account actions
+        , Parser.map Login (s "login")
+        , Parser.map Logout (s "logout")
+        , Parser.map Register (s "register")
+
+        -- Low-traffic main routes
+        , Parser.map Help (s "help")
+        , Parser.map PrivacyPolicy (s "privacy-policy")
+        ]
+
+
+
+-- ROUTING
 
 
 routeUrl : Url -> Route
 routeUrl url =
-    let
-        requireQuery route maybeRoute =
-            maybeRoute
-                |> Maybe.map route
-                |> Maybe.withDefault NotFound
-
-        routeParsers =
-            [ Parser.map Home Parser.top
-            , Parser.map Explore (Parser.s "explore")
-            , Parser.map Search (Parser.s "search")
-            , Parser.map Saved (Parser.s "saved")
-            , Parser.map Messages (Parser.s "messages")
-            , Parser.map Tools (Parser.s "tools")
-            , Parser.map Help (Parser.s "help")
-            , Parser.map (requireQuery Profile) (Parser.s "profile" <?> Query.string "user")
-            , Parser.map Settings (Parser.s "settings")
-            ]
-    in
     url
-        |> Parser.parse (Parser.oneOf routeParsers)
+        |> Parser.parse parser
         |> Maybe.withDefault NotFound
+
+
+
+-- ROUTING COMMANDS
+
+
+pushRoute : Nav.Key -> Route -> Cmd msg
+pushRoute key route =
+    Nav.pushUrl key (toHref route)
+
+
+replaceRoute : Nav.Key -> Route -> Cmd msg
+replaceRoute key route =
+    Nav.replaceUrl key (toHref route)
+
+
+
+-- DEROUTING
+
+
+inert : Href
+inert =
+    Builder.relative [] []
+
+
+toHref : Route -> Href
+toHref route =
+    let
+        ( paths, queries ) =
+            case route of
+                NotFound ->
+                    ( [], [] )
+
+                Root ->
+                    ( [], [] )
+
+                Home ->
+                    ( [], [] )
+
+                Post slug ->
+                    ( [ "post", Slug.toString slug ], [] )
+
+                Profile username ->
+                    ( [ "profile", Username.toString username ], [] )
+
+                Search maybeQuery ->
+                    ( [ "search" ]
+                    , case maybeQuery of
+                        Nothing ->
+                            []
+
+                        Just query ->
+                            [ Builder.string "query" query ]
+                    )
+
+                Tools ->
+                    ( [ "tools" ], [] )
+
+                Help ->
+                    ( [ "help" ], [] )
+
+                PrivacyPolicy ->
+                    ( [ "privacy-policy" ], [] )
+
+                NewPost ->
+                    ( [ "editor" ], [] )
+
+                EditPost slug ->
+                    ( [ "editor", Slug.toString slug ], [] )
+
+                Settings ->
+                    ( [ "settings" ], [] )
+
+                Starred ->
+                    ( [ "starred" ], [] )
+
+                Inbox ->
+                    ( [ "inbox" ], [] )
+
+                Login ->
+                    ( [ "login" ], [] )
+
+                Logout ->
+                    ( [ "logout" ], [] )
+
+                Register ->
+                    ( [ "register" ], [] )
+    in
+    Builder.absolute paths queries
+
+
+
+-- PUBLIC INFO
 
 
 title : Route -> String
 title route =
     let
-        t =
-            case route of
-                Home ->
-                    Strings.titles.home
-
-                Explore ->
-                    Strings.titles.explore
-
-                Search ->
-                    Strings.titles.search
-
-                Saved ->
-                    Strings.titles.saved
-
-                Messages ->
-                    Strings.titles.messages
-
-                Tools ->
-                    Strings.titles.tools
-
-                Help ->
-                    Strings.titles.help
-
-                Profile username ->
-                    Strings.titles.profileFor username
-
-                Settings ->
-                    Strings.titles.settings
-
-                NotFound ->
-                    Strings.titles.pageNotFound
+        prefixAppName s =
+            Strings.appName ++ " • " ++ s
     in
-    String.join " " [ Strings.appName, "•", t ]
+    case route of
+        -- Main routes
+        Root ->
+            title Home
+
+        Home ->
+            prefixAppName Strings.appTagline
+
+        Post _ ->
+            prefixAppName "Post"
+
+        Profile username ->
+            prefixAppName (Username.toPossessiveString username ++ " Profile")
+
+        Search Nothing ->
+            prefixAppName "Search"
+
+        Search (Just query) ->
+            prefixAppName ("Search for '" ++ query ++ "'")
+
+        Tools ->
+            prefixAppName "Tools for F2P"
+
+        Help ->
+            prefixAppName "Help"
+
+        PrivacyPolicy ->
+            prefixAppName "Privacy Policy"
+
+        -- Main routes (credentialed)
+        NewPost ->
+            prefixAppName "New Post"
+
+        EditPost _ ->
+            prefixAppName "Editing Post"
+
+        Settings ->
+            prefixAppName "Settings"
+
+        Starred ->
+            prefixAppName "Starred Posts"
+
+        Inbox ->
+            prefixAppName "Inbox"
+
+        -- Account actions
+        Login ->
+            prefixAppName "Login"
+
+        Logout ->
+            prefixAppName "Logout"
+
+        Register ->
+            prefixAppName "Registration"
+
+        NotFound ->
+            prefixAppName "Page not found!"

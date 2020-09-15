@@ -1,6 +1,6 @@
-module Config.Styles exposing (content, contentHeader, focus, footer, footerCenter, footerLeft, footerRight, highlighted, labeledElement, logo, menu, navatar, navbar, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, toggleButton)
+module Config.Styles exposing (content, contentHeader, focus, footer, footerElement, highlighted, logo, menu, navatar, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing, toggleButton)
 
-import Config.Links as Links exposing (Href)
+import Config.Assets as Assets
 import Config.Styles.Colors as Colors
 import Element exposing (..)
 import Element.Background as Background
@@ -9,6 +9,14 @@ import Element.Font as Font
 import Element.Region as Region
 import Html.Attributes exposing (class)
 import Icon
+
+
+
+-- TYPES
+
+
+type alias Href =
+    String
 
 
 
@@ -50,7 +58,7 @@ root =
     , Font.color Colors.white
     , Font.size (fontSizeBy 1)
     , Font.family [ Font.typeface "Nunito", Font.sansSerif ]
-    , Background.tiled Links.images.appBackground
+    , Background.tiled Assets.appBackground
     ]
 
 
@@ -59,7 +67,7 @@ navbar =
     [ Region.navigation
     , width fill
     , paddingXY 24 16
-    , spacing 24
+    , navbarSpacing
     , Font.size 14
     , navbarBg
     , Border.shadow shadow
@@ -158,7 +166,7 @@ content =
         :: spacing 15
         :: Font.color Colors.ink
         :: Font.justify
-        :: Background.tiled Links.images.contentBackground
+        :: Background.tiled Assets.contentBackground
         :: pageBox
 
 
@@ -228,19 +236,9 @@ toggleButton toggle =
         deactivated
 
 
-footerLeft : List (Attribute msg)
-footerLeft =
-    [ width (fillPortion 1), Font.alignLeft ]
-
-
-footerCenter : List (Attribute msg)
-footerCenter =
-    [ width (fillPortion 1), Font.center ]
-
-
-footerRight : List (Attribute msg)
-footerRight =
-    [ width (fillPortion 1), Font.alignRight ]
+footerElement : List (Attribute msg)
+footerElement =
+    [ width fill ]
 
 
 
@@ -261,14 +259,18 @@ contentHeader heading =
     ]
 
 
-labeledElement : List (Attribute msg)
-labeledElement =
-    -- Default attributes applied to all 'labeled' UI Elements (icon + text)
-    [ spacing 6 ]
-
-
 
 -- MISC. EXPOSED STYLE CONFIGURATIONS
+
+
+navbarSpacing : Attribute msg
+navbarSpacing =
+    spacing 24
+
+
+smallSpacing : Attribute msg
+smallSpacing =
+    spacing 6
 
 
 focus : FocusStyle
