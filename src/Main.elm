@@ -135,6 +135,20 @@ update msg model =
         Ignored ->
             ( model, Cmd.none )
 
+        ClickedLink (Browser.Internal url) ->
+            let
+                nextRoute =
+                    Route.routeUrl url
+            in
+            if nextRoute == model.currentRoute then
+                update Ignored model
+
+            else
+                ( model, Route.push (Session.navKey model.session) nextRoute )
+
+        ClickedLink (Browser.External href) ->
+            ( model, Nav.load href )
+
         ChangedRoute route ->
             let
                 routedModel =
@@ -146,16 +160,6 @@ update msg model =
 
                 _ ->
                     ( routedModel, Cmd.none )
-
-        ClickedLink (Browser.Internal url) ->
-            if Route.routeUrl url == model.currentRoute then
-                update Ignored model
-
-            else
-                ( model, Nav.pushUrl (Session.navKey model.session) (Url.toString url) )
-
-        ClickedLink (Browser.External href) ->
-            ( model, Nav.load href )
 
         ResizedDevice deviceProfile ->
             ( { model | deviceProfile = deviceProfile }, Cmd.none )
@@ -283,7 +287,8 @@ viewNavbar session deviceProfile menuIsExtended =
             ]
 
         secondaryLinks =
-            [ newTabLink [ alignRight ]
+            [ link Styles.donate
+                -- TODO: make not inert
                 { url = ExternalHref.donate
                 , label = "Donate" |> iconified (Icon.donate sizes.icons)
                 }

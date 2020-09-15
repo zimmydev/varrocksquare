@@ -1,4 +1,4 @@
-module Config.Styles exposing (content, contentHeader, focus, footer, footerElement, highlighted, logo, menu, navatar, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing, toggleButton)
+module Config.Styles exposing (content, contentHeader, donate, focus, footer, footerElement, highlighted, logo, menu, navatar, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing, toggleButton)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -203,6 +203,13 @@ highlighted : List (Attribute msg)
 highlighted =
     [ Font.bold
     , Font.color Colors.blue
+    ]
+
+
+donate : List (Attribute msg)
+donate =
+    [ alignRight
+    , Font.color Colors.green
     ]
 
 

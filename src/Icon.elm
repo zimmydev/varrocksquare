@@ -205,7 +205,7 @@ identifier glyph =
             "espresso-cup"
 
         Donate ->
-            "donate"
+            "hand-holding-heart"
 
         Settings ->
             "settings"

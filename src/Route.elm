@@ -1,4 +1,4 @@
-module Route exposing (Href, Route(..), inert, pushRoute, replaceRoute, routeUrl, title, toHref)
+module Route exposing (Href, Route(..), inert, push, replace, routeUrl, title, toHref)
 
 import Browser.Navigation as Nav
 import Config.Strings as Strings
@@ -100,13 +100,13 @@ routeUrl url =
 -- ROUTING COMMANDS
 
 
-pushRoute : Nav.Key -> Route -> Cmd msg
-pushRoute key route =
+push : Nav.Key -> Route -> Cmd msg
+push key route =
     Nav.pushUrl key (toHref route)
 
 
-replaceRoute : Nav.Key -> Route -> Cmd msg
-replaceRoute key route =
+replace : Nav.Key -> Route -> Cmd msg
+replace key route =
     Nav.replaceUrl key (toHref route)
 
 
