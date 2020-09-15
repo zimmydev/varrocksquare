@@ -28,7 +28,7 @@ github =
 
 discord : Href
 discord =
-    Builder.crossOrigin "https://discord.gg" [ "RA8bujG" ] []
+    Builder.crossOrigin "https://discord.gg" [ "jq3gaCS" ] []
 
 
 donate : Href
