@@ -269,7 +269,11 @@ viewNavbar session deviceProfile menuIsExtended =
                 }
 
         primaryLinks =
-            [ Elements.link []
+            [ linkIfLoggedIn []
+                { route = Route.NewPost
+                , label = "New Post" |> iconified (Icon.pencil sizes.icons)
+                }
+            , Elements.link []
                 { route = Route.Search Nothing
                 , label = "Search" |> iconified (Icon.search sizes.icons)
                 }
@@ -368,7 +372,7 @@ viewNavbar session deviceProfile menuIsExtended =
                             below none
                         ]
                         { url = Route.inert
-                        , label = "Menu" |> iconified (Icon.arrow menuIsExtended sizes.icons)
+                        , label = "Go to…" |> iconified (Icon.arrow menuIsExtended sizes.icons)
                         }
             in
             DeviceProfile.responsive deviceProfile

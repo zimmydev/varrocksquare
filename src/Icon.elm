@@ -1,4 +1,4 @@
-module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, search, settings, starBox, success, view, wrench)
+module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, pencil, search, settings, starBox, success, view, wrench)
 
 {-| TODO: Merge into `Config.Assets`!
 -}
@@ -13,6 +13,7 @@ type Icon
 
 type Glyph
     = Binoculars
+    | Pencil
     | Search
     | StarBox
     | PaperPlane
@@ -58,6 +59,11 @@ type Size
 binoculars : Size -> Icon
 binoculars =
     Icon Binoculars
+
+
+pencil : Size -> Icon
+pencil =
+    Icon Pencil
 
 
 search : Size -> Icon
@@ -185,6 +191,9 @@ identifier glyph =
     case glyph of
         Binoculars ->
             "binoculars"
+
+        Pencil ->
+            "pencil"
 
         Search ->
             "search"
