@@ -103,7 +103,7 @@ type Msg
     | ClickedLink UrlRequest
     | ChangedRoute Route
     | ResizedDevice DeviceProfile
-    | ClickedNavbarMenu
+    | ClickedNavMenu
     | NotificationFired Notification
     | NotificationExpired Notification
     | ChangedQuery String
@@ -164,7 +164,7 @@ update msg model =
         ResizedDevice deviceProfile ->
             ( { model | deviceProfile = deviceProfile }, Cmd.none )
 
-        ClickedNavbarMenu ->
+        ClickedNavMenu ->
             ( { model | menuIsExtended = not model.menuIsExtended }, Cmd.none )
 
         NotificationFired notif ->
@@ -355,7 +355,7 @@ viewNavbar session deviceProfile menuIsExtended =
             let
                 dropDown =
                     link
-                        [ Events.onClick ClickedNavbarMenu
+                        [ Events.onClick ClickedNavMenu
                         , if menuIsExtended then
                             below <|
                                 column Styles.menu primaryLinks
