@@ -1,7 +1,6 @@
 module Api.Endpoint exposing (Endpoint, comment, comments, feed, follow, login, post, posts, profile, request, star, user, users)
 
 import CommentId exposing (CommentId)
-import Config.Links exposing (Href)
 import Http
 import Post.Slug as Slug exposing (Slug)
 import Url.Builder exposing (QueryParameter)
@@ -14,6 +13,10 @@ import Username exposing (Username)
 
 type Endpoint
     = Endpoint Href
+
+
+type alias Href =
+    String
 
 
 
