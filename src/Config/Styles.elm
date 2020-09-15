@@ -270,7 +270,7 @@ navbarSpacing =
 
 smallSpacing : Attribute msg
 smallSpacing =
-    spacing 6
+    spacing 7
 
 
 focus : FocusStyle

@@ -244,7 +244,7 @@ viewNavbar : Session -> DeviceProfile -> Bool -> Element Msg
 viewNavbar session deviceProfile menuIsExtended =
     let
         sizes =
-            { avatar = 24
+            { avatar = 28
             , icons = Icon.Small
             }
 
