@@ -1,4 +1,4 @@
-module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, pencil, search, settings, starBox, success, view, wrench)
+module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, pencil, radioFocused, radioOff, radioOn, search, settings, starBox, success, view, wrench)
 
 {-| TODO: Merge into `Config.Assets`!
 -}
@@ -29,6 +29,9 @@ type Glyph
     | Help
     | DownArrow
     | UpArrow
+    | RadioOn
+    | RadioOff
+    | RadioFocused
       -- Setting toggles
     | NotificationsActive
     | NotificationsInactive
@@ -138,6 +141,21 @@ arrow isOpen =
         Icon DownArrow
 
 
+radioOn : Size -> Icon
+radioOn =
+    Icon RadioOn
+
+
+radioOff : Size -> Icon
+radioOff =
+    Icon RadioOff
+
+
+radioFocused : Size -> Icon
+radioFocused =
+    Icon RadioFocused
+
+
 github : Size -> Icon
 github =
     Icon Github
@@ -233,6 +251,15 @@ identifier glyph =
 
         UpArrow ->
             "menu-up"
+
+        RadioOn ->
+            "radio-on"
+
+        RadioOff ->
+            "radio-off"
+
+        RadioFocused ->
+            "radio-focused"
 
         NotificationsActive ->
             "notifications-active"

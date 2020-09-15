@@ -9,6 +9,7 @@ import Element exposing (Color, rgb255)
 
 black : Color
 black =
+    -- #1c1c1e
     rgb255 28 28 30
 
 
@@ -30,6 +31,7 @@ red =
 
 green : Color
 green =
+    -- #30d158
     rgb255 48 209 88
 
 
@@ -54,6 +56,7 @@ pink =
 
 ink : Color
 ink =
+    -- #2f1600
     rgb255 47 22 0
 
 

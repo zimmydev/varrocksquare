@@ -1,4 +1,4 @@
-module Config.Styles exposing (avatar, content, contentHeader, donate, focus, footer, footerElement, highlighted, logo, menu, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing, toggleButton)
+module Config.Styles exposing (avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, menu, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -231,34 +231,22 @@ donate deviceProfile =
     ]
 
 
-toggleButton : Bool -> List (Attribute msg)
-toggleButton toggle =
-    let
-        button =
-            [ paddingXY 15 10
-            , Border.width 3
-            , Border.rounded pageBoxRoundness
-            ]
+button : List (Attribute msg)
+button =
+    [ paddingXY 15 10
+    , Font.color Colors.green
+    , Border.color Colors.green
+    , Border.width 3
+    , Border.rounded pageBoxRoundness
+    ]
 
-        activated =
-            let
-                color =
-                    Colors.green
-            in
-            Font.color color :: Border.color color :: button
 
-        deactivated =
-            let
-                color =
-                    Colors.lightGrey 4
-            in
-            Font.color color :: Border.color color :: button
-    in
-    if toggle then
-        activated
-
-    else
-        deactivated
+inputLabel : List (Attribute msg)
+inputLabel =
+    [ centerY
+    , width (px 200)
+    , Font.bold
+    ]
 
 
 footerElement : List (Attribute msg)

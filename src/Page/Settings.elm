@@ -8,7 +8,7 @@ import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
-import Icon
+import Icon exposing (Icon)
 import Notification exposing (Notification)
 import Route
 import Session exposing (Session(..))
@@ -41,6 +41,7 @@ type Msg
     | ClickedLogin Nav.Key
     | ClickedLogout Nav.Key
     | Toggled SettingsToggle
+    | SetNotifications Bool
 
 
 type SettingsToggle
@@ -52,6 +53,9 @@ update msg model =
     case msg of
         Toggled Notifications ->
             ( { model | notifications = not model.notifications }, Cmd.none )
+
+        SetNotifications bool ->
+            ( { model | notifications = bool }, Cmd.none )
 
         RequestedNotification notif ->
             ( model, Notification.notify notif NotificationFired )
@@ -68,12 +72,24 @@ update msg model =
 view : Session -> Model -> Element Msg
 view session model =
     column Styles.page
-        [ row [ spacing 24 ]
-            [ Input.button (Styles.toggleButton model.notifications)
-                { onPress = Just (Toggled Notifications)
+        [ column Styles.content
+            [ Input.radioRow [ spacing 20 ]
+                { onChange = SetNotifications
+                , selected = Just model.notifications
                 , label =
-                    "Message Alerts"
-                        |> Elements.iconified (Icon.notifications model.notifications Icon.Medium)
+                    Input.labelLeft
+                        Styles.inputLabel
+                        (text "Message Notifications:")
+                , options =
+                    [ Input.optionWith True <|
+                        \state ->
+                            Elements.labeledRight "On" <|
+                                Icon.view (radioIcon state)
+                    , Input.optionWith False <|
+                        \state ->
+                            Elements.labeledRight "Off" <|
+                                Icon.view (radioIcon state)
+                    ]
                 }
             ]
         , textColumn Styles.content
@@ -139,3 +155,16 @@ view session model =
                 }
             ]
         ]
+
+
+radioIcon : Input.OptionState -> Icon
+radioIcon state =
+    case state of
+        Input.Idle ->
+            Icon.radioOff Icon.Medium
+
+        Input.Focused ->
+            Icon.radioFocused Icon.Medium
+
+        Input.Selected ->
+            Icon.radioOn Icon.Medium
