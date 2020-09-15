@@ -1,6 +1,6 @@
 module User exposing (FollowedUser, UnfollowedUser, User(..), profile, username)
 
-import Credentials exposing (Credentials)
+import Api exposing (AuthToken)
 import Profile exposing (Profile)
 import Username exposing (Username)
 
@@ -12,7 +12,7 @@ import Username exposing (Username)
 type User
     = IsFollowing FollowedUser
     | IsNotFollowing UnfollowedUser
-    | IsSelf Credentials Profile
+    | IsSelf AuthToken Username Profile
 
 
 type FollowedUser
@@ -36,8 +36,8 @@ username user =
         IsNotFollowing (UnfollowedUser name _) ->
             name
 
-        IsSelf cred _ ->
-            Credentials.username cred
+        IsSelf _ name _ ->
+            name
 
 
 profile : User -> Profile
@@ -49,5 +49,5 @@ profile user =
         IsNotFollowing (UnfollowedUser _ prof) ->
             prof
 
-        IsSelf _ prof ->
+        IsSelf _ _ prof ->
             prof

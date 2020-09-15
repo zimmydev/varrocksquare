@@ -1,6 +1,8 @@
-module Api exposing (AuthToken, authHeader, debugToken)
+module Api exposing (AuthToken, authHeader, debugToken, tokenDecoder)
 
 import Http
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline exposing (required)
 
 
 
@@ -13,12 +15,21 @@ type AuthToken
 
 
 -- AUTHTOKEN: CREATE
+
+
+tokenDecoder : Decoder AuthToken
+tokenDecoder =
+    Decode.succeed AuthToken
+        |> required "token" Decode.string
+
+
+
 -- AUTHTOKEN: TRANSFORM
 
 
 authHeader : AuthToken -> Http.Header
-authHeader (AuthToken token) =
-    Http.header "Authorization" ("Token " ++ token)
+authHeader (AuthToken tok) =
+    Http.header "Authorization" ("Token " ++ tok)
 
 
 

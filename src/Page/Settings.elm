@@ -48,7 +48,6 @@ type Msg
 
 type SettingsToggle
     = Notifications
-    | Shortcuts
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -56,9 +55,6 @@ update msg model =
     case msg of
         Toggled Notifications ->
             ( { model | notifications = not model.notifications }, Cmd.none )
-
-        Toggled Shortcuts ->
-            ( { model | shortcuts = not model.shortcuts }, Cmd.none )
 
         RequestedNotification notif ->
             ( model, Notification.notify notif NotificationFired )
@@ -82,13 +78,6 @@ view session model =
                     Ui.label "Message Alerts" <|
                         Icon.view <|
                             Icon.notifications model.notifications Icon.size.medium
-                }
-            , Input.button (Styles.toggleButton model.shortcuts)
-                { onPress = Just (Toggled Shortcuts)
-                , label =
-                    Ui.label "Shortcuts" <|
-                        Icon.view <|
-                            Icon.shortcuts model.shortcuts Icon.size.medium
                 }
             ]
         , textColumn Styles.content

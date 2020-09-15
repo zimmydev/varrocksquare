@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Api exposing (AuthToken)
 import Avatar
 import Browser exposing (Document, UrlRequest)
 import Browser.Events
@@ -7,14 +8,12 @@ import Browser.Navigation as Nav
 import Config.Links as Links exposing (Href)
 import Config.Strings as Strings
 import Config.Styles as Styles
-import Credentials exposing (Credentials)
 import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (..)
 import Icon
 import Inbox
-import Keyboard
 import Notification exposing (Notification, notify)
 import Notification.Queue exposing (Queue)
 import Page.Home
@@ -26,6 +25,7 @@ import Time
 import Ui exposing (DeviceProfile(..))
 import Url exposing (Url)
 import Username
+import Viewer
 
 
 
@@ -60,7 +60,7 @@ init deviceSize url key =
             Page.Settings.init
 
         model =
-            { session = Session.debug key
+            { session = Session.new key (Just Viewer.debug)
             , currentRoute = initialRoute
             , deviceProfile = deviceProfile
             , menuIsExtended = False
@@ -113,23 +113,17 @@ type Msg
 subscriptions : Model -> Sub Msg
 subscriptions { deviceProfile, settings } =
     Sub.batch
-        [ Browser.Events.onResize (handleResize deviceProfile)
-        , if settings.shortcuts then
-            Sub.map PerformedShortcut Keyboard.onShortcut
-
-          else
-            Sub.none
-        ]
+        [ Browser.Events.onResize (handleResize deviceProfile) ]
 
 
 handleResize : DeviceProfile -> Int -> Int -> Msg
-handleResize oldDeviceProfile width _ =
+handleResize oldProfile width _ =
     let
-        newDeviceProfile =
+        newProfile =
             Ui.profileDevice width
     in
-    if newDeviceProfile /= oldDeviceProfile then
-        ResizedDevice newDeviceProfile
+    if newProfile /= oldProfile then
+        ResizedDevice newProfile
 
     else
         Ignored
@@ -202,7 +196,7 @@ update msg model =
         ChangedSettings (Page.Settings.ClickedLogout key) ->
             -- Dispatching to Page.Settings is curtailed in this particular case
             -- TODO: Clear out the session from the localStorage
-            ( { model | session = Guest key }
+            ( { model | session = Session.new key Nothing }
             , notify Notification.loggedOut NotificationFired
             )
 
@@ -212,7 +206,7 @@ update msg model =
                 notif =
                     Notification.loggedIn (Username.debug "zimmy")
             in
-            ( { model | session = Session.debug key }
+            ( { model | session = Session.new key (Just Viewer.debug) }
             , notify notif NotificationFired
             )
 
@@ -258,16 +252,21 @@ document ({ currentRoute, deviceProfile, menuIsExtended, session, notifications 
 viewNavbar : Session -> DeviceProfile -> Bool -> Element Msg
 viewNavbar session deviceProfile menuIsExtended =
     let
+        maybeViewer =
+            Session.viewer session
+
         iconSize =
             Icon.size.small
 
-        ( displayName, avatar, messageCount ) =
-            ( Session.displayName session
-            , Session.avatar session
-            , session
-                |> Session.inbox
-                |> Maybe.map Inbox.messageCount
-                |> Maybe.withDefault 0
+        ( displayName, avatar ) =
+            ( maybeViewer
+                |> Maybe.map Viewer.username
+                |> Maybe.map Username.toString
+                |> Maybe.map ((++) "@")
+                |> Maybe.withDefault "Guest"
+            , maybeViewer
+                |> Maybe.map Viewer.avatar
+                |> Maybe.withDefault Avatar.default
             )
 
         logo =
@@ -327,7 +326,7 @@ viewNavbar session deviceProfile menuIsExtended =
             , linkIfLoggedIn []
                 { url = Links.internal.messages
                 , label =
-                    Ui.pill messageCount <|
+                    Ui.pill 69 <|
                         Ui.label "Messages" <|
                             Icon.view <|
                                 Icon.paperPlane iconSize

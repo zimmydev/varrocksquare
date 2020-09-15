@@ -1,9 +1,9 @@
 module Ui exposing (DeviceProfile(..), abridge, credentialed, label, pill, profileDevice, responsive, spinner)
 
+import Api exposing (AuthToken)
 import Config.Links as Links
 import Config.Strings as Strings
 import Config.Styles as Styles
-import Credentials exposing (Credentials)
 import Element exposing (..)
 import Html
 import Html.Attributes
@@ -47,14 +47,14 @@ pill count element =
         element
 
 
-credentialed : Session -> { loggedIn : Credentials -> Element msg, guest : Element msg } -> Element msg
-credentialed sess { loggedIn, guest } =
-    case sess of
-        Guest _ ->
+credentialed : Session -> { loggedIn : AuthToken -> Element msg, guest : Element msg } -> Element msg
+credentialed session { loggedIn, guest } =
+    case Session.authToken session of
+        Nothing ->
             guest
 
-        LoggedIn _ cred _ _ ->
-            loggedIn cred
+        Just tok ->
+            loggedIn tok
 
 
 

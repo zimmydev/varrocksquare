@@ -1,12 +1,12 @@
-module Session exposing (Session(..), avatar, credentials, debug, displayName, inbox, isGuest, navKey, profile)
+module Session exposing (Session, authToken, isGuest, navKey, new, viewer)
 
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
 import Browser.Navigation as Nav
-import Credentials exposing (Credentials)
 import Inbox exposing (Inbox)
 import Profile exposing (Profile)
 import Username exposing (Username)
+import Viewer exposing (Viewer)
 
 
 
@@ -15,7 +15,7 @@ import Username exposing (Username)
 
 type Session
     = Guest Nav.Key
-    | LoggedIn Nav.Key Credentials Profile Inbox
+    | LoggedIn Nav.Key Viewer
 
 
 
@@ -23,85 +23,54 @@ type Session
 
 
 isGuest : Session -> Bool
-isGuest sess =
-    case sess of
+isGuest session =
+    case session of
         Guest _ ->
             True
 
-        LoggedIn _ _ _ _ ->
+        LoggedIn _ _ ->
             False
 
 
 navKey : Session -> Nav.Key
-navKey sess =
-    case sess of
+navKey session =
+    case session of
         Guest key ->
             key
 
-        LoggedIn key _ _ _ ->
+        LoggedIn key _ ->
             key
 
 
-credentials : Session -> Maybe Credentials
-credentials sess =
-    case sess of
+viewer : Session -> Maybe Viewer
+viewer session =
+    case session of
         Guest _ ->
             Nothing
 
-        LoggedIn _ cred _ _ ->
-            Just cred
+        LoggedIn _ vwr ->
+            Just vwr
 
 
-profile : Session -> Maybe Profile
-profile sess =
-    case sess of
+authToken : Session -> Maybe AuthToken
+authToken session =
+    case session of
         Guest _ ->
             Nothing
 
-        LoggedIn _ _ prof _ ->
-            Just prof
-
-
-displayName : Session -> String
-displayName sess =
-    case sess of
-        Guest _ ->
-            "Guest"
-
-        LoggedIn _ cred _ _ ->
-            cred
-                |> Credentials.username
-                |> Username.toString
-                |> (++) "@"
-
-
-avatar : Session -> Avatar
-avatar sess =
-    case sess of
-        Guest _ ->
-            Avatar.default
-
-        LoggedIn _ _ prof _ ->
-            Profile.avatar prof
-
-
-inbox : Session -> Maybe Inbox
-inbox sess =
-    case sess of
-        Guest _ ->
-            Nothing
-
-        LoggedIn _ _ _ inb ->
-            Just inb
+        LoggedIn _ vwr ->
+            Just (Viewer.authToken vwr)
 
 
 
--- DEBUG
+-- CHANGES TO THE SESSION
 
 
-debug : Nav.Key -> Session
-debug key =
-    LoggedIn key
-        Credentials.debug
-        Profile.debug
-        Inbox.debug
+new : Nav.Key -> Maybe Viewer -> Session
+new key maybeViewer =
+    case maybeViewer of
+        Just vwr ->
+            LoggedIn key vwr
+
+        Nothing ->
+            Guest key

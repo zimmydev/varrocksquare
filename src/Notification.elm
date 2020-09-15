@@ -1,10 +1,10 @@
 module Notification exposing (Id, Notification(..), canSilence, expire, id, loggedIn, loggedOut, notify, passwordsDontMatch, payload, receivedMessage, view)
 
+import Api exposing (AuthToken)
 import Config.App as App
 import Config.Links exposing (Href)
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
-import Credentials exposing (Credentials)
 import Element exposing (Attribute, Color, Element)
 import Icon exposing (Icon)
 import Process
@@ -54,7 +54,7 @@ passwordsDontMatch =
     Error "The password fields don't match one another!"
 
 
-receivedMessage : Credentials -> Username -> String -> Id -> Notification
+receivedMessage : AuthToken -> Username -> String -> Id -> Notification
 receivedMessage _ sender mess =
     let
         preview =

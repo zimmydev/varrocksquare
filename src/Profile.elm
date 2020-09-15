@@ -11,7 +11,9 @@ import Time
 -- TYPES
 
 
-type Profile
+type
+    Profile
+    -- A Profile BELONGS TO a User
     = Profile Internals
 
 
