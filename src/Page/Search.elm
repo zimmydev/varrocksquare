@@ -44,7 +44,7 @@ searchbar toMsg query =
     in
     Input.text Styles.searchbar
         { onChange = toMsg
-        , text = query |> Debug.log "Query"
+        , text = query
         , placeholder = Just placeholder
         , label = Input.labelHidden "Searchbar"
         }
