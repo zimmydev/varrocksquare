@@ -1,4 +1,4 @@
-module Config.Elements exposing (copyright, credentialed, credit, iconified, iconsCredit, labeledRight, link, logo, pill, privacyPolicyLink, spinner)
+module Config.Elements exposing (copyright, credentialed, credit, externalLink, iconified, iconsCredit, inertLink, labeledRight, link, logo, pill, privacyPolicyLink, spinner)
 
 {-| This module is for reusable visual elements, e.g. loading spinners, etc.
 Additionally, this module holds general-purpose functions that perform common
@@ -6,7 +6,6 @@ transformations on elements, e.g. labeling.
 -}
 
 import Config.Assets as Assets
-import Config.ExternalHref as ExternalHref
 import Config.Strings as Strings
 import Config.Styles as Styles
 import DeviceProfile exposing (DeviceProfile, responsive)
@@ -16,6 +15,7 @@ import Html.Attributes exposing (class)
 import Icon exposing (Icon)
 import Route exposing (Route)
 import Session exposing (Session)
+import Url.Builder as Builder
 import Username
 import Viewer exposing (Viewer)
 
@@ -69,8 +69,8 @@ iconsCredit : Element msg
 iconsCredit =
     row [ centerX ]
         [ text "Icons by "
-        , Element.newTabLink []
-            { url = ExternalHref.icons8
+        , externalLink []
+            { href = Route.icons8
             , label = Icon.view (Icon.icons8 Icon.Small)
             }
         ]
@@ -86,8 +86,8 @@ privacyPolicyLink =
 
 copyright : Element msg
 copyright =
-    Element.newTabLink [ alignRight ]
-        { url = ExternalHref.companyWebsite
+    externalLink [ alignRight ]
+        { href = Route.companyWebsite
         , label = text Strings.copyright
         }
 
@@ -99,6 +99,16 @@ copyright =
 link : List (Attribute msg) -> { route : Route, label : Element msg } -> Element msg
 link attrs { route, label } =
     Element.link attrs { url = Route.toHref route, label = label }
+
+
+externalLink : List (Attribute msg) -> { href : Route.Href, label : Element msg } -> Element msg
+externalLink attrs { href, label } =
+    Element.newTabLink attrs { url = Route.toHref (Route.Redirect href), label = label }
+
+
+inertLink : List (Attribute msg) -> Element msg -> Element msg
+inertLink attrs label =
+    Element.link attrs { url = Builder.relative [] [], label = label }
 
 
 

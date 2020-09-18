@@ -99,32 +99,26 @@ view session model =
             , Elements.credentialed session
                 { loggedIn =
                     \_ ->
-                        link
+                        Elements.inertLink
                             [ Events.onClick (ClickedLogout (Session.navKey session)) ]
-                            { url = Route.inert
-                            , label = text "Log out"
-                            }
+                            (text "Log out")
                 , guest =
-                    link
+                    Elements.inertLink
                         [ Events.onClick (ClickedLogin (Session.navKey session)) ]
-                        { url = Route.inert
-                        , label = text "Log in"
-                        }
+                        (text "Log in")
                 }
             , el
                 [ Font.color Colors.fadedInk ]
                 (text "« Fire Test Notifications »")
-            , link
+            , Elements.inertLink
                 [ Events.onClick <|
                     RequestedNotification Notification.passwordsDontMatch
                 ]
-                { url = Route.inert
-                , label = text "Mismatch passwords"
-                }
+                (text "Mismatch passwords")
             , Elements.credentialed session
                 { loggedIn =
                     \viewer ->
-                        link
+                        Elements.inertLink
                             [ Events.onClick <|
                                 RequestedNotification <|
                                     Notification.receivedMessage
@@ -132,15 +126,13 @@ view session model =
                                         Username.debug
                                         "A little bit of technique in there as well."
                             ]
-                            { url = Route.inert
-                            , label = text "Short message"
-                            }
+                            (text "Short message")
                 , guest = none
                 }
             , Elements.credentialed session
                 { loggedIn =
                     \viewer ->
-                        link
+                        Elements.inertLink
                             [ Events.onClick <|
                                 RequestedNotification <|
                                     Notification.receivedMessage
@@ -148,9 +140,7 @@ view session model =
                                         Username.debug
                                         "I can double your GP just meet me at the chaos altar"
                             ]
-                            { url = Route.inert
-                            , label = text "Long message"
-                            }
+                            (text "Long message")
                 , guest = none
                 }
             ]

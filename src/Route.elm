@@ -1,4 +1,4 @@
-module Route exposing (Href, Route(..), inert, push, replace, routeUrl, title, toHref)
+module Route exposing (Href, Route(..), api, companyWebsite, discord, donate, github, icons8, push, redirect, replace, routeUrl, title, toHref)
 
 import Browser.Navigation as Nav
 import Config.Strings as Strings
@@ -47,10 +47,52 @@ type Route
     | Login
     | Logout
     | Register
+      -- Redirection
+    | Redirect Href
 
 
 type alias Href =
     String
+
+
+
+-- URLS
+
+
+companyWebsite : Href
+companyWebsite =
+    -- TODO: Establish a better company website link
+    Builder.crossOrigin "https://github.com/zimmydev" [] []
+
+
+github : Href
+github =
+    Builder.crossOrigin "https://github.com" [ "zimmydev", "varrocksquare" ] []
+
+
+discord : Href
+discord =
+    Builder.crossOrigin "https://discord.gg" [ "jq3gaCS" ] []
+
+
+donate : Href
+donate =
+    -- TODO: Currently intert; establish a donation link
+    Builder.crossOrigin "http://example.com" [] []
+
+
+icons8 : Href
+icons8 =
+    Builder.crossOrigin "https://icons8.com" [] []
+
+
+
+-- URL HELPERS
+
+
+top : Href
+top =
+    Builder.absolute [] []
 
 
 
@@ -59,6 +101,10 @@ type alias Href =
 
 parser : Parser (Route -> a) a
 parser =
+    let
+        requireQuery toMsg =
+            Maybe.map toMsg >> Maybe.withDefault NotFound
+    in
     Parser.oneOf
         [ -- Main routes
           Parser.map Home Parser.top
@@ -66,6 +112,7 @@ parser =
         , Parser.map Profile (s "profile" </> Username.urlParser)
         , Parser.map Search (s "search" <?> Query.string "query")
         , Parser.map Tools (s "tools")
+        , Parser.map (requireQuery Redirect) (s "external" <?> Query.string "href")
 
         -- Main routes (credentialed)
         , Parser.map NewPost (s "editor")
@@ -100,6 +147,11 @@ routeUrl url =
 -- ROUTING COMMANDS
 
 
+redirect : Nav.Key -> Href -> Cmd msg
+redirect key href =
+    Nav.load (Debug.log "A redirect is required to" href)
+
+
 push : Nav.Key -> Route -> Cmd msg
 push key route =
     Nav.pushUrl key (toHref route)
@@ -112,11 +164,6 @@ replace key route =
 
 
 -- DEROUTING
-
-
-inert : Href
-inert =
-    Builder.relative [] []
 
 
 toHref : Route -> Href
@@ -181,6 +228,9 @@ toHref route =
 
                 Register ->
                     ( [ "register" ], [] )
+
+                Redirect href ->
+                    ( [ "external" ], [ Builder.string "href" href ] )
     in
     Builder.absolute paths queries
 
@@ -252,3 +302,33 @@ title route =
 
         NotFound ->
             prefixAppName "Page not found!"
+
+        Redirect href ->
+            "Redirecting…"
+
+
+
+-- API
+
+
+api =
+    { login =
+        apiRoute [ "login" ] []
+    , posts =
+        \maybeSort ->
+            case maybeSort of
+                Just sortType ->
+                    apiRoute [ "posts" ] [ Builder.string "sort" sortType ]
+
+                Nothing ->
+                    apiRoute [ "posts" ] []
+    }
+
+
+
+-- API HELPERS
+
+
+apiRoute : List String -> List Builder.QueryParameter -> Href
+apiRoute path =
+    Builder.absolute ("api" :: path)

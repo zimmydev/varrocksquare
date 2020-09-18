@@ -6,7 +6,6 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
 import Config.Elements as Elements exposing (iconified, labeledRight, pill)
-import Config.ExternalHref as ExternalHref
 import Config.Strings as Strings
 import Config.Styles as Styles
 import DeviceProfile exposing (DeviceProfile(..), DeviceSize)
@@ -72,6 +71,9 @@ init deviceSize url key =
 
         cmd =
             case initialRoute of
+                Route.Redirect href ->
+                    Route.redirect (Session.navKey model.session) href
+
                 Route.Search _ ->
                     Cmd.batch
                         [ Page.Search.focusSearchbar Ignored, Cmd.none ]
@@ -147,7 +149,7 @@ update msg model =
                 ( model, Route.push (Session.navKey model.session) nextRoute )
 
         ClickedLink (Browser.External href) ->
-            ( model, Nav.load href )
+            ( model, Debug.log "Use `Route.Redirect`" () |> always Cmd.none )
 
         ChangedRoute route ->
             let
@@ -155,6 +157,9 @@ update msg model =
                     { model | currentRoute = route }
             in
             case route of
+                Route.Redirect href ->
+                    ( model, Route.redirect (Session.navKey model.session) href )
+
                 Route.Search maybeQuery ->
                     ( routedModel, Page.Search.focusSearchbar Ignored )
 
@@ -262,10 +267,10 @@ viewNavbar session deviceProfile menuIsExtended =
                 , guest = none
                 }
 
-        newTabLinkIfFullscreen attrs config =
+        ifFullscreen element =
             DeviceProfile.responsive deviceProfile
                 { compact = none
-                , full = newTabLink attrs config
+                , full = element
                 }
 
         primaryLinks =
@@ -295,19 +300,19 @@ viewNavbar session deviceProfile menuIsExtended =
             ]
 
         secondaryLinks =
-            [ link (Styles.donate deviceProfile)
+            [ Elements.inertLink (Styles.donate deviceProfile)
                 -- TODO: make not inert
-                { url = ExternalHref.donate
-                , label = "Donate!" |> iconified (Icon.donate sizes.icons)
-                }
-            , newTabLinkIfFullscreen []
-                { url = ExternalHref.discord
-                , label = Icon.discord sizes.icons |> Icon.view
-                }
-            , newTabLinkIfFullscreen []
-                { url = ExternalHref.github
-                , label = Icon.github sizes.icons |> Icon.view
-                }
+                ("Donate!" |> iconified (Icon.donate sizes.icons))
+            , ifFullscreen <|
+                Elements.externalLink []
+                    { href = Route.discord
+                    , label = Icon.view <| Icon.discord sizes.icons
+                    }
+            , ifFullscreen <|
+                Elements.externalLink []
+                    { href = Route.github
+                    , label = Icon.view <| Icon.github sizes.icons
+                    }
             , Elements.link []
                 { route = Route.Help
                 , label = Icon.help sizes.icons |> Icon.view
@@ -362,7 +367,7 @@ viewNavbar session deviceProfile menuIsExtended =
         menuElements =
             let
                 dropDown =
-                    link
+                    Elements.inertLink
                         [ Events.onClick ClickedNavMenu
                         , if menuIsExtended then
                             below <|
@@ -371,9 +376,7 @@ viewNavbar session deviceProfile menuIsExtended =
                           else
                             below none
                         ]
-                        { url = Route.inert
-                        , label = "Go to…" |> iconified (Icon.arrow menuIsExtended sizes.icons)
-                        }
+                        ("Go to…" |> iconified (Icon.arrow menuIsExtended sizes.icons))
             in
             DeviceProfile.responsive deviceProfile
                 { compact = List.singleton dropDown
