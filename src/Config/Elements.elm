@@ -1,4 +1,4 @@
-module Config.Elements exposing (copyright, credentialed, credit, externalLink, iconified, iconsCredit, inertLink, labeledRight, link, logo, pill, privacyPolicyLink, spinner)
+module Config.Elements exposing (copyright, credentialed, credit, discordLink, donateLink, externalLink, githubLink, iconified, iconsCredit, inertLink, labeledRight, link, logo, pill, privacyPolicyLink, spinner)
 
 {-| This module is for reusable visual elements, e.g. loading spinners, etc.
 Additionally, this module holds general-purpose functions that perform common
@@ -57,6 +57,28 @@ spinner attrs =
             div [ class "spinner" ] (List.repeat 4 emptyDiv)
 
 
+donateLink : DeviceProfile -> Icon.Size -> Element msg
+donateLink deviceProfile iconSize =
+    inertLink (Styles.donate deviceProfile)
+        ("Donate!" |> iconified (Icon.donate iconSize))
+
+
+discordLink : Icon.Size -> Element msg
+discordLink iconSize =
+    link []
+        { route = Route.Redirect Route.discord
+        , label = Icon.view <| Icon.discord iconSize
+        }
+
+
+githubLink : Icon.Size -> Element msg
+githubLink iconSize =
+    link []
+        { route = Route.Redirect Route.github
+        , label = Icon.view <| Icon.github iconSize
+        }
+
+
 credit : Element msg
 credit =
     link [ alignLeft ]
@@ -69,8 +91,8 @@ iconsCredit : Element msg
 iconsCredit =
     row [ centerX ]
         [ text "Icons by "
-        , externalLink []
-            { href = Route.icons8
+        , link []
+            { route = Route.Redirect Route.icons8
             , label = Icon.view (Icon.icons8 Icon.Small)
             }
         ]
@@ -86,8 +108,8 @@ privacyPolicyLink =
 
 copyright : Element msg
 copyright =
-    externalLink [ alignRight ]
-        { href = Route.companyWebsite
+    link [ alignRight ]
+        { route = Route.Redirect Route.companyWebsite
         , label = text Strings.copyright
         }
 

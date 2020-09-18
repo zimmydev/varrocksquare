@@ -38,8 +38,6 @@ init =
 type Msg
     = RequestedNotification (Notification.Id -> Notification)
     | NotificationFired Notification
-    | ClickedLogin Nav.Key
-    | ClickedLogout Nav.Key
     | Toggled SettingsToggle
     | SetNotifications Bool
 
@@ -60,8 +58,7 @@ update msg model =
         RequestedNotification notif ->
             ( model, Notification.notify notif NotificationFired )
 
-        _ ->
-            -- Other actions delegated to the Main module
+        NotificationFired _ ->
             ( model, Cmd.none )
 
 
@@ -96,17 +93,6 @@ view session model =
             [ el
                 [ Font.color Colors.fadedInk ]
                 (text "• Master Debug Menu •")
-            , Elements.credentialed session
-                { loggedIn =
-                    \_ ->
-                        Elements.inertLink
-                            [ Events.onClick (ClickedLogout (Session.navKey session)) ]
-                            (text "Log out")
-                , guest =
-                    Elements.inertLink
-                        [ Events.onClick (ClickedLogin (Session.navKey session)) ]
-                        (text "Log in")
-                }
             , el
                 [ Font.color Colors.fadedInk ]
                 (text "« Fire Test Notifications »")

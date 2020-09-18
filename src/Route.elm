@@ -295,7 +295,7 @@ title route =
             prefixAppName "Login"
 
         Logout ->
-            prefixAppName "Logout"
+            prefixAppName "Logging out…"
 
         Register ->
             prefixAppName "Registration"

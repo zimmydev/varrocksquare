@@ -48,7 +48,7 @@ type alias Flags =
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init deviceSize url key =
+init deviceSize url navKey =
     let
         initialRoute =
             Route.routeUrl url
@@ -60,7 +60,7 @@ init deviceSize url key =
             Page.Settings.init
 
         model =
-            { session = Session.new key (Just Viewer.debug)
+            { session = Session.new navKey (Just Viewer.debug)
             , currentRoute = initialRoute
             , deviceProfile = deviceProfile
             , menuIsExtended = False
@@ -73,6 +73,12 @@ init deviceSize url key =
             case initialRoute of
                 Route.Redirect href ->
                     Route.redirect (Session.navKey model.session) href
+
+                Route.Login ->
+                    Route.push navKey Route.Root
+
+                Route.Logout ->
+                    Route.push navKey Route.Root
 
                 Route.Search _ ->
                     Cmd.batch
@@ -149,16 +155,39 @@ update msg model =
                 ( model, Route.push (Session.navKey model.session) nextRoute )
 
         ClickedLink (Browser.External href) ->
-            ( model, Debug.log "Use `Route.Redirect`" () |> always Cmd.none )
+            ( model, Debug.log "Use `Route.Redirect`!" () |> always Cmd.none )
 
         ChangedRoute route ->
             let
                 routedModel =
                     { model | currentRoute = route }
+
+                navKey =
+                    Session.navKey model.session
             in
             case route of
                 Route.Redirect href ->
-                    ( model, Route.redirect (Session.navKey model.session) href )
+                    ( model, Route.redirect navKey href )
+
+                Route.Login ->
+                    let
+                        newViewer =
+                            Viewer.debug
+                    in
+                    ( { model | session = Session.new navKey (Just newViewer) }
+                    , Cmd.batch
+                        [ notify (Notification.loggedIn (Viewer.username newViewer)) NotificationFired
+                        , Route.push navKey Route.Root
+                        ]
+                    )
+
+                Route.Logout ->
+                    ( { model | session = Session.new navKey Nothing }
+                    , Cmd.batch
+                        [ notify Notification.loggedOut NotificationFired
+                        , Route.push navKey Route.Root
+                        ]
+                    )
 
                 Route.Search maybeQuery ->
                     ( routedModel, Page.Search.focusSearchbar Ignored )
@@ -192,23 +221,6 @@ update msg model =
         ChangedSettings (Page.Settings.NotificationFired notif) ->
             -- Re-route to NotificationFired event
             model |> update (NotificationFired notif)
-
-        ChangedSettings (Page.Settings.ClickedLogout key) ->
-            -- Dispatching to Page.Settings is curtailed in this particular case
-            -- TODO: Clear out the session from the localStorage
-            ( { model | session = Session.new key Nothing }
-            , notify Notification.loggedOut NotificationFired
-            )
-
-        ChangedSettings (Page.Settings.ClickedLogin key) ->
-            -- Dispatching to Page.Settings is curtailed in this particular case
-            let
-                notif =
-                    Notification.loggedIn Username.debug
-            in
-            ( { model | session = Session.new key (Just Viewer.debug) }
-            , notify notif NotificationFired
-            )
 
         ChangedSettings submsg ->
             let
@@ -300,19 +312,9 @@ viewNavbar session deviceProfile menuIsExtended =
             ]
 
         secondaryLinks =
-            [ Elements.inertLink (Styles.donate deviceProfile)
-                -- TODO: make not inert
-                ("Donate!" |> iconified (Icon.donate sizes.icons))
-            , ifFullscreen <|
-                Elements.externalLink []
-                    { href = Route.discord
-                    , label = Icon.view <| Icon.discord sizes.icons
-                    }
-            , ifFullscreen <|
-                Elements.externalLink []
-                    { href = Route.github
-                    , label = Icon.view <| Icon.github sizes.icons
-                    }
+            [ Elements.donateLink deviceProfile sizes.icons
+            , ifFullscreen (Elements.discordLink sizes.icons)
+            , ifFullscreen (Elements.githubLink sizes.icons)
             , Elements.link []
                 { route = Route.Help
                 , label = Icon.help sizes.icons |> Icon.view
