@@ -65,16 +65,16 @@ donateLink deviceProfile iconSize =
 
 discordLink : Icon.Size -> Element msg
 discordLink iconSize =
-    link []
-        { route = Route.Redirect Route.discord
+    externalLink []
+        { href = Route.discord
         , label = Icon.view <| Icon.discord iconSize
         }
 
 
 githubLink : Icon.Size -> Element msg
 githubLink iconSize =
-    link []
-        { route = Route.Redirect Route.github
+    externalLink []
+        { href = Route.github
         , label = Icon.view <| Icon.github iconSize
         }
 
@@ -91,8 +91,8 @@ iconsCredit : Element msg
 iconsCredit =
     row [ centerX ]
         [ text "Icons by "
-        , link []
-            { route = Route.Redirect Route.icons8
+        , externalLink []
+            { href = Route.icons8
             , label = Icon.view (Icon.icons8 Icon.Small)
             }
         ]

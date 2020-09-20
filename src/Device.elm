@@ -1,4 +1,4 @@
-module Device exposing (Profile, Size, decoder, profile, responsive)
+module Device exposing (Profile, ResizeHandler, Size, decoder, profile, resizeHandler, responsive)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
@@ -17,8 +17,31 @@ type Profile
     | Full
 
 
+type alias ResizeHandler msg =
+    Int -> Int -> msg
+
+
 
 -- PROFILING
+
+
+resizeHandler :
+    Profile
+    ->
+        { resized : Profile -> msg
+        , noOp : msg
+        }
+    -> ResizeHandler msg
+resizeHandler currentProfile { resized, noOp } width height =
+    let
+        newProfile =
+            profile (Size width height)
+    in
+    if newProfile /= currentProfile then
+        resized newProfile
+
+    else
+        noOp
 
 
 profile : Size -> Profile

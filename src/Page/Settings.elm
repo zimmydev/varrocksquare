@@ -1,4 +1,4 @@
-module Page.Settings exposing (Model, Msg(..), init, update, view)
+module Page.Settings exposing (Model, Msg(..), initCommands, initModel, update, view)
 
 import Browser.Navigation as Nav
 import Config.Elements as Elements
@@ -24,54 +24,53 @@ type alias Model =
     { notifications : Bool }
 
 
-init : ( Model, Cmd msg )
-init =
-    ( { notifications = True }
-    , Cmd.none
-    )
+initModel : () -> Model
+initModel _ =
+    { notifications = True }
+
+
+initCommands : Model -> ( Model, Cmd msg )
+initCommands model =
+    ( model, Cmd.none )
 
 
 
 -- UPDATE
 
 
-type Msg
-    = RequestedNotification (Notification.Id -> Notification)
-    | NotificationFired Notification
-    | Toggled SettingsToggle
-    | SetNotifications Bool
+type Msg parentMsg
+    = ParentMsg parentMsg
+    | ChangedNotificationsSetting Bool
 
 
-type SettingsToggle
-    = Notifications
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg pm -> Model -> ( Model, Cmd (Msg pm) )
 update msg model =
-    case msg of
-        Toggled Notifications ->
-            ( { model | notifications = not model.notifications }, Cmd.none )
-
-        SetNotifications bool ->
-            ( { model | notifications = bool }, Cmd.none )
-
-        RequestedNotification notif ->
-            ( model, Notification.notify notif NotificationFired )
-
-        NotificationFired _ ->
+    let
+        ignore =
             ( model, Cmd.none )
+    in
+    case msg of
+        ParentMsg _ ->
+            ignore
+
+        ChangedNotificationsSetting bool ->
+            ( { model | notifications = bool }, Cmd.none )
 
 
 
 -- VIEW
 
 
-view : Session -> Model -> Element Msg
-view session model =
+view :
+    ((Notification.Id -> Notification) -> parentMsg)
+    -> Session
+    -> Model
+    -> Element (Msg parentMsg)
+view requestNotification session model =
     column Styles.page
         [ column Styles.content
             [ Input.radioRow [ spacing 20 ]
-                { onChange = SetNotifications
+                { onChange = ChangedNotificationsSetting
                 , selected = Just model.notifications
                 , label =
                     Input.labelLeft
@@ -98,7 +97,7 @@ view session model =
                 (text "« Fire Test Notifications »")
             , Elements.inertLink
                 [ Events.onClick <|
-                    RequestedNotification Notification.passwordsDontMatch
+                    ParentMsg (requestNotification Notification.passwordsDontMatch)
                 ]
                 (text "Mismatch passwords")
             , Elements.credentialed session
@@ -106,11 +105,12 @@ view session model =
                     \viewer ->
                         Elements.inertLink
                             [ Events.onClick <|
-                                RequestedNotification <|
-                                    Notification.receivedMessage
-                                        (Viewer.authToken viewer)
-                                        Username.debug
-                                        "A little bit of technique in there as well."
+                                ParentMsg <|
+                                    requestNotification <|
+                                        Notification.receivedMessage
+                                            (Viewer.authToken viewer)
+                                            Username.debug
+                                            "A little bit of technique in there as well."
                             ]
                             (text "Short message")
                 , guest = none
@@ -120,11 +120,12 @@ view session model =
                     \viewer ->
                         Elements.inertLink
                             [ Events.onClick <|
-                                RequestedNotification <|
-                                    Notification.receivedMessage
-                                        (Viewer.authToken viewer)
-                                        Username.debug
-                                        "I can double your GP just meet me at the chaos altar"
+                                ParentMsg <|
+                                    requestNotification <|
+                                        Notification.receivedMessage
+                                            (Viewer.authToken viewer)
+                                            Username.debug
+                                            "I can double your GP just meet me at the chaos altar"
                             ]
                             (text "Long message")
                 , guest = none

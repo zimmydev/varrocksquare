@@ -1,4 +1,4 @@
-module Config.Styles exposing (avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, menu, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, root, searchPlaceholder, searchbar, smallSpacing)
+module Config.Styles exposing (avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, menu, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, redirect, root, searchPlaceholder, searchbar, smallSpacing)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -60,6 +60,15 @@ root =
     , Font.size (fontSizeBy 1)
     , Font.family [ Font.typeface "Nunito", Font.sansSerif ]
     , Background.tiled Assets.appBackground
+    ]
+
+
+redirect : List (Attribute msg)
+redirect =
+    [ centerX
+    , centerY
+    , Font.bold
+    , Font.size 32
     ]
 
 

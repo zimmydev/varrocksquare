@@ -1,4 +1,4 @@
-module Notification exposing (Id, Notification(..), canSilence, expire, id, loggedIn, loggedOut, notify, passwordsDontMatch, payload, receivedMessage, view)
+module Notification exposing (Id, Notification(..), canSilence, expire, fire, id, loggedIn, loggedOut, passwordsDontMatch, payload, receivedMessage, view)
 
 import Api exposing (AuthToken)
 import Config.App as App
@@ -117,15 +117,15 @@ view notif =
 -- COMMANDS
 
 
-notify : (Id -> Notification) -> (Notification -> msg) -> Cmd msg
-notify notif fireNotif =
+fire : (Notification -> msg) -> (Id -> Notification) -> Cmd msg
+fire notificationFired notif =
     Time.now
         |> Task.map Time.posixToMillis
-        |> Task.perform (notif >> fireNotif)
+        |> Task.perform (notif >> notificationFired)
 
 
-expire : Notification -> (Notification -> msg) -> Cmd msg
-expire notif expireNotif =
+expire : (Notification -> msg) -> Notification -> Cmd msg
+expire expireNotif notif =
     Process.sleep 5000
         |> Task.perform (always (expireNotif notif))
 

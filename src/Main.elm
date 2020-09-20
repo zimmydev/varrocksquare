@@ -17,12 +17,12 @@ import Icon
 import Inbox
 import Json.Encode exposing (Value)
 import Main.Flags as Flags
-import Notification exposing (Notification, notify)
+import Notification exposing (Notification, fire)
 import Notification.Queue exposing (Queue)
 import Page.Home
 import Page.Search
 import Page.Settings
-import Route exposing (Route)
+import Route exposing (Href, Route)
 import Session exposing (Session(..))
 import Time
 import Url exposing (Url)
@@ -31,7 +31,7 @@ import Viewer
 
 
 
--- MODEL & INIT
+-- MODEL
 
 
 type alias Model =
@@ -45,19 +45,105 @@ type alias Model =
     }
 
 
-init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flagsJson url navKey =
+
+-- COMMANDS & SUBSCRIPTIONS
+
+
+type Command
+    = PushRoute Nav.Key Route
+    | ReplaceRoute Nav.Key Route
+    | Redirect Nav.Key Href
+    | FocusSearchbar
+    | FireNotification (Notification.Id -> Notification)
+    | ExpireNotification Notification
+    | SettingsCommand (Cmd (Page.Settings.Msg Msg))
+
+
+type Subscription
+    = BrowserResize (Device.ResizeHandler Msg)
+
+
+toCmd : List Command -> Cmd Msg
+toCmd commands =
+    let
+        convert c =
+            case c of
+                PushRoute navKey route ->
+                    Route.push navKey route
+
+                ReplaceRoute navKey route ->
+                    Route.replace navKey route
+
+                Redirect navKey href ->
+                    Route.redirect navKey href
+
+                FocusSearchbar ->
+                    Page.Search.focusSearchbar Ignored
+
+                FireNotification notif ->
+                    Notification.fire NotificationFired notif
+
+                ExpireNotification notif ->
+                    Notification.expire NotificationExpired notif
+
+                SettingsCommand cmd ->
+                    Cmd.map SettingsMsg cmd
+    in
+    Cmd.batch <|
+        List.map convert commands
+
+
+toSub : List Subscription -> Sub Msg
+toSub subs =
+    let
+        convert s =
+            case s of
+                BrowserResize toMsg ->
+                    Browser.Events.onResize toMsg
+    in
+    subs
+        |> List.map convert
+        |> Sub.batch
+
+
+
+-- MODEL, INIT & MAIN
+
+
+init : Value -> Url -> Nav.Key -> ( Model, List Command )
+init json url navKey =
     let
         flags =
-            Flags.decode flagsJson
+            Flags.decode json
 
         initialRoute =
             Route.routeUrl url
 
-        ( settings, settingsCmd ) =
-            Page.Settings.init
+        settings =
+            Page.Settings.initModel ()
 
-        model =
+        commands =
+            case initialRoute of
+                Route.Redirect href ->
+                    -- Redirect works on fresh page load and on re-route
+                    [ Redirect navKey href ]
+
+                Route.Login ->
+                    -- Not supposed to load fresh on this page, redirect to root
+                    [ PushRoute navKey Route.Root ]
+
+                Route.Logout ->
+                    -- Not supposed to load fresh on this page, redirect to root
+                    [ PushRoute navKey Route.Root ]
+
+                Route.Search _ ->
+                    [ FocusSearchbar ]
+
+                _ ->
+                    []
+    in
+    commands
+        |> Tuple.pair
             { session = Session.new navKey (Just Viewer.debug)
             , currentRoute = initialRoute
             , deviceProfile = Device.profile flags.size
@@ -67,41 +153,36 @@ init flagsJson url navKey =
             , settings = settings
             }
 
-        cmd =
-            case initialRoute of
-                Route.Redirect href ->
-                    Route.redirect (Session.navKey model.session) href
-
-                Route.Login ->
-                    Route.push navKey Route.Root
-
-                Route.Logout ->
-                    Route.push navKey Route.Root
-
-                Route.Search _ ->
-                    Cmd.batch
-                        [ Page.Search.focusSearchbar Ignored, Cmd.none ]
-
-                _ ->
-                    Cmd.none
-    in
-    ( model, Cmd.batch [ cmd, settingsCmd ] )
-
 
 main : Program Value Model Msg
 main =
+    let
+        subscriptions model =
+            [ BrowserResize <|
+                Device.resizeHandler model.deviceProfile
+                    { resized = ResizedDevice
+                    , noOp = Ignored
+                    }
+            ]
+    in
     Browser.application
-        { init = init
-        , view = document
-        , update = update
-        , subscriptions = subscriptions
+        { init =
+            \json url key ->
+                Tuple.mapSecond toCmd <|
+                    init json url key
+        , subscriptions = subscriptions >> toSub
+        , update =
+            \msg model ->
+                Tuple.mapSecond toCmd <|
+                    update msg model
         , onUrlRequest = ClickedLink
-        , onUrlChange = Route.routeUrl >> ChangedRoute
+        , onUrlChange = ChangedRoute << Route.routeUrl
+        , view = document
         }
 
 
 
--- UPDATE
+-- MESSAGE & UPDATE
 
 
 type Msg
@@ -109,37 +190,26 @@ type Msg
     | ClickedLink UrlRequest
     | ChangedRoute Route
     | ResizedDevice Device.Profile
-    | ClickedNavMenu
+    | NotificationRequested (Notification.Id -> Notification)
     | NotificationFired Notification
     | NotificationExpired Notification
+    | ClickedNavMenu
     | ChangedQuery String
-    | ChangedSettings Page.Settings.Msg
+    | SettingsMsg (Page.Settings.Msg Msg)
 
 
-subscriptions : Model -> Sub Msg
-subscriptions { deviceProfile, settings } =
-    Sub.batch
-        [ Browser.Events.onResize (handleResize deviceProfile) ]
-
-
-handleResize : Device.Profile -> Int -> Int -> Msg
-handleResize oldProfile width height =
-    let
-        newProfile =
-            Device.profile (Device.Size width height)
-    in
-    if newProfile /= oldProfile then
-        ResizedDevice newProfile
-
-    else
-        Ignored
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, List Command )
 update msg model =
+    let
+        ignore =
+            ( model, [] )
+
+        navKey =
+            Session.navKey model.session
+    in
     case msg of
         Ignored ->
-            ( model, Cmd.none )
+            ignore
 
         ClickedLink (Browser.Internal url) ->
             let
@@ -147,85 +217,102 @@ update msg model =
                     Route.routeUrl url
             in
             if nextRoute == model.currentRoute then
-                update Ignored model
+                ignore
 
             else
-                ( model, Route.push (Session.navKey model.session) nextRoute )
+                ( model, [ PushRoute navKey nextRoute ] )
 
         ClickedLink (Browser.External href) ->
-            ( model, Debug.log "Use `Route.Redirect`!" () |> always Cmd.none )
+            -- Use internal `/external?href=…` link redirection mechanism
+            ignore
 
-        ChangedRoute route ->
-            let
-                routedModel =
-                    { model | currentRoute = route }
-
-                navKey =
-                    Session.navKey model.session
-            in
-            case route of
+        ChangedRoute nextRoute ->
+            case nextRoute of
                 Route.Redirect href ->
-                    ( model, Route.redirect navKey href )
+                    ( model, [ Redirect navKey href ] )
 
                 Route.Login ->
                     let
                         newViewer =
                             Viewer.debug
+
+                        username =
+                            Viewer.username newViewer
                     in
-                    ( { model | session = Session.new navKey (Just newViewer) }
-                    , Cmd.batch
-                        [ notify (Notification.loggedIn (Viewer.username newViewer)) NotificationFired
-                        , Route.push navKey Route.Root
+                    Tuple.pair
+                        { model | session = Session.new navKey (Just newViewer) }
+                        [ FireNotification (Notification.loggedIn username)
+                        , PushRoute navKey (Route.Profile username)
                         ]
-                    )
 
                 Route.Logout ->
-                    ( { model | session = Session.new navKey Nothing }
-                    , Cmd.batch
-                        [ notify Notification.loggedOut NotificationFired
-                        , Route.push navKey Route.Root
+                    Tuple.pair
+                        { model | session = Session.new navKey Nothing }
+                        [ FireNotification Notification.loggedOut
+                        , PushRoute navKey Route.Root
                         ]
-                    )
 
                 Route.Search maybeQuery ->
-                    ( routedModel, Page.Search.focusSearchbar Ignored )
+                    Tuple.pair
+                        { model | currentRoute = nextRoute }
+                        [ FocusSearchbar ]
 
                 _ ->
-                    ( routedModel, Cmd.none )
+                    ( { model | currentRoute = nextRoute }, [] )
 
         ResizedDevice deviceProfile ->
-            ( { model | deviceProfile = deviceProfile }, Cmd.none )
+            ( { model | deviceProfile = deviceProfile }, [] )
 
-        ClickedNavMenu ->
-            ( { model | menuIsExtended = not model.menuIsExtended }, Cmd.none )
+        NotificationRequested notif ->
+            ( model, [ FireNotification notif ] )
 
         NotificationFired notif ->
-            ( { model
-                | notifications =
-                    model.notifications
-                        |> Notification.Queue.push model.settings.notifications notif
-              }
-            , Notification.expire notif NotificationExpired
-            )
+            let
+                allowed =
+                    model.settings.notifications
+                        || not (Notification.canSilence notif)
+
+                nextQueue =
+                    if allowed then
+                        model.notifications
+                            |> Notification.Queue.push notif
+
+                    else
+                        model.notifications
+            in
+            Tuple.pair
+                { model | notifications = nextQueue }
+                [ ExpireNotification notif ]
 
         NotificationExpired notif ->
-            ( { model | notifications = model.notifications |> Notification.Queue.remove notif }
-            , Cmd.none
-            )
+            Tuple.pair
+                { model
+                    | notifications =
+                        model.notifications
+                            |> Notification.Queue.remove notif
+                }
+                []
+
+        ClickedNavMenu ->
+            Tuple.pair
+                { model | menuIsExtended = not model.menuIsExtended }
+                []
 
         ChangedQuery query ->
-            ( { model | searchQuery = query }, Cmd.none )
+            Tuple.pair
+                { model | searchQuery = query }
+                []
 
-        ChangedSettings (Page.Settings.NotificationFired notif) ->
-            -- Re-route to NotificationFired event
-            model |> update (NotificationFired notif)
+        -- SETTINGS
+        SettingsMsg (Page.Settings.ParentMsg myMsg) ->
+            update myMsg model
 
-        ChangedSettings submsg ->
+        SettingsMsg submsg ->
             let
                 ( newSettings, subcmd ) =
-                    model.settings |> Page.Settings.update submsg
+                    Page.Settings.update submsg model.settings
             in
-            ( { model | settings = newSettings }, Cmd.map ChangedSettings subcmd )
+            ( { model | settings = newSettings }, [ SettingsCommand subcmd ] )
 
 
 
@@ -244,18 +331,25 @@ document ({ currentRoute, deviceProfile, menuIsExtended, session, notifications 
     { title = Route.title currentRoute
     , body =
         List.singleton <|
-            layoutWith
-                { options = [ focusStyle Styles.focus ] }
-                (navbar :: notificationArea :: Styles.root)
-                (column [ width fill, height fill ]
-                    [ row [ width fill ]
-                        [ el Styles.pageMargin none
-                        , lazy renderPage model
-                        , el Styles.pageMargin none
-                        ]
-                    , lazy (always footer) ()
-                    ]
-                )
+            case currentRoute of
+                Route.Redirect _ ->
+                    layout [] <|
+                        el Styles.redirect <|
+                            text "Redirecting…"
+
+                _ ->
+                    layoutWith
+                        { options = [ focusStyle Styles.focus ] }
+                        (navbar :: notificationArea :: Styles.root)
+                        (column [ width fill, height fill ]
+                            [ row [ width fill ]
+                                [ el Styles.pageMargin none
+                                , lazy renderPage model
+                                , el Styles.pageMargin none
+                                ]
+                            , lazy (always footer) ()
+                            ]
+                        )
     }
 
 
@@ -418,8 +512,8 @@ renderPage model =
             lazy2 Page.Search.view ChangedQuery model.searchQuery
 
         Route.Settings ->
-            lazy2 Page.Settings.view model.session model.settings
-                |> Element.map ChangedSettings
+            lazy3 Page.Settings.view NotificationRequested model.session model.settings
+                |> Element.map SettingsMsg
 
         _ ->
             none

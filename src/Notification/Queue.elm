@@ -40,13 +40,9 @@ count (Queue notifs) =
 -- TRANSFORM
 
 
-push : Bool -> Notification -> Queue -> Queue
-push enable notif (Queue notifs) =
-    if enable || not (Notification.canSilence notif) then
-        Queue (notif :: notifs)
-
-    else
-        Queue notifs
+push : Notification -> Queue -> Queue
+push notif (Queue notifs) =
+    Queue (notif :: notifs)
 
 
 remove : Notification -> Queue -> Queue
