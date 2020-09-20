@@ -180,7 +180,7 @@ update msg model =
                 ( model, [ PushRoute navKey nextRoute ] )
 
         ClickedLink (Browser.External href) ->
-            -- Use internal `/external?href=…` link redirection mechanism
+            -- NOTE: Use internal `/link?href=…` link redirection mechanism
             ignore
 
         ChangedRoute nextRoute ->

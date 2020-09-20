@@ -112,7 +112,7 @@ parser =
         , Parser.map Profile (s "profile" </> Username.urlParser)
         , Parser.map Search (s "search" <?> Query.string "query")
         , Parser.map Tools (s "tools")
-        , Parser.map (requireQuery Redirect) (s "external" <?> Query.string "href")
+        , Parser.map (requireQuery Redirect) (s "link" <?> Query.string "href")
 
         -- Main routes (credentialed)
         , Parser.map NewPost (s "editor")
@@ -230,7 +230,7 @@ toHref route =
                     ( [ "register" ], [] )
 
                 Redirect href ->
-                    ( [ "external" ], [ Builder.string "href" href ] )
+                    ( [ "link" ], [ Builder.string "href" href ] )
     in
     Builder.absolute paths queries
 
