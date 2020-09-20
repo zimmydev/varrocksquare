@@ -46,7 +46,20 @@ type alias Model =
 
 
 
--- COMMANDS & SUBSCRIPTIONS
+-- MESSAGES, COMMANDS & SUBSCRIPTIONS
+
+
+type Msg
+    = Ignored
+    | ClickedLink UrlRequest
+    | ChangedRoute Route
+    | ResizedDevice Device.Profile
+    | NotificationRequested (Notification.Id -> Notification)
+    | NotificationFired Notification
+    | NotificationExpired Notification
+    | ClickedNavMenu
+    | ChangedQuery String
+    | SettingsMsg (Page.Settings.Msg Msg)
 
 
 type Command
@@ -63,51 +76,35 @@ type Subscription
     = BrowserResize (Device.ResizeHandler Msg)
 
 
-toCmd : List Command -> Cmd Msg
-toCmd commands =
+
+-- MAIN & INIT
+
+
+main : Program Value Model Msg
+main =
     let
-        convert c =
-            case c of
-                PushRoute navKey route ->
-                    Route.push navKey route
-
-                ReplaceRoute navKey route ->
-                    Route.replace navKey route
-
-                Redirect navKey href ->
-                    Route.redirect navKey href
-
-                FocusSearchbar ->
-                    Page.Search.focusSearchbar Ignored
-
-                FireNotification notif ->
-                    Notification.fire NotificationFired notif
-
-                ExpireNotification notif ->
-                    Notification.expire NotificationExpired notif
-
-                SettingsCommand cmd ->
-                    Cmd.map SettingsMsg cmd
+        subscriptions model =
+            [ BrowserResize <|
+                Device.resizeHandler model.deviceProfile
+                    { resized = ResizedDevice
+                    , noOp = Ignored
+                    }
+            ]
     in
-    Cmd.batch <|
-        List.map convert commands
-
-
-toSub : List Subscription -> Sub Msg
-toSub subs =
-    let
-        convert s =
-            case s of
-                BrowserResize toMsg ->
-                    Browser.Events.onResize toMsg
-    in
-    subs
-        |> List.map convert
-        |> Sub.batch
-
-
-
--- MODEL, INIT & MAIN
+    Browser.application
+        { init =
+            \json url key ->
+                Tuple.mapSecond toCmd <|
+                    init json url key
+        , subscriptions = subscriptions >> toSub
+        , update =
+            \msg model ->
+                Tuple.mapSecond toCmd <|
+                    update msg model
+        , onUrlRequest = ClickedLink
+        , onUrlChange = ChangedRoute << Route.routeUrl
+        , view = document
+        }
 
 
 init : Value -> Url -> Nav.Key -> ( Model, List Command )
@@ -154,48 +151,8 @@ init json url navKey =
             }
 
 
-main : Program Value Model Msg
-main =
-    let
-        subscriptions model =
-            [ BrowserResize <|
-                Device.resizeHandler model.deviceProfile
-                    { resized = ResizedDevice
-                    , noOp = Ignored
-                    }
-            ]
-    in
-    Browser.application
-        { init =
-            \json url key ->
-                Tuple.mapSecond toCmd <|
-                    init json url key
-        , subscriptions = subscriptions >> toSub
-        , update =
-            \msg model ->
-                Tuple.mapSecond toCmd <|
-                    update msg model
-        , onUrlRequest = ClickedLink
-        , onUrlChange = ChangedRoute << Route.routeUrl
-        , view = document
-        }
 
-
-
--- MESSAGE & UPDATE
-
-
-type Msg
-    = Ignored
-    | ClickedLink UrlRequest
-    | ChangedRoute Route
-    | ResizedDevice Device.Profile
-    | NotificationRequested (Notification.Id -> Notification)
-    | NotificationFired Notification
-    | NotificationExpired Notification
-    | ClickedNavMenu
-    | ChangedQuery String
-    | SettingsMsg (Page.Settings.Msg Msg)
+-- UPDATE
 
 
 update : Msg -> Model -> ( Model, List Command )
@@ -316,7 +273,7 @@ update msg model =
 
 
 
--- VIEW
+-- VIEWS
 
 
 document : Model -> Document Msg
@@ -496,10 +453,6 @@ footer =
             ]
 
 
-
--- PAGES
-
-
 renderPage : Model -> Element Msg
 renderPage model =
     -- Display a page depending on the Route
@@ -517,3 +470,50 @@ renderPage model =
 
         _ ->
             none
+
+
+
+-- COMMAND AND SUBSCRIPTION MAPPINGS
+
+
+toCmd : List Command -> Cmd Msg
+toCmd commands =
+    let
+        convert c =
+            case c of
+                PushRoute navKey route ->
+                    Route.push navKey route
+
+                ReplaceRoute navKey route ->
+                    Route.replace navKey route
+
+                Redirect navKey href ->
+                    Route.redirect navKey href
+
+                FocusSearchbar ->
+                    Page.Search.focusSearchbar Ignored
+
+                FireNotification notif ->
+                    Notification.fire NotificationFired notif
+
+                ExpireNotification notif ->
+                    Notification.expire NotificationExpired notif
+
+                SettingsCommand cmd ->
+                    Cmd.map SettingsMsg cmd
+    in
+    Cmd.batch <|
+        List.map convert commands
+
+
+toSub : List Subscription -> Sub Msg
+toSub subs =
+    let
+        convert s =
+            case s of
+                BrowserResize toMsg ->
+                    Browser.Events.onResize toMsg
+    in
+    subs
+        |> List.map convert
+        |> Sub.batch
