@@ -52,8 +52,10 @@
             Elm.Main.init({
                 node: document.getElementById("app"),
                 flags: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
+                    size: {
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    }
                 }
             });
         </script>

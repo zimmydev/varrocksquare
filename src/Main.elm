@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (Model)
 
 import Api exposing (AuthToken)
 import Avatar
@@ -8,13 +8,15 @@ import Browser.Navigation as Nav
 import Config.Elements as Elements exposing (iconified, labeledRight, pill)
 import Config.Strings as Strings
 import Config.Styles as Styles
-import DeviceProfile exposing (DeviceProfile(..), DeviceSize)
+import Device
 import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (..)
 import Icon
 import Inbox
+import Json.Encode exposing (Value)
+import Main.Flags as Flags
 import Notification exposing (Notification, notify)
 import Notification.Queue exposing (Queue)
 import Page.Home
@@ -35,7 +37,7 @@ import Viewer
 type alias Model =
     { session : Session
     , currentRoute : Route
-    , deviceProfile : DeviceProfile
+    , deviceProfile : Device.Profile
     , menuIsExtended : Bool
     , notifications : Queue
     , searchQuery : String
@@ -43,18 +45,14 @@ type alias Model =
     }
 
 
-type alias Flags =
-    { width : Int, height : Int }
-
-
-init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init deviceSize url navKey =
+init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flagsJson url navKey =
     let
+        flags =
+            Flags.decode flagsJson
+
         initialRoute =
             Route.routeUrl url
-
-        deviceProfile =
-            DeviceProfile.profile deviceSize
 
         ( settings, settingsCmd ) =
             Page.Settings.init
@@ -62,7 +60,7 @@ init deviceSize url navKey =
         model =
             { session = Session.new navKey (Just Viewer.debug)
             , currentRoute = initialRoute
-            , deviceProfile = deviceProfile
+            , deviceProfile = Device.profile flags.size
             , menuIsExtended = False
             , notifications = Notification.Queue.empty
             , searchQuery = ""
@@ -90,7 +88,7 @@ init deviceSize url navKey =
     ( model, Cmd.batch [ cmd, settingsCmd ] )
 
 
-main : Program Flags Model Msg
+main : Program Value Model Msg
 main =
     Browser.application
         { init = init
@@ -110,7 +108,7 @@ type Msg
     = Ignored
     | ClickedLink UrlRequest
     | ChangedRoute Route
-    | ResizedDevice DeviceProfile
+    | ResizedDevice Device.Profile
     | ClickedNavMenu
     | NotificationFired Notification
     | NotificationExpired Notification
@@ -124,11 +122,11 @@ subscriptions { deviceProfile, settings } =
         [ Browser.Events.onResize (handleResize deviceProfile) ]
 
 
-handleResize : DeviceProfile -> Int -> Int -> Msg
+handleResize : Device.Profile -> Int -> Int -> Msg
 handleResize oldProfile width height =
     let
         newProfile =
-            DeviceProfile.profile (DeviceSize width height)
+            Device.profile (Device.Size width height)
     in
     if newProfile /= oldProfile then
         ResizedDevice newProfile
@@ -261,13 +259,13 @@ document ({ currentRoute, deviceProfile, menuIsExtended, session, notifications 
     }
 
 
-viewNavbar : Session -> DeviceProfile -> Bool -> Element Msg
+viewNavbar : Session -> Device.Profile -> Bool -> Element Msg
 viewNavbar session deviceProfile menuIsExtended =
     let
         sizes =
             { avatar = 26
             , icons =
-                DeviceProfile.responsive deviceProfile
+                Device.responsive deviceProfile
                     { compact = Icon.Medium
                     , full = Icon.Small
                     }
@@ -280,7 +278,7 @@ viewNavbar session deviceProfile menuIsExtended =
                 }
 
         ifFullscreen element =
-            DeviceProfile.responsive deviceProfile
+            Device.responsive deviceProfile
                 { compact = none
                 , full = element
                 }
@@ -380,7 +378,7 @@ viewNavbar session deviceProfile menuIsExtended =
                         ]
                         ("Go to…" |> iconified (Icon.arrow menuIsExtended sizes.icons))
             in
-            DeviceProfile.responsive deviceProfile
+            Device.responsive deviceProfile
                 { compact = List.singleton dropDown
                 , full = primaryLinks
                 }

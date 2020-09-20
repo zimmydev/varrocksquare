@@ -8,7 +8,7 @@ transformations on elements, e.g. labeling.
 import Config.Assets as Assets
 import Config.Strings as Strings
 import Config.Styles as Styles
-import DeviceProfile exposing (DeviceProfile, responsive)
+import Device
 import Element exposing (Attribute, Element, alignLeft, alignRight, centerX, el, html, image, row, spacing, text)
 import Html exposing (div)
 import Html.Attributes exposing (class)
@@ -24,11 +24,11 @@ import Viewer exposing (Viewer)
 -- SPECIFIC ELEMENTS
 
 
-logo : DeviceProfile -> Element msg
+logo : Device.Profile -> Element msg
 logo deviceProfile =
     let
         logotype =
-            responsive deviceProfile
+            Device.responsive deviceProfile
                 { compact = Strings.appNameCompact
                 , full = Strings.appName
                 }
@@ -57,7 +57,7 @@ spinner attrs =
             div [ class "spinner" ] (List.repeat 4 emptyDiv)
 
 
-donateLink : DeviceProfile -> Icon.Size -> Element msg
+donateLink : Device.Profile -> Icon.Size -> Element msg
 donateLink deviceProfile iconSize =
     inertLink (Styles.donate deviceProfile)
         ("Donate!" |> iconified (Icon.donate iconSize))

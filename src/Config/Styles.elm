@@ -2,7 +2,7 @@ module Config.Styles exposing (avatar, button, content, contentHeader, donate, f
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
-import DeviceProfile exposing (DeviceProfile(..))
+import Device
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -63,16 +63,14 @@ root =
     ]
 
 
-navbar : DeviceProfile -> List (Attribute msg)
+navbar : Device.Profile -> List (Attribute msg)
 navbar deviceProfile =
     let
         fontSize =
-            case deviceProfile of
-                Compact ->
-                    fontSizeBy 2
-
-                Full ->
-                    fontSizeBy -1
+            Device.responsive deviceProfile
+                { compact = fontSizeBy 2
+                , full = fontSizeBy -1
+                }
     in
     [ Region.navigation
     , width fill
@@ -216,11 +214,11 @@ highlighted =
     ]
 
 
-donate : DeviceProfile -> List (Attribute msg)
+donate : Device.Profile -> List (Attribute msg)
 donate deviceProfile =
     let
         fontSize =
-            DeviceProfile.responsive deviceProfile
+            Device.responsive deviceProfile
                 { compact = fontSizeBy -1
                 , full = 12
                 }
