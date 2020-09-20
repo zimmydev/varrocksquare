@@ -9,7 +9,7 @@ Varrock Square is a social blogging platform designed for the free-to-play [Old 
 ## Why does this project exist?
 The answer is twofold. Primarily, it's merely a pet project for me to use to hone my full-stack web development and design skills; in that regard, therefore, the project exists for its own sake. On the other hand, I can see the potential value of just such a platform for some people in the F2P community.
 
-Currently, the *de jure* platform for the W385 community for anything resembling an article/blog/post is [the W385 subreddit](https://www.reddit.com/r/W385), which, while wonderful, active and well-moderated in its own right, leaves much to be desired as a blogging platform. The format of reddit just isn't conducive to writing articles and blogposts. The typical option for guides has typically just been a big pastebin blob; while it works, again, it's not optimal.
+Currently, the *de jure* platform for the W385 community for anything resembling an article/blog/post is [the W385 subreddit](https://www.reddit.com/r/W385), which, while wonderful, active and well-moderated in its own right, leaves much to be desired as a blogging platform. The format of reddit just isn't conducive to writing articles or account diaries or blogposts <sup>[author's opinion]</sup>. The typical option for guides has typically just been a big pastebin blob; while it works, again, it's not optimal.
 
 What if we can combine a written-content platform with the social aspect of, say, the subreddit or the [W385 Discord server](https://discord.gg/RA8bujG)? There are lots of potential ideas here. The Varrock Square project comes in here, as an exploration of some of those ideas.
 
