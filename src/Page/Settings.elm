@@ -1,5 +1,6 @@
 module Page.Settings exposing (Model, Msg(..), init, update, view)
 
+import Alert exposing (Alert)
 import Browser.Navigation as Nav
 import Config.Layout as Layout
 import Config.Styles as Styles
@@ -9,7 +10,6 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Icon exposing (Icon)
-import Notification exposing (Notification)
 import Page exposing (Page)
 import Route
 import Session exposing (Session(..))
@@ -22,12 +22,12 @@ import Viewer
 
 
 type alias Model =
-    { notifications : Bool }
+    { alerts : Bool }
 
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( { notifications = True }, Cmd.none )
+    ( { alerts = True }, Cmd.none )
 
 
 
@@ -36,7 +36,7 @@ init _ =
 
 type Msg parentMsg
     = ParentMsg parentMsg
-    | ChangedNotificationsSetting Bool
+    | ChangedAlerts Bool
 
 
 update : Msg pmsg -> Model -> ( Model, Cmd (Msg pmsg) )
@@ -49,8 +49,8 @@ update msg model =
         ParentMsg _ ->
             ignore
 
-        ChangedNotificationsSetting bool ->
-            ( { model | notifications = bool }, Cmd.none )
+        ChangedAlerts bool ->
+            ( { model | alerts = bool }, Cmd.none )
 
 
 
@@ -58,19 +58,19 @@ update msg model =
 
 
 view :
-    ((Notification.Id -> Notification) -> pmsg)
+    ((Alert.Id -> Alert) -> pmsg)
     -> Session
     -> Model
     -> Page (Msg pmsg)
-view requestNotification session model =
+view requestAlert session model =
     { navbarItem = Page.Settings
     , title = "User Settings"
     , body =
         column Styles.page
             [ el Styles.content <|
                 Input.radioRow [ spacing 20 ]
-                    { onChange = ChangedNotificationsSetting
-                    , selected = Just model.notifications
+                    { onChange = ChangedAlerts
+                    , selected = Just model.alerts
                     , label =
                         Input.labelLeft
                             Styles.inputLabel
@@ -95,7 +95,7 @@ view requestNotification session model =
                     (text "« Fire Test Notifications »")
                 , Layout.inertLink
                     [ Events.onClick <|
-                        ParentMsg (requestNotification Notification.passwordsDontMatch)
+                        ParentMsg (requestAlert Alert.passwordsDontMatch)
                     ]
                     (text "Mismatch passwords")
                 , Layout.credentialed session
@@ -104,8 +104,8 @@ view requestNotification session model =
                             Layout.inertLink
                                 [ Events.onClick <|
                                     ParentMsg <|
-                                        requestNotification <|
-                                            Notification.receivedMessage
+                                        requestAlert <|
+                                            Alert.receivedMessage
                                                 (Viewer.authToken viewer)
                                                 Username.debug
                                                 "A little bit of technique in there as well."
@@ -119,8 +119,8 @@ view requestNotification session model =
                             Layout.inertLink
                                 [ Events.onClick <|
                                     ParentMsg <|
-                                        requestNotification <|
-                                            Notification.receivedMessage
+                                        requestAlert <|
+                                            Alert.receivedMessage
                                                 (Viewer.authToken viewer)
                                                 Username.debug
                                                 "I can double your GP just meet me at the chaos altar"

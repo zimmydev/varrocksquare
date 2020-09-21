@@ -4,6 +4,7 @@ module Page exposing (NavbarItem(..), Page, map, unthemed, view)
 e.g. the navbar, the footer, page title, formatting, etc.
 -}
 
+import Alert.Queue as Queue exposing (Queue)
 import Avatar
 import Browser
 import Config.Layout as Layout exposing (iconified, label, pill)
@@ -13,7 +14,6 @@ import Device
 import Element exposing (..)
 import Element.Lazy exposing (..)
 import Icon
-import Notification.Queue as Queue exposing (Queue)
 import Route
 import Session exposing (Session)
 import Username exposing (Username)

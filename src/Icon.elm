@@ -1,4 +1,4 @@
-module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, pencil, radio, search, settings, starBox, success, view, wrench)
+module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, paperPlane, pencil, radio, search, settings, starBox, success, view, wrench)
 
 {-| TODO: Merge into `Config.Assets`!
 -}
@@ -33,9 +33,6 @@ type Glyph
     | RadioOn
     | RadioOff
     | RadioFocused
-      -- Setting toggles
-    | NotificationsActive
-    | NotificationsInactive
       -- Logos
     | Github
     | Discord
@@ -170,15 +167,6 @@ icons8 =
     Icon Icons8
 
 
-notifications : Bool -> Size -> Icon
-notifications toggle =
-    if toggle then
-        Icon NotificationsActive
-
-    else
-        Icon NotificationsInactive
-
-
 
 -- TRANSFORM
 
@@ -259,12 +247,6 @@ identifier glyph =
 
         RadioFocused ->
             "radio-focused"
-
-        NotificationsActive ->
-            "notifications-active"
-
-        NotificationsInactive ->
-            "notifications-inactive"
 
         Github ->
             "github"

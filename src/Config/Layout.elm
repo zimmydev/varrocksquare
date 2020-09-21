@@ -27,10 +27,10 @@ import Viewer exposing (Viewer)
 
 
 logo : Device.Profile -> Element msg
-logo deviceProfile =
+logo devpro =
     let
         logotype =
-            Device.responsive deviceProfile
+            Device.responsive devpro
                 { compact = Strings.appNameCompact
                 , full = Strings.appName
                 }

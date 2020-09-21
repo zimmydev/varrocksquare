@@ -25,13 +25,7 @@ type alias ResizeHandler msg =
 -- PROFILING
 
 
-resizeHandler :
-    Profile
-    ->
-        { resized : Profile -> msg
-        , noOp : msg
-        }
-    -> ResizeHandler msg
+resizeHandler : Profile -> { resized : Profile -> msg, noOp : msg } -> ResizeHandler msg
 resizeHandler currentProfile { resized, noOp } width height =
     let
         newProfile =

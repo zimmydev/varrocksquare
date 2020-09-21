@@ -1,4 +1,4 @@
-module Notification exposing (Id, Notification(..), canSilence, expire, fire, id, loggedIn, loggedOut, passwordsDontMatch, payload, receivedMessage, view)
+module Alert exposing (Alert(..), Id, canSilence, expire, fire, id, loggedIn, loggedOut, passwordsDontMatch, payload, receivedMessage, view)
 
 import Api exposing (AuthToken)
 import Config.App as App
@@ -13,7 +13,11 @@ import Username exposing (Username)
 import Utils.String exposing (abridge)
 
 
-type Notification
+
+-- TYPES
+
+
+type Alert
     = Info String Id
     | Success String Id
     | Error String Id
@@ -24,36 +28,26 @@ type alias Id =
     Int
 
 
-canSilence : Notification -> Bool
-canSilence notif =
-    case notif of
-        ReceivedMessage _ _ ->
-            True
 
-        _ ->
-            False
+-- CREATION
 
 
-
--- NOTIFICATIONS (CREATION)
-
-
-loggedOut : Id -> Notification
+loggedOut : Id -> Alert
 loggedOut =
     Info "Logged out."
 
 
-loggedIn : Username -> Id -> Notification
+loggedIn : Username -> Id -> Alert
 loggedIn username =
     Success ("Welcome back, " ++ Username.toString username ++ "!")
 
 
-passwordsDontMatch : Id -> Notification
+passwordsDontMatch : Id -> Alert
 passwordsDontMatch =
     Error "The password fields don't match one another!"
 
 
-receivedMessage : AuthToken -> Username -> String -> Id -> Notification
+receivedMessage : AuthToken -> Username -> String -> Id -> Alert
 receivedMessage _ sender mess =
     let
         preview =
@@ -66,9 +60,9 @@ receivedMessage _ sender mess =
 -- INFO
 
 
-id : Notification -> Id
-id notif =
-    case notif of
+id : Alert -> Id
+id alert =
+    case alert of
         Info _ i ->
             i
 
@@ -82,9 +76,9 @@ id notif =
             i
 
 
-payload : Notification -> String
-payload notif =
-    case notif of
+payload : Alert -> String
+payload alert =
+    case alert of
         Info pl _ ->
             pl
 
@@ -99,48 +93,58 @@ payload notif =
 
 
 
--- TRANSFORM
+-- TRANSFORMATION
 
 
-view : Notification -> Element msg
-view notif =
+canSilence : Alert -> Bool
+canSilence alert =
+    case alert of
+        ReceivedMessage _ _ ->
+            True
+
+        _ ->
+            False
+
+
+view : Alert -> Element msg
+view alert =
     let
         ( icon, color ) =
-            style notif
+            style alert
     in
-    Element.el (Styles.notification color) <|
+    Element.el (Styles.alert color) <|
         Element.row [ Styles.smallSpacing ]
-            [ Icon.view icon, Element.text (payload notif) ]
+            [ Icon.view icon, Element.text (payload alert) ]
 
 
 
 -- COMMANDS
 
 
-fire : (Notification -> msg) -> (Id -> Notification) -> Cmd msg
-fire notificationFired notif =
+fire : (Alert -> msg) -> (Id -> Alert) -> Cmd msg
+fire alertFired alert =
     Time.now
         |> Task.map Time.posixToMillis
-        |> Task.perform (notif >> notificationFired)
+        |> Task.perform (alert >> alertFired)
 
 
-expire : (Notification -> msg) -> Notification -> Cmd msg
-expire expireNotif notif =
+expire : (Alert -> msg) -> Alert -> Cmd msg
+expire expireAlert alert =
     Process.sleep 5000
-        |> Task.perform (always (expireNotif notif))
+        |> Task.perform (always (expireAlert alert))
 
 
 
--- HELPER
+-- HELPERS
 
 
-style : Notification -> ( Icon, Color )
-style notif =
+style : Alert -> ( Icon, Color )
+style alert =
     let
         size =
             Icon.Small
     in
-    case notif of
+    case alert of
         Info _ _ ->
             ( Icon.espresso size, Colors.black )
 

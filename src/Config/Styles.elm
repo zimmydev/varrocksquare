@@ -1,4 +1,4 @@
-module Config.Styles exposing (avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, notification, notificationArea, page, pill, redirectPage, root, searchPlaceholder, searchbar, smallSpacing)
+module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, redirectPage, root, searchPlaceholder, searchbar, smallSpacing)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -64,13 +64,13 @@ root =
 
 
 navbar : Device.Profile -> List (Attribute msg)
-navbar deviceProfile =
+navbar devpro =
     [ Region.navigation
     , width fill
     , paddingXY 24 16
     , navbarSpacing
     , Font.size <|
-        Device.responsive deviceProfile
+        Device.responsive devpro
             { compact = fontSizeBy 2
             , full = fontSizeBy -1
             }
@@ -118,8 +118,8 @@ avatar size href =
     ]
 
 
-notificationArea : List (Attribute msg)
-notificationArea =
+alertArea : List (Attribute msg)
+alertArea =
     [ alignBottom
     , moveUp 24
     , moveRight 24
@@ -127,8 +127,8 @@ notificationArea =
     ]
 
 
-notification : Color -> List (Attribute msg)
-notification backgroundColor =
+alert : Color -> List (Attribute msg)
+alert backgroundColor =
     [ paddingXY 12 8
     , Font.bold
     , Font.color Colors.white
@@ -210,10 +210,10 @@ highlighted =
 
 
 donate : Device.Profile -> List (Attribute msg)
-donate deviceProfile =
+donate devpro =
     let
         fontSize =
-            Device.responsive deviceProfile
+            Device.responsive devpro
                 { compact = fontSizeBy -1
                 , full = 12
                 }
