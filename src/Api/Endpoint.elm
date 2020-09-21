@@ -1,9 +1,10 @@
-module Api.Endpoint exposing (Endpoint, comment, comments, feed, follow, login, post, posts, profile, request, star, user, users)
+module Api.Endpoint exposing (Endpoint, comment, commentsByPost, commentsByUser, createComment, createMessage, createPost, createUser, follow, globalFeed, login, logout, message, messages, myFeed, post, request, searchPosts, searchUsers, star, user)
 
 import CommentId exposing (CommentId)
 import Http
+import MessageId exposing (MessageId)
 import Post.Slug as Slug exposing (Slug)
-import Url.Builder exposing (QueryParameter)
+import Url.Builder as Builder exposing (QueryParameter)
 import Username exposing (Username)
 
 
@@ -12,17 +13,15 @@ import Username exposing (Username)
 
 
 type Endpoint
-    = Endpoint Href
-
-
-type alias Href =
-    String
+    = Endpoint String
 
 
 
 -- API REQUESTS
 
 
+{-| This is just a very thin layer over `Http.request`, but using an `Endpoint`.
+-}
 request :
     { method : String
     , headers : List Http.Header
@@ -34,7 +33,6 @@ request :
     }
     -> Cmd msg
 request config =
-    -- This is just a very thin layer over `Http.request` for using `Endpoint`
     let
         (Endpoint href) =
             config.endpoint
@@ -51,66 +49,173 @@ request config =
 
 
 
--- ENDPOINTS
+-- LOGIN
 
 
 login : Endpoint
 login =
+    -- * POST
     endpoint [ "login" ] []
 
 
-user : Endpoint
-user =
-    endpoint [ "user" ] []
-
-
-users : Endpoint
-users =
-    endpoint [ "users" ] []
-
-
-profile : Username -> Endpoint
-profile username =
-    endpoint [ "profiles", Username.toString username ] []
-
-
-follow : Username -> Endpoint
-follow username =
-    endpoint [ "profiles", Username.toString username, "follow" ] []
-
-
-posts : List QueryParameter -> Endpoint
-posts queryParams =
-    endpoint [ "posts" ] queryParams
-
-
-feed : List QueryParameter -> Endpoint
-feed queryParams =
-    endpoint [ "posts", "feed" ] queryParams
+logout : Endpoint
+logout =
+    -- * POST
+    -- TODO: Is this necessary?
+    endpoint [ "logout" ] []
 
 
 
--- SPECIFIC POST ENDPOINTS
+-- POSTS
+
+
+globalFeed : Endpoint
+globalFeed =
+    -- * GET
+    endpoint [ "posts" ] [ Builder.string "feed" "global" ]
+
+
+myFeed : Endpoint
+myFeed =
+    -- * GET (Must be logged-in)
+    endpoint [ "posts" ] [ Builder.string "feed" "personal" ]
+
+
+
+-- SEARCH (POSTS)
+
+
+searchPosts : String -> Endpoint
+searchPosts query =
+    -- * GET
+    endpoint [ "posts" ] [ Builder.string "query" query ]
+
+
+
+-- POST
 
 
 post : Slug -> Endpoint
 post slug =
+    -- * GET
+    -- * PUT (Must be logged-in + Post owner)
+    -- * DELETE (Must be logged-in + Post owner)
     endpoint [ "posts", Slug.toString slug ] []
 
 
-comments : Slug -> Endpoint
-comments slug =
-    endpoint [ "posts", Slug.toString slug, "comments" ] []
+createPost : Endpoint
+createPost =
+    -- * POST (Must be logged-in)
+    endpoint [ "posts" ] []
 
 
-comment : Slug -> CommentId -> Endpoint
-comment slug id =
-    endpoint [ "posts", Slug.toString slug, "comments", CommentId.toString id ] []
+
+-- STAR (A POST)
 
 
 star : Slug -> Endpoint
 star slug =
+    -- * POST (Must be logged-in)
     endpoint [ "posts", Slug.toString slug, "star" ] []
+
+
+
+-- COMMENTS
+
+
+commentsByPost : Slug -> Endpoint
+commentsByPost slug =
+    -- * GET
+    endpoint [ "posts", Slug.toString slug, "comments" ] []
+
+
+commentsByUser : Username -> Endpoint
+commentsByUser username =
+    -- * GET
+    endpoint [ "users", Username.toString username, "comments" ] []
+
+
+
+-- COMMENT
+
+
+comment : Slug -> CommentId -> Endpoint
+comment postSlug id =
+    -- * GET
+    -- * PUT (Must be logged-in + Comment owner)
+    -- * DELETE (Must be logged-in + Comment owner)
+    endpoint [ "posts", Slug.toString postSlug, "comments", CommentId.toString id ] []
+
+
+createComment : Slug -> Endpoint
+createComment postSlug =
+    -- POST (Must be logged-in)
+    endpoint [ "posts", Slug.toString postSlug, "comments" ] []
+
+
+
+-- SEARCH (USERS)
+
+
+searchUsers : String -> Endpoint
+searchUsers query =
+    -- * GET
+    endpoint [ "users" ] [ Builder.string "query" query ]
+
+
+
+-- USER
+
+
+user : Username -> Endpoint
+user username =
+    -- * GET
+    -- * PUT (Must be logged-in + Account owner)
+    -- * DELETE (Must be logged-in + Account owner)
+    endpoint [ "users", Username.toString username ] []
+
+
+createUser : Endpoint
+createUser =
+    -- * POST
+    endpoint [ "users" ] []
+
+
+
+-- FOLLOW (A USER)
+
+
+follow : Username -> Endpoint
+follow username =
+    -- * POST (Must be logged-in)
+    -- TODO: Do we need an /unfollow route as well?
+    endpoint [ "users", Username.toString username, "follow" ] []
+
+
+
+-- MESSAGES
+
+
+messages : Username -> Endpoint
+messages username =
+    -- * GET (Must be logged-in + Message owner/recipient)
+    endpoint [ "users", Username.toString username, "messages" ] []
+
+
+
+-- MESSAGE
+
+
+message : Username -> MessageId -> Endpoint
+message username id =
+    -- * GET (Must be logged-in + Message owner/recipient)
+    endpoint [ "users", Username.toString username, "messages", MessageId.toString id ] []
+
+
+createMessage : Username -> Endpoint
+createMessage username =
+    -- * POST (Must be logged-in; reliquishes ownernership of the Message to the recipient)
+    endpoint [ "users", Username.toString username, "outbox" ] []
 
 
 
@@ -120,4 +225,4 @@ star slug =
 endpoint : List String -> List QueryParameter -> Endpoint
 endpoint paths queryParams =
     Endpoint <|
-        Url.Builder.absolute ("api" :: paths) queryParams
+        Builder.absolute ("api" :: paths) queryParams

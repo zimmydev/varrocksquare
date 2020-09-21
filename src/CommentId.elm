@@ -12,7 +12,7 @@ type CommentId
 
 
 
--- CREATE
+-- CREATION
 
 
 decoder : Decoder CommentId
@@ -21,7 +21,7 @@ decoder =
 
 
 
--- TRANSFORM
+-- TRANSFORMATION
 
 
 toString : CommentId -> String
