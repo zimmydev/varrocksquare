@@ -1,10 +1,11 @@
-module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, pencil, radioFocused, radioOff, radioOn, search, settings, starBox, success, view, wrench)
+module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, notifications, paperPlane, pencil, radio, search, settings, starBox, success, view, wrench)
 
 {-| TODO: Merge into `Config.Assets`!
 -}
 
 import Config.Assets as Assets
 import Element exposing (Element)
+import Element.Input as Input
 
 
 type Icon
@@ -141,19 +142,17 @@ arrow isOpen =
         Icon DownArrow
 
 
-radioOn : Size -> Icon
-radioOn =
-    Icon RadioOn
+radio : Input.OptionState -> Size -> Icon
+radio state =
+    case state of
+        Input.Idle ->
+            Icon RadioOff
 
+        Input.Focused ->
+            Icon RadioFocused
 
-radioOff : Size -> Icon
-radioOff =
-    Icon RadioOff
-
-
-radioFocused : Size -> Icon
-radioFocused =
-    Icon RadioFocused
+        Input.Selected ->
+            Icon RadioOn
 
 
 github : Size -> Icon

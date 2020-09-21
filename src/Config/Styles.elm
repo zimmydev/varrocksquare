@@ -1,4 +1,4 @@
-module Config.Styles exposing (avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, menu, navbar, navbarSpacing, notification, notificationArea, page, pageMargin, pill, redirect, root, searchPlaceholder, searchbar, smallSpacing)
+module Config.Styles exposing (avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, notification, notificationArea, page, pill, redirectPage, root, searchPlaceholder, searchbar, smallSpacing)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -63,15 +63,6 @@ root =
     ]
 
 
-redirect : List (Attribute msg)
-redirect =
-    [ centerX
-    , centerY
-    , Font.bold
-    , Font.size 32
-    ]
-
-
 navbar : Device.Profile -> List (Attribute msg)
 navbar deviceProfile =
     let
@@ -91,14 +82,22 @@ navbar deviceProfile =
     ]
 
 
-menu : List (Attribute msg)
-menu =
-    [ padding 16
-    , spacing 16
-    , navbarBg
-    , Border.rounded pageBoxRoundness
-    , Border.shadow shadow
+logo : List (Attribute msg)
+logo =
+    [ spacing 8
+    , Font.bold
+    , Font.size (fontSizeBy 2)
+    , Font.family [ Font.typeface "Cinzel Decorative", Font.serif ]
     ]
+
+
+navbarItem : Bool -> List (Attribute msg)
+navbarItem isActive =
+    if isActive then
+        [ Font.bold ]
+
+    else
+        [ Font.color (Colors.lightGrey 1) ]
 
 
 pill : List (Attribute msg)
@@ -122,12 +121,12 @@ avatar size href =
     ]
 
 
-logo : List (Attribute msg)
-logo =
-    [ spacing 8
-    , Font.size 20
-    , Font.bold
-    , Font.family [ Font.typeface "Cinzel Decorative", Font.serif ]
+notificationArea : List (Attribute msg)
+notificationArea =
+    [ alignBottom
+    , moveUp 24
+    , moveRight 24
+    , spacing 12
     ]
 
 
@@ -144,20 +143,6 @@ notification backgroundColor =
     ]
 
 
-notificationArea : List (Attribute msg)
-notificationArea =
-    [ alignBottom
-    , moveUp 24
-    , moveRight 24
-    , spacing 12
-    ]
-
-
-pageMargin : List (Attribute msg)
-pageMargin =
-    [ width (fillPortion 1) ]
-
-
 page : List (Attribute msg)
 page =
     [ Region.mainContent
@@ -169,22 +154,26 @@ page =
     ]
 
 
-pageBox : List (Attribute msg)
-pageBox =
+content : List (Attribute msg)
+content =
     [ width (fill |> minimum 360 |> maximum 1080)
+    , padding 25
+    , spacing 25
+    , Font.justify
+    , Font.color Colors.ink
+    , Background.tiled Assets.contentBackground
     , Border.shadow shadow
     , Border.rounded pageBoxRoundness
     ]
 
 
-content : List (Attribute msg)
-content =
-    padding 25
-        :: spacing 15
-        :: Font.color Colors.ink
-        :: Font.justify
-        :: Background.tiled Assets.contentBackground
-        :: pageBox
+redirectPage : List (Attribute msg)
+redirectPage =
+    [ width fill
+    , height fill
+    , Font.bold
+    , Font.size (fontSizeBy 3)
+    ]
 
 
 footer : List (Attribute msg)

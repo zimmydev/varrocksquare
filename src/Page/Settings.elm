@@ -1,7 +1,7 @@
-module Page.Settings exposing (Model, Msg(..), initCommands, initModel, update, view)
+module Page.Settings exposing (Model, Msg(..), init, update, view)
 
 import Browser.Navigation as Nav
-import Config.Elements as Elements
+import Config.Layout as Layout
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
 import Element exposing (..)
@@ -10,6 +10,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Icon exposing (Icon)
 import Notification exposing (Notification)
+import Page exposing (Page)
 import Route
 import Session exposing (Session(..))
 import Username
@@ -24,14 +25,9 @@ type alias Model =
     { notifications : Bool }
 
 
-initModel : () -> Model
-initModel _ =
-    { notifications = True }
-
-
-initCommands : Model -> ( Model, Cmd msg )
-initCommands model =
-    ( model, Cmd.none )
+init : () -> ( Model, Cmd msg )
+init _ =
+    ( { notifications = True }, Cmd.none )
 
 
 
@@ -43,7 +39,7 @@ type Msg parentMsg
     | ChangedNotificationsSetting Bool
 
 
-update : Msg pm -> Model -> ( Model, Cmd (Msg pm) )
+update : Msg pmsg -> Model -> ( Model, Cmd (Msg pmsg) )
 update msg model =
     let
         ignore =
@@ -62,86 +58,76 @@ update msg model =
 
 
 view :
-    ((Notification.Id -> Notification) -> parentMsg)
+    ((Notification.Id -> Notification) -> pmsg)
     -> Session
     -> Model
-    -> Element (Msg parentMsg)
+    -> Page (Msg pmsg)
 view requestNotification session model =
-    column Styles.page
-        [ column Styles.content
-            [ Input.radioRow [ spacing 20 ]
-                { onChange = ChangedNotificationsSetting
-                , selected = Just model.notifications
-                , label =
-                    Input.labelLeft
-                        Styles.inputLabel
-                        (text "Message Notifications:")
-                , options =
-                    [ Input.optionWith True <|
-                        \state ->
-                            Elements.labeledRight "On" <|
-                                Icon.view (radioIcon state)
-                    , Input.optionWith False <|
-                        \state ->
-                            Elements.labeledRight "Off" <|
-                                Icon.view (radioIcon state)
+    { navbarItem = Page.Settings
+    , title = "User Settings"
+    , body =
+        column Styles.page
+            [ el Styles.content <|
+                Input.radioRow [ spacing 20 ]
+                    { onChange = ChangedNotificationsSetting
+                    , selected = Just model.notifications
+                    , label =
+                        Input.labelLeft
+                            Styles.inputLabel
+                            (text "Message Notifications:")
+                    , options =
+                        [ Input.optionWith True <|
+                            \state ->
+                                Layout.label "On" <|
+                                    Icon.view (Icon.radio state Icon.Medium)
+                        , Input.optionWith False <|
+                            \state ->
+                                Layout.label "Off" <|
+                                    Icon.view (Icon.radio state Icon.Medium)
+                        ]
+                    }
+            , textColumn Styles.content
+                [ el
+                    [ Font.color Colors.fadedInk ]
+                    (text "• Master Debug Menu •")
+                , el
+                    [ Font.color Colors.fadedInk ]
+                    (text "« Fire Test Notifications »")
+                , Layout.inertLink
+                    [ Events.onClick <|
+                        ParentMsg (requestNotification Notification.passwordsDontMatch)
                     ]
-                }
-            ]
-        , textColumn Styles.content
-            [ el
-                [ Font.color Colors.fadedInk ]
-                (text "• Master Debug Menu •")
-            , el
-                [ Font.color Colors.fadedInk ]
-                (text "« Fire Test Notifications »")
-            , Elements.inertLink
-                [ Events.onClick <|
-                    ParentMsg (requestNotification Notification.passwordsDontMatch)
+                    (text "Mismatch passwords")
+                , Layout.credentialed session
+                    { loggedIn =
+                        \viewer ->
+                            Layout.inertLink
+                                [ Events.onClick <|
+                                    ParentMsg <|
+                                        requestNotification <|
+                                            Notification.receivedMessage
+                                                (Viewer.authToken viewer)
+                                                Username.debug
+                                                "A little bit of technique in there as well."
+                                ]
+                                (text "Short message")
+                    , guest = none
+                    }
+                , Layout.credentialed session
+                    { loggedIn =
+                        \viewer ->
+                            Layout.inertLink
+                                [ Events.onClick <|
+                                    ParentMsg <|
+                                        requestNotification <|
+                                            Notification.receivedMessage
+                                                (Viewer.authToken viewer)
+                                                Username.debug
+                                                "I can double your GP just meet me at the chaos altar"
+                                ]
+                                (text "Long message")
+                    , guest = none
+                    }
                 ]
-                (text "Mismatch passwords")
-            , Elements.credentialed session
-                { loggedIn =
-                    \viewer ->
-                        Elements.inertLink
-                            [ Events.onClick <|
-                                ParentMsg <|
-                                    requestNotification <|
-                                        Notification.receivedMessage
-                                            (Viewer.authToken viewer)
-                                            Username.debug
-                                            "A little bit of technique in there as well."
-                            ]
-                            (text "Short message")
-                , guest = none
-                }
-            , Elements.credentialed session
-                { loggedIn =
-                    \viewer ->
-                        Elements.inertLink
-                            [ Events.onClick <|
-                                ParentMsg <|
-                                    requestNotification <|
-                                        Notification.receivedMessage
-                                            (Viewer.authToken viewer)
-                                            Username.debug
-                                            "I can double your GP just meet me at the chaos altar"
-                            ]
-                            (text "Long message")
-                , guest = none
-                }
             ]
-        ]
-
-
-radioIcon : Input.OptionState -> Icon
-radioIcon state =
-    case state of
-        Input.Idle ->
-            Icon.radioOff Icon.Medium
-
-        Input.Focused ->
-            Icon.radioFocused Icon.Medium
-
-        Input.Selected ->
-            Icon.radioOn Icon.Medium
+    }

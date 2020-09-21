@@ -5,7 +5,7 @@ import Avatar
 import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
-import Config.Elements as Elements exposing (iconified, labeledRight, pill)
+import Config.Layout as Layout exposing (iconified, label, pill)
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Device
@@ -19,7 +19,9 @@ import Json.Encode exposing (Value)
 import Main.Flags as Flags
 import Notification exposing (Notification, fire)
 import Notification.Queue exposing (Queue)
+import Page
 import Page.Home
+import Page.Redirect
 import Page.Search
 import Page.Settings
 import Route exposing (Href, Route)
@@ -36,7 +38,7 @@ import Viewer
 
 type alias Model =
     { session : Session
-    , currentRoute : Route
+    , route : Route
     , deviceProfile : Device.Profile
     , menuIsExtended : Bool
     , notifications : Queue
@@ -102,8 +104,8 @@ main =
                 Tuple.mapSecond toCmd <|
                     update msg model
         , onUrlRequest = ClickedLink
-        , onUrlChange = ChangedRoute << Route.routeUrl
-        , view = document
+        , onUrlChange = Route.routeUrl >> ChangedRoute
+        , view = view
         }
 
 
@@ -116,8 +118,8 @@ init json url navKey =
         initialRoute =
             Route.routeUrl url
 
-        settings =
-            Page.Settings.initModel ()
+        ( settings, settingsCmd ) =
+            Page.Settings.init ()
 
         commands =
             case initialRoute of
@@ -142,7 +144,7 @@ init json url navKey =
     commands
         |> Tuple.pair
             { session = Session.new navKey (Just Viewer.debug)
-            , currentRoute = initialRoute
+            , route = initialRoute
             , deviceProfile = Device.profile flags.size
             , menuIsExtended = False
             , notifications = Notification.Queue.empty
@@ -173,7 +175,7 @@ update msg model =
                 nextRoute =
                     Route.routeUrl url
             in
-            if nextRoute == model.currentRoute then
+            if nextRoute == model.route then
                 ignore
 
             else
@@ -211,11 +213,11 @@ update msg model =
 
                 Route.Search maybeQuery ->
                     Tuple.pair
-                        { model | currentRoute = nextRoute }
+                        { model | route = nextRoute }
                         [ FocusSearchbar ]
 
                 _ ->
-                    ( { model | currentRoute = nextRoute }, [] )
+                    ( { model | route = nextRoute }, [] )
 
         ResizedDevice deviceProfile ->
             ( { model | deviceProfile = deviceProfile }, [] )
@@ -276,200 +278,33 @@ update msg model =
 -- VIEWS
 
 
-document : Model -> Document Msg
-document ({ currentRoute, deviceProfile, menuIsExtended, session, notifications } as model) =
+view : Model -> Document Msg
+view model =
     let
-        navbar =
-            inFront (lazy3 viewNavbar session deviceProfile menuIsExtended)
-
-        notificationArea =
-            inFront (lazy Notification.Queue.view notifications)
+        viewPage =
+            Page.view model.session model.deviceProfile model.notifications
     in
-    { title = Route.title currentRoute
-    , body =
-        List.singleton <|
-            case currentRoute of
-                Route.Redirect _ ->
-                    layout [] <|
-                        el Styles.redirect <|
-                            text "Redirecting…"
+    case model.route of
+        Route.Redirect _ ->
+            Page.Redirect.view ()
+                |> Page.unthemed
 
-                _ ->
-                    layoutWith
-                        { options = [ focusStyle Styles.focus ] }
-                        (navbar :: notificationArea :: Styles.root)
-                        (column [ width fill, height fill ]
-                            [ row [ width fill ]
-                                [ el Styles.pageMargin none
-                                , lazy renderPage model
-                                , el Styles.pageMargin none
-                                ]
-                            , lazy (always footer) ()
-                            ]
-                        )
-    }
-
-
-viewNavbar : Session -> Device.Profile -> Bool -> Element Msg
-viewNavbar session deviceProfile menuIsExtended =
-    let
-        sizes =
-            { avatar = 26
-            , icons =
-                Device.responsive deviceProfile
-                    { compact = Icon.Medium
-                    , full = Icon.Small
-                    }
-            }
-
-        linkIfLoggedIn attrs config =
-            Elements.credentialed session
-                { loggedIn = \_ -> Elements.link attrs config
-                , guest = none
-                }
-
-        ifFullscreen element =
-            Device.responsive deviceProfile
-                { compact = none
-                , full = element
-                }
-
-        primaryLinks =
-            [ linkIfLoggedIn []
-                { route = Route.NewPost
-                , label = "New Post" |> iconified (Icon.pencil sizes.icons)
-                }
-            , Elements.link []
-                { route = Route.Search Nothing
-                , label = "Search" |> iconified (Icon.search sizes.icons)
-                }
-            , Elements.link []
-                { route = Route.Tools
-                , label = "Tools" |> iconified (Icon.wrench sizes.icons)
-                }
-            , linkIfLoggedIn []
-                { route = Route.Starred
-                , label = "Starred" |> iconified (Icon.starBox sizes.icons)
-                }
-            , linkIfLoggedIn []
-                { route = Route.Inbox
-                , label =
-                    "Inbox"
-                        |> iconified (Icon.paperPlane sizes.icons)
-                        |> pill 69
-                }
-            ]
-
-        secondaryLinks =
-            [ Elements.donateLink deviceProfile sizes.icons
-            , ifFullscreen (Elements.discordLink sizes.icons)
-            , ifFullscreen (Elements.githubLink sizes.icons)
-            , Elements.link []
-                { route = Route.Help
-                , label = Icon.help sizes.icons |> Icon.view
-                }
-            , Elements.credentialed session
-                { loggedIn =
-                    \viewer ->
-                        let
-                            username =
-                                Viewer.username viewer
-                        in
-                        row [ Styles.navbarSpacing ]
-                            [ Elements.link []
-                                { route = Route.Settings
-                                , label =
-                                    "Settings"
-                                        |> iconified (Icon.settings sizes.icons)
-                                }
-                            , Elements.link []
-                                { route = Route.Logout
-                                , label = text "Logout"
-                                }
-                            , Elements.link Styles.highlighted
-                                { route = Route.Profile username
-                                , label =
-                                    Viewer.avatar viewer
-                                        |> Avatar.view sizes.avatar
-                                        |> labeledRight ("@" ++ Username.toString username)
-                                }
-                            ]
-                , guest =
-                    row [ Styles.navbarSpacing ]
-                        [ Elements.link []
-                            { route = Route.Login
-                            , label = text "Login"
-                            }
-                        , Elements.link []
-                            { route = Route.Register
-                            , label = text "Register"
-                            }
-                        , Elements.link Styles.highlighted
-                            { route = Route.Register
-                            , label =
-                                Avatar.default
-                                    |> Avatar.view sizes.avatar
-                                    |> labeledRight "Guest"
-                            }
-                        ]
-                }
-            ]
-
-        menuElements =
-            let
-                dropDown =
-                    Elements.inertLink
-                        [ Events.onClick ClickedNavMenu
-                        , if menuIsExtended then
-                            below <|
-                                column Styles.menu primaryLinks
-
-                          else
-                            below none
-                        ]
-                        ("Go to…" |> iconified (Icon.arrow menuIsExtended sizes.icons))
-            in
-            Device.responsive deviceProfile
-                { compact = List.singleton dropDown
-                , full = primaryLinks
-                }
-    in
-    row (Styles.navbar deviceProfile) <|
-        List.concat <|
-            [ List.singleton (Elements.logo deviceProfile)
-            , menuElements
-            , secondaryLinks
-            ]
-
-
-footer : Element msg
-footer =
-    row Styles.footer <|
-        List.map (el Styles.footerElement)
-            [ Elements.credit
-            , Elements.iconsCredit
-            , Elements.privacyPolicyLink
-            , Elements.copyright
-            ]
-
-
-renderPage : Model -> Element Msg
-renderPage model =
-    -- Display a page depending on the Route
-    case model.currentRoute of
         Route.Home ->
-            lazy Page.Home.view ()
+            Page.Home.view ()
+                |> viewPage
 
-        Route.Search maybeQuery ->
-            --(maybeQuery |> Maybe.withDefault model.searchQuery)
-            lazy2 Page.Search.view ChangedQuery model.searchQuery
+        Route.Search _ ->
+            Page.Search.view ChangedQuery model.searchQuery
+                |> viewPage
 
         Route.Settings ->
-            lazy3 Page.Settings.view NotificationRequested model.session model.settings
-                |> Element.map SettingsMsg
+            Page.Settings.view NotificationRequested model.session model.settings
+                |> Page.map SettingsMsg
+                |> viewPage
 
         _ ->
-            none
+            Page.Home.view ()
+                |> viewPage
 
 
 
