@@ -1,4 +1,4 @@
-module Route exposing (Href, Route(..), api, companyWebsite, discord, donate, github, icons8, push, redirect, replace, routeUrl, title, toHref)
+module Route exposing (Href, Route(..), companyWebsite, discord, donate, github, icons8, push, redirect, replace, routeUrl, toHref)
 
 import Browser.Navigation as Nav
 import Config.Strings as Strings
@@ -14,14 +14,14 @@ import Username exposing (Username)
 -- TYPES
 
 
-{-| `Route` represents the current routing of the application. Routes as a
-concept are related to pages, but not 1:1.
+{-| `Route` represents the current routing of the application. Routes as a concept are related to
+pages, but not 1:1.
 
 Some notes about app-specific routing:
 
-  - `Root` and `Home` will normally be identical routes, but are split into two
-    variants in the case that we want to move our `Home` route to make room for
-    e.g. an announcement on the frontpage/root route.
+  - `Root` and `Home` will normally be identical routes, but are split into two variants in the
+    case that we want to move our `Home` route to make room for e.g. an announcement on the
+    frontpage/root route.
   - `Home` is where personal and global feeds are presented.
   - `NotFound` is always the fallback route when no other route can be parsed.
 
@@ -37,7 +37,7 @@ type Route
     | Tools
     | Help
     | PrivacyPolicy
-      -- Main routes (credentialed)
+      -- Main routes (Must be logged-in)
     | NewPost
     | EditPost Slug
     | Settings
@@ -233,102 +233,3 @@ toHref route =
                     ( [ "link" ], [ Builder.string "href" href ] )
     in
     Builder.absolute paths queries
-
-
-
--- PUBLIC INFO
-
-
-title : Route -> String
-title route =
-    let
-        prefixAppName s =
-            Strings.appName ++ " • " ++ s
-    in
-    case route of
-        -- Main routes
-        Root ->
-            title Home
-
-        Home ->
-            prefixAppName Strings.appTagline
-
-        Post _ ->
-            prefixAppName "Post"
-
-        Profile username ->
-            prefixAppName (Username.toPossessiveString username ++ " Profile")
-
-        Search Nothing ->
-            prefixAppName "Search"
-
-        Search (Just query) ->
-            prefixAppName ("Search for '" ++ query ++ "'")
-
-        Tools ->
-            prefixAppName "Tools for F2P"
-
-        Help ->
-            prefixAppName "Help"
-
-        PrivacyPolicy ->
-            prefixAppName "Privacy Policy"
-
-        -- Main routes (credentialed)
-        NewPost ->
-            prefixAppName "New Post"
-
-        EditPost _ ->
-            prefixAppName "Editing Post"
-
-        Settings ->
-            prefixAppName "Settings"
-
-        Starred ->
-            prefixAppName "Starred Posts"
-
-        Inbox ->
-            prefixAppName "Inbox"
-
-        -- Account actions
-        Login ->
-            prefixAppName "Login"
-
-        Logout ->
-            prefixAppName "Logging out…"
-
-        Register ->
-            prefixAppName "Registration"
-
-        NotFound ->
-            prefixAppName "Page not found!"
-
-        Redirect href ->
-            "Redirecting…"
-
-
-
--- API
-
-
-api =
-    { login =
-        apiRoute [ "login" ] []
-    , posts =
-        \maybeSort ->
-            case maybeSort of
-                Just sortType ->
-                    apiRoute [ "posts" ] [ Builder.string "sort" sortType ]
-
-                Nothing ->
-                    apiRoute [ "posts" ] []
-    }
-
-
-
--- API HELPERS
-
-
-apiRoute : List String -> List Builder.QueryParameter -> Href
-apiRoute path =
-    Builder.absolute ("api" :: path)
