@@ -1,4 +1,4 @@
-module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, redirectPage, root, searchPlaceholder, searchbar, smallSpacing)
+module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, redirectPage, root, searchPlaceholder, searchbar, smallSpacing, spinner)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -200,6 +200,11 @@ searchbar =
 searchPlaceholder : List (Attribute msg)
 searchPlaceholder =
     [ Font.color (Colors.lightGrey 4) ]
+
+
+spinner : List (Attribute msg)
+spinner =
+    [ centerX ]
 
 
 highlighted : List (Attribute msg)

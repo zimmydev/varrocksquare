@@ -54,7 +54,7 @@ spinner attrs =
         emptyDiv =
             div [] []
     in
-    el attrs <|
+    el (attrs ++ Styles.spinner) <|
         html <|
             div [ class "spinner" ] (List.repeat 4 emptyDiv)
 

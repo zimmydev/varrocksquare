@@ -26,27 +26,23 @@ focusSearchbar focusedSearchbar =
 
 view : (String -> msg) -> String -> Page msg
 view searchbarChanged query =
-    let
-        title =
-            if String.isEmpty query then
-                "Search"
-
-            else
-                "Searching for '" ++ query ++ "'"
-    in
     { navbarItem = Page.Search
-    , title = title
-    , body =
-        column Styles.page
-            [ lazy2 searchbar searchbarChanged query
-            , if String.isEmpty query then
-                none
-
-              else
-                el Styles.content
-                    (Layout.spinner [ centerX ])
-            ]
+    , title = searchingString query
+    , body = lazy2 body searchbarChanged query
     }
+
+
+body : (String -> msg) -> String -> Element msg
+body searchbarChanged query =
+    column Styles.page
+        [ lazy2 searchbar searchbarChanged query
+        , if String.isEmpty query then
+            none
+
+          else
+            el Styles.content
+                (Layout.spinner [])
+        ]
 
 
 searchbar : (String -> msg) -> String -> Element msg
@@ -62,3 +58,12 @@ searchbar searchbarChanged query =
         , placeholder = Just placeholder
         , label = Input.labelHidden "Searchbar"
         }
+
+
+searchingString : String -> String
+searchingString query =
+    if String.isEmpty query then
+        "Searching…"
+
+    else
+        "Searching for '" ++ query ++ "'…"

@@ -9,6 +9,7 @@ import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Lazy exposing (..)
 import Icon exposing (Icon)
 import Page exposing (Page)
 import Route
@@ -58,76 +59,80 @@ update msg model =
 
 
 view :
-    ((Alert.Id -> Alert) -> pmsg)
+    ((Alert.Id -> Alert) -> parentMsg)
     -> Session
     -> Model
-    -> Page (Msg pmsg)
+    -> Page (Msg parentMsg)
 view requestAlert session model =
     { navbarItem = Page.Settings
     , title = "User Settings"
-    , body =
-        column Styles.page
-            [ el Styles.content <|
-                Input.radioRow [ spacing 20 ]
-                    { onChange = ChangedAlerts
-                    , selected = Just model.alerts
-                    , label =
-                        Input.labelLeft
-                            Styles.inputLabel
-                            (text "Message Notifications:")
-                    , options =
-                        [ Input.optionWith True <|
-                            \state ->
-                                Layout.label "On" <|
-                                    Icon.view (Icon.radio state Icon.Medium)
-                        , Input.optionWith False <|
-                            \state ->
-                                Layout.label "Off" <|
-                                    Icon.view (Icon.radio state Icon.Medium)
-                        ]
-                    }
-            , textColumn Styles.content
-                [ el
-                    [ Font.color Colors.fadedInk ]
-                    (text "• Master Debug Menu •")
-                , el
-                    [ Font.color Colors.fadedInk ]
-                    (text "« Fire Test Notifications »")
-                , Layout.inertLink
-                    [ Events.onClick <|
-                        ParentMsg (requestAlert Alert.passwordsDontMatch)
-                    ]
-                    (text "Mismatch passwords")
-                , Layout.credentialed session
-                    { loggedIn =
-                        \viewer ->
-                            Layout.inertLink
-                                [ Events.onClick <|
-                                    ParentMsg <|
-                                        requestAlert <|
-                                            Alert.receivedMessage
-                                                (Viewer.authToken viewer)
-                                                Username.debug
-                                                "A little bit of technique in there as well."
-                                ]
-                                (text "Short message")
-                    , guest = none
-                    }
-                , Layout.credentialed session
-                    { loggedIn =
-                        \viewer ->
-                            Layout.inertLink
-                                [ Events.onClick <|
-                                    ParentMsg <|
-                                        requestAlert <|
-                                            Alert.receivedMessage
-                                                (Viewer.authToken viewer)
-                                                Username.debug
-                                                "I can double your GP just meet me at the chaos altar"
-                                ]
-                                (text "Long message")
-                    , guest = none
-                    }
-                ]
-            ]
+    , body = lazy3 body requestAlert session model
     }
+
+
+body : ((Alert.Id -> Alert) -> parentMsg) -> Session -> Model -> Element (Msg parentMsg)
+body requestAlert session model =
+    column Styles.page
+        [ el Styles.content <|
+            Input.radioRow [ spacing 20 ]
+                { onChange = ChangedAlerts
+                , selected = Just model.alerts
+                , label =
+                    Input.labelLeft
+                        Styles.inputLabel
+                        (text "Message Notifications:")
+                , options =
+                    [ Input.optionWith True <|
+                        \state ->
+                            Layout.label "On" <|
+                                Icon.view (Icon.radio state Icon.Medium)
+                    , Input.optionWith False <|
+                        \state ->
+                            Layout.label "Off" <|
+                                Icon.view (Icon.radio state Icon.Medium)
+                    ]
+                }
+        , textColumn Styles.content
+            [ el
+                [ Font.color Colors.fadedInk ]
+                (text "• Master Debug Menu •")
+            , el
+                [ Font.color Colors.fadedInk ]
+                (text "« Fire Test Notifications »")
+            , Layout.inertLink
+                [ Events.onClick <|
+                    ParentMsg (requestAlert Alert.passwordsDontMatch)
+                ]
+                (text "Mismatch passwords")
+            , Layout.credentialed session
+                { loggedIn =
+                    \viewer ->
+                        Layout.inertLink
+                            [ Events.onClick <|
+                                ParentMsg <|
+                                    requestAlert <|
+                                        Alert.receivedMessage
+                                            (Viewer.authToken viewer)
+                                            Username.debug
+                                            "A little bit of technique in there as well."
+                            ]
+                            (text "Short message")
+                , guest = none
+                }
+            , Layout.credentialed session
+                { loggedIn =
+                    \viewer ->
+                        Layout.inertLink
+                            [ Events.onClick <|
+                                ParentMsg <|
+                                    requestAlert <|
+                                        Alert.receivedMessage
+                                            (Viewer.authToken viewer)
+                                            Username.debug
+                                            "I can double your GP just meet me at the chaos altar"
+                            ]
+                            (text "Long message")
+                , guest = none
+                }
+            ]
+        ]

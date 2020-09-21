@@ -266,8 +266,8 @@ view ({ session, devpro, alerts } as model) =
             Page.view session devpro alerts
     in
     case model.route of
-        Route.Redirect _ ->
-            Page.Redirect.view ()
+        Route.Redirect href ->
+            Page.Redirect.view href
                 |> Page.unthemed
 
         Route.Home ->
