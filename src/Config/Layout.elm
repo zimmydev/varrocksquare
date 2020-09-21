@@ -1,4 +1,4 @@
-module Config.Layout exposing (copyright, credentialed, credentialedLink, credentialedOrNone, credit, externalLink, fullscreenOrNone, guestLink, iconified, iconsCredit, inertLink, label, link, logo, pill, privacyPolicyLink, spinner)
+module Config.Layout exposing (copyright, credentialed, credentialedLink, credentialedOrNone, credit, externalLink, fullscreenOrNone, guestLink, iconified, inertLink, label, link, logo, pill, privacyPolicyLink, spinner)
 
 {-| This module is for reusable visual elements, e.g. loading spinners, etc.
 Additionally, this module holds general-purpose functions that perform common
@@ -69,21 +69,6 @@ credit =
         { route = Route.Profile Username.appAuthor
         , body = text "Made with ♥︎ by Zimmy"
         }
-
-
-iconsCredit : Element msg
-iconsCredit =
-    row [ centerX ]
-        [ text "Icons by "
-        , externalLink []
-            { href = Route.icons8
-            , body =
-                image []
-                    { src = "assets/svg/pencil-16.svg"
-                    , description = "icons8 icon"
-                    }
-            }
-        ]
 
 
 privacyPolicyLink : Element msg

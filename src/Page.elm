@@ -334,7 +334,6 @@ footer =
     row Styles.footer <|
         List.map (el Styles.footerElement)
             [ Layout.credit
-            , Layout.iconsCredit
             , Layout.privacyPolicyLink
             , Layout.copyright
             ]
