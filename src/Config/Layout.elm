@@ -77,7 +77,11 @@ iconsCredit =
         [ text "Icons by "
         , externalLink []
             { href = Route.icons8
-            , body = Icon.view (Icon.icons8 Icon.Small)
+            , body =
+                image []
+                    { src = "assets/svg/pencil-16.svg"
+                    , description = "icons8 icon"
+                    }
             }
         ]
 

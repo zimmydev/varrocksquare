@@ -100,6 +100,7 @@ darkGrey level =
             rgb255 44 44 46
 
         2 ->
+            -- #3a3a3c
             rgb255 58 58 60
 
         3 ->

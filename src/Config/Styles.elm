@@ -24,13 +24,13 @@ type alias Href =
 -- COMMON ATTRIBUTES (FOR INTERNAL USE)
 
 
-navbarBg : Attribute msg
-navbarBg =
+headerFooterBg : Attribute msg
+headerFooterBg =
     Background.color Colors.black
 
 
-zeroPadding : { bottom : number, left : number, right : number, top : number }
-zeroPadding =
+zeroEdges : { bottom : number, left : number, right : number, top : number }
+zeroEdges =
     { top = 0, left = 0, right = 0, bottom = 0 }
 
 
@@ -43,8 +43,8 @@ shadow =
     }
 
 
-pageBoxRoundness : number
-pageBoxRoundness =
+contentRoundness : number
+contentRoundness =
     10
 
 
@@ -54,7 +54,7 @@ pageBoxRoundness =
 
 root : List (Attribute msg)
 root =
-    [ paddingEach { zeroPadding | top = 72 }
+    [ paddingEach { zeroEdges | top = 72 }
     , clipX
     , Font.color Colors.white
     , Font.size (fontSizeBy 1)
@@ -65,19 +65,16 @@ root =
 
 navbar : Device.Profile -> List (Attribute msg)
 navbar deviceProfile =
-    let
-        fontSize =
-            Device.responsive deviceProfile
-                { compact = fontSizeBy 2
-                , full = fontSizeBy -1
-                }
-    in
     [ Region.navigation
     , width fill
     , paddingXY 24 16
     , navbarSpacing
-    , Font.size fontSize
-    , navbarBg
+    , Font.size <|
+        Device.responsive deviceProfile
+            { compact = fontSizeBy 2
+            , full = fontSizeBy -1
+            }
+    , headerFooterBg
     , Border.shadow shadow
     ]
 
@@ -163,7 +160,7 @@ content =
     , Font.color Colors.ink
     , Background.tiled Assets.contentBackground
     , Border.shadow shadow
-    , Border.rounded pageBoxRoundness
+    , Border.rounded contentRoundness
     ]
 
 
@@ -183,9 +180,9 @@ footer =
     , paddingXY 24 12
     , spacing 24
     , alignBottom
-    , Font.color (Colors.darkGrey 3)
-    , Font.size 12
-    , navbarBg
+    , Font.color (Colors.darkGrey 2)
+    , Font.size (fontSizeBy -1)
+    , headerFooterBg
     ]
 
 
@@ -196,7 +193,7 @@ searchbar =
     , Font.color Colors.black
     , Background.color Colors.white
     , Border.shadow { shadow | size = 0, offset = ( 0, 0 ), blur = 2 }
-    , Border.rounded pageBoxRoundness
+    , Border.rounded contentRoundness
     ]
 
 
@@ -233,7 +230,7 @@ button =
     , Font.color Colors.green
     , Border.color Colors.green
     , Border.width 3
-    , Border.rounded pageBoxRoundness
+    , Border.rounded contentRoundness
     ]
 
 
