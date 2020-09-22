@@ -1,22 +1,25 @@
-module User exposing (FollowedUser, UnfollowedUser, User(..), profile, username)
+module User exposing (User, avatar, debug, decoder, profile, username)
 
-import LoggedInUser exposing (LoggedInUser)
+import Avatar exposing (Avatar)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline exposing (required)
 import Profile exposing (Profile)
 import Username exposing (Username)
 
 
 type User
-    = IsFollowing FollowedUser
-    | IsNotFollowing UnfollowedUser
-    | IsSelf LoggedInUser
+    = User Username Profile
 
 
-type FollowedUser
-    = FollowedUser Username Profile
+
+-- Obtaining a User
 
 
-type UnfollowedUser
-    = UnfollowedUser Username Profile
+decoder : Decoder User
+decoder =
+    Decode.succeed User
+        |> required "username" Username.decoder
+        |> required "profile" Profile.decoder
 
 
 
@@ -24,26 +27,24 @@ type UnfollowedUser
 
 
 username : User -> Username
-username user =
-    case user of
-        IsFollowing (FollowedUser name _) ->
-            name
-
-        IsNotFollowing (UnfollowedUser name _) ->
-            name
-
-        IsSelf loggedInUser ->
-            LoggedInUser.username loggedInUser
+username (User name _) =
+    name
 
 
 profile : User -> Profile
-profile user =
-    case user of
-        IsFollowing (FollowedUser _ prof) ->
-            prof
+profile (User _ prof) =
+    prof
 
-        IsNotFollowing (UnfollowedUser _ prof) ->
-            prof
 
-        IsSelf loggedInUser ->
-            LoggedInUser.profile loggedInUser
+avatar : User -> Avatar
+avatar user =
+    profile user
+        |> Profile.avatar
+
+
+
+-- Debugging a User
+
+
+debug =
+    User Username.debug Profile.debug

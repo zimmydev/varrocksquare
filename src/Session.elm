@@ -1,4 +1,4 @@
-module Session exposing (Session, authToken, isGuest, loggedInUser, navKey, new)
+module Session exposing (Session, authToken, navKey, new, user)
 
 import Api exposing (AuthToken)
 import Browser.Navigation as Nav
@@ -17,25 +17,15 @@ type Session
 new : Nav.Key -> Maybe LoggedInUser -> Session
 new key maybeLoggedInUser =
     case maybeLoggedInUser of
-        Just user ->
-            LoggedIn key user
-
         Nothing ->
             Guest key
+
+        Just loggedInUser ->
+            LoggedIn key loggedInUser
 
 
 
 -- Info on Session
-
-
-isGuest : Session -> Bool
-isGuest session =
-    case session of
-        Guest _ ->
-            True
-
-        LoggedIn _ _ ->
-            False
 
 
 navKey : Session -> Nav.Key
@@ -48,14 +38,14 @@ navKey session =
             key
 
 
-loggedInUser : Session -> Maybe LoggedInUser
-loggedInUser session =
+user : Session -> Maybe LoggedInUser
+user session =
     case session of
         Guest _ ->
             Nothing
 
-        LoggedIn _ user ->
-            Just user
+        LoggedIn _ loggedInUser ->
+            Just loggedInUser
 
 
 authToken : Session -> Maybe AuthToken
@@ -64,5 +54,5 @@ authToken session =
         Guest _ ->
             Nothing
 
-        LoggedIn _ user ->
-            Just (LoggedInUser.authToken user)
+        LoggedIn _ loggedInUser ->
+            Just (LoggedInUser.authToken loggedInUser)

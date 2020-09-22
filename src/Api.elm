@@ -1,4 +1,4 @@
-module Api exposing (AuthToken, authHeader, debugToken, tokenDecoder)
+module Api exposing (AuthToken, authHeader, authTokenDecoder, debugToken)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -13,8 +13,8 @@ type AuthToken
 -- Obtaining an AuthToken
 
 
-tokenDecoder : Decoder AuthToken
-tokenDecoder =
+authTokenDecoder : Decoder AuthToken
+authTokenDecoder =
     Decode.succeed AuthToken
         |> required "token" Decode.string
 

@@ -1,4 +1,4 @@
-module Profile exposing (Profile, avatar, bio, debug, decoder)
+module Profile exposing (Profile, avatar, bio, debug, decoder, joinDate)
 
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder, nullable, string)
@@ -12,6 +12,7 @@ type Profile
 
 
 type alias Internals =
+    -- Making the internals a record leaves it room to grow if necessary.
     { avatar : Avatar
     , joinDate : Time.Posix
     , bio : Maybe String
@@ -38,6 +39,11 @@ decoder =
 avatar : Profile -> Avatar
 avatar (Profile prof) =
     prof.avatar
+
+
+joinDate : Profile -> Time.Posix
+joinDate (Profile prof) =
+    prof.joinDate
 
 
 bio : Profile -> Maybe String

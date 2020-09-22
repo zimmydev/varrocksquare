@@ -117,7 +117,7 @@ inertLink attrs body =
 
 credentialed : Session -> { loggedIn : LoggedInUser -> Element msg, guest : Element msg } -> Element msg
 credentialed session { loggedIn, guest } =
-    case Session.loggedInUser session of
+    case Session.user session of
         Nothing ->
             guest
 
