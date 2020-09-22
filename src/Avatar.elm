@@ -7,10 +7,6 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 
 
-
--- TYPES
-
-
 type Avatar
     = Avatar Href
 
@@ -20,7 +16,7 @@ type alias Href =
 
 
 
--- CREATE
+-- Obtaining an Avatar
 
 
 default : Avatar
@@ -34,7 +30,7 @@ decoder =
 
 
 
--- TRANSFORM
+-- Converting an Avatar
 
 
 encode : Avatar -> Value
@@ -49,7 +45,7 @@ view size (Avatar href) =
 
 
 
--- DEBUG
+-- Debugging an Avatar
 
 
 debug : Avatar

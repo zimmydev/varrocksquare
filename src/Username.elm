@@ -6,16 +6,12 @@ import Json.Encode as Encode exposing (Value)
 import Url.Parser exposing (Parser)
 
 
-
--- TYPES
-
-
 type Username
     = Username String
 
 
 
--- CREATION
+-- Obtaining a Username
 
 
 decoder : Decoder Username
@@ -23,8 +19,13 @@ decoder =
     Decode.map Username Decode.string
 
 
+urlParser : Parser (Username -> a) a
+urlParser =
+    Url.Parser.map Username Url.Parser.string
 
--- TRANSFORMATION
+
+
+-- Converting a Username
 
 
 encode : Username -> Value
@@ -52,16 +53,7 @@ view username =
 
 
 
--- URL PARSING
-
-
-urlParser : Parser (Username -> a) a
-urlParser =
-    Url.Parser.map Username Url.Parser.string
-
-
-
--- ETC.
+-- Etc.
 
 
 appAuthor : Username
@@ -71,7 +63,7 @@ appAuthor =
 
 
 
--- DEBUG
+-- Debugging a Username
 
 
 debug : Username

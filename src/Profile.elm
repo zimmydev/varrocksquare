@@ -7,13 +7,7 @@ import Json.Decode.Pipeline exposing (optional, required)
 import Time
 
 
-
--- TYPES
-
-
-type
-    Profile
-    -- A Profile BELONGS TO a User
+type Profile
     = Profile Internals
 
 
@@ -25,7 +19,7 @@ type alias Internals =
 
 
 
--- CREATION
+-- Obtaining a Profile
 
 
 decoder : Decoder Profile
@@ -38,7 +32,7 @@ decoder =
 
 
 
--- INFO
+-- Info on Profile
 
 
 avatar : Profile -> Avatar
@@ -52,7 +46,7 @@ bio (Profile prof) =
 
 
 
--- DEBUG
+-- Debugging a Profile
 
 
 debug : Profile

@@ -3,10 +3,6 @@ module Post.Body exposing (Body, view)
 import Element exposing (Element)
 
 
-
--- TYPES
-
-
 type alias MarkdownString =
     String
 
@@ -16,7 +12,7 @@ type Body
 
 
 
--- TRANSFORM
+-- Converting a Body
 
 
 view : Body -> Element msg

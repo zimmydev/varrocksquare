@@ -8,16 +8,12 @@ import Url.Builder as Builder exposing (QueryParameter)
 import Username exposing (Username)
 
 
-
--- TYPES
-
-
 type Endpoint
     = Endpoint String
 
 
 
--- API REQUESTS
+-- Http API Wrapper
 
 
 {-| This is just a very thin layer over `Http.request`, but using an `Endpoint`.
@@ -49,7 +45,7 @@ request config =
 
 
 
--- LOGIN
+-- Endpoints for Logging In
 
 
 login : Endpoint
@@ -66,7 +62,7 @@ logout =
 
 
 
--- POSTS
+-- Endpoints for Posts
 
 
 globalFeed : Endpoint
@@ -82,7 +78,7 @@ myFeed =
 
 
 
--- SEARCH (POSTS)
+-- Endpoints for Searching Posts
 
 
 searchPosts : String -> Endpoint
@@ -92,7 +88,7 @@ searchPosts query =
 
 
 
--- POST
+-- Endpoints for Post
 
 
 post : Slug -> Endpoint
@@ -110,7 +106,7 @@ createPost =
 
 
 
--- STAR (A POST)
+-- Endpoints for Starring a Post
 
 
 star : Slug -> Endpoint
@@ -120,7 +116,7 @@ star slug =
 
 
 
--- COMMENTS
+-- Endpoints for Comments
 
 
 commentsByPost : Slug -> Endpoint
@@ -136,7 +132,7 @@ commentsByUser username =
 
 
 
--- COMMENT
+-- Endpoints for Comment
 
 
 comment : Slug -> CommentId -> Endpoint
@@ -154,7 +150,7 @@ createComment postSlug =
 
 
 
--- SEARCH (USERS)
+-- Endpoints for Searching Users
 
 
 searchUsers : String -> Endpoint
@@ -164,7 +160,7 @@ searchUsers query =
 
 
 
--- USER
+-- Endpoints for User
 
 
 user : Username -> Endpoint
@@ -182,7 +178,7 @@ createUser =
 
 
 
--- FOLLOW (A USER)
+-- Endpoints for Following a User
 
 
 follow : Username -> Endpoint
@@ -193,7 +189,7 @@ follow username =
 
 
 
--- MESSAGES
+-- Endpoints for Messages
 
 
 messages : Username -> Endpoint
@@ -203,7 +199,7 @@ messages username =
 
 
 
--- MESSAGE
+-- Endpoints for Message
 
 
 message : Username -> MessageId -> Endpoint
@@ -219,7 +215,7 @@ createMessage username =
 
 
 
--- HELPERS
+-- Helpers
 
 
 endpoint : List String -> List QueryParameter -> Endpoint

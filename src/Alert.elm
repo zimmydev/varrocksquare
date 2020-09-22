@@ -13,10 +13,6 @@ import Username exposing (Username)
 import Utils.String exposing (abridge)
 
 
-
--- TYPES
-
-
 type Alert
     = Info String Id
     | Success String Id
@@ -29,7 +25,7 @@ type alias Id =
 
 
 
--- CREATION
+-- Obtaining an Alert
 
 
 loggedOut : Id -> Alert
@@ -57,7 +53,7 @@ receivedMessage _ sender mess =
 
 
 
--- INFO
+-- Info on Alert
 
 
 id : Alert -> Id
@@ -92,10 +88,6 @@ payload alert =
             pl
 
 
-
--- TRANSFORMATION
-
-
 canSilence : Alert -> Bool
 canSilence alert =
     case alert of
@@ -104,6 +96,10 @@ canSilence alert =
 
         _ ->
             False
+
+
+
+-- Converting an Alert
 
 
 view : Alert -> Element msg
@@ -118,7 +114,7 @@ view alert =
 
 
 
--- COMMANDS
+-- Commands
 
 
 fire : (Alert -> msg) -> (Id -> Alert) -> Cmd msg
@@ -135,7 +131,7 @@ expire timeout expireAlert alert =
 
 
 
--- HELPERS
+-- Helpers
 
 
 style : Alert -> ( Icon, Color )

@@ -11,7 +11,7 @@ import Route
 
 
 
--- VIEWS
+-- Views
 
 
 view : Page msg

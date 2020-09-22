@@ -9,17 +9,27 @@ import Profile exposing (Profile)
 import Username exposing (Username)
 
 
-
--- TYPES
-
-
 type Session
     = Guest Nav.Key
     | LoggedIn Nav.Key LoggedInUser
 
 
 
--- INFO
+-- Obtaining a Session
+
+
+new : Nav.Key -> Maybe LoggedInUser -> Session
+new key maybeLoggedInUser =
+    case maybeLoggedInUser of
+        Just user ->
+            LoggedIn key user
+
+        Nothing ->
+            Guest key
+
+
+
+-- Info on Session
 
 
 isGuest : Session -> Bool
@@ -60,17 +70,3 @@ authToken session =
 
         LoggedIn _ user ->
             Just (LoggedInUser.authToken user)
-
-
-
--- CHANGES TO THE SESSION
-
-
-new : Nav.Key -> Maybe LoggedInUser -> Session
-new key maybeLoggedInUser =
-    case maybeLoggedInUser of
-        Just user ->
-            LoggedIn key user
-
-        Nothing ->
-            Guest key

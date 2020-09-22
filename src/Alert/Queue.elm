@@ -1,6 +1,6 @@
 module Alert.Queue exposing (Queue, count, empty, isEmpty, push, remove, toList, view)
 
-{-| TODO: Convert to use a dictionary implementation.
+{-| A collection type for `Alert`s.
 -}
 
 import Alert exposing (Alert)
@@ -8,16 +8,12 @@ import Config.Styles as Styles
 import Element exposing (Element)
 
 
-
--- TYPES
-
-
 type Queue
     = Queue (List Alert)
 
 
 
--- CREATION
+-- Obtaining a Queue
 
 
 empty : Queue
@@ -26,7 +22,7 @@ empty =
 
 
 
--- INFO
+-- Info on Queue
 
 
 isEmpty : Queue -> Bool
@@ -40,7 +36,7 @@ count (Queue alerts) =
 
 
 
--- TRANSFORMATION
+-- Tranforming a Queue
 
 
 push : Alert -> Queue -> Queue
@@ -53,6 +49,10 @@ remove alert (Queue alerts) =
     alerts
         |> List.filter (\n -> Alert.id alert /= Alert.id n)
         |> Queue
+
+
+
+-- Converting a Queue
 
 
 toList : Queue -> List Alert

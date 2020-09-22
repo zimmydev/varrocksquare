@@ -3,16 +3,12 @@ module Config.Assets exposing (..)
 import Url.Builder as Builder
 
 
-
---TYPES
-
-
 type alias Href =
     String
 
 
 
--- IMAGES
+-- Image Assets
 
 
 logo : Href
@@ -41,7 +37,7 @@ notFoundImage =
 
 
 
--- IMAGE HELPERS
+-- Image Assets (Helpers)
 
 
 image : String -> Href
@@ -50,7 +46,7 @@ image filename =
 
 
 
--- ICONS
+-- Icon Assets
 
 
 icon : String -> Href

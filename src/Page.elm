@@ -8,7 +8,7 @@ import Alert.Queue as Queue exposing (Queue)
 import Avatar
 import Browser
 import Config.App as App
-import Config.Layout as Layout exposing (iconified, label, pill)
+import Config.Layout as Layout exposing (applyIcon, label, pill)
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Device
@@ -19,10 +19,6 @@ import LoggedInUser
 import Route
 import Session exposing (Session)
 import Username exposing (Username)
-
-
-
--- TYPES
 
 
 type alias Page msg =
@@ -55,7 +51,15 @@ type
 
 
 
--- TOP-LEVEL VIEW
+-- Converting a Page
+
+
+map : (msg -> pmsg) -> Page msg -> Page pmsg
+map parentMsg page =
+    { navbarItem = page.navbarItem
+    , title = page.title
+    , body = Element.map parentMsg page.body
+    }
 
 
 view : Session -> Device.Profile -> Queue -> Page msg -> Browser.Document msg
@@ -95,7 +99,7 @@ unthemed page =
 
 
 
--- NAVBAR
+-- Navbar
 
 
 navbar : Session -> Device.Profile -> NavbarItem -> Element msg
@@ -164,7 +168,7 @@ navbarItem item session devpro activeItem =
                 , body =
                     Device.responsive devpro
                         { compact = Icon.view icon
-                        , full = iconified icon "New Post"
+                        , full = applyIcon icon "New Post"
                         }
                 }
 
@@ -179,7 +183,7 @@ navbarItem item session devpro activeItem =
                 , body =
                     Device.responsive devpro
                         { compact = Icon.view icon
-                        , full = iconified icon "Search"
+                        , full = applyIcon icon "Search"
                         }
                 }
 
@@ -194,7 +198,7 @@ navbarItem item session devpro activeItem =
                 , body =
                     Device.responsive devpro
                         { compact = Icon.view icon
-                        , full = iconified icon "Tools"
+                        , full = applyIcon icon "Tools"
                         }
                 }
 
@@ -209,7 +213,7 @@ navbarItem item session devpro activeItem =
                 , body =
                     Device.responsive devpro
                         { compact = Icon.view icon
-                        , full = iconified icon "Starred"
+                        , full = applyIcon icon "Starred"
                         }
                 }
 
@@ -225,7 +229,7 @@ navbarItem item session devpro activeItem =
                     Device.responsive devpro
                         { compact = Icon.view icon
                         , full =
-                            "Inbox" |> iconified icon |> pill 69
+                            "Inbox" |> applyIcon icon |> pill 69
                         }
                 }
 
@@ -237,7 +241,7 @@ navbarItem item session devpro activeItem =
             Layout.inertLink (Styles.donate devpro) <|
                 Device.responsive devpro
                     { compact = Icon.view icon
-                    , full = iconified icon "Donate!"
+                    , full = applyIcon icon "Donate!"
                     }
 
         Discord ->
@@ -285,7 +289,7 @@ navbarItem item session devpro activeItem =
                 , body =
                     Device.responsive devpro
                         { compact = Icon.view icon
-                        , full = iconified icon "Settings"
+                        , full = applyIcon icon "Settings"
                         }
                 }
 
@@ -328,7 +332,7 @@ navbarItem item session devpro activeItem =
 
 
 
--- FOOTER
+-- Footer
 
 
 footer : Element msg
@@ -342,24 +346,12 @@ footer =
 
 
 
--- HELPERS
+-- Helpers
 
 
 appTitle : String -> String
 appTitle pageTitle =
     pageTitle ++ " • " ++ Strings.appName
-
-
-
--- PAGE RENDERING
-
-
-map : (msg -> pmsg) -> Page msg -> Page pmsg
-map parentMsg page =
-    { navbarItem = page.navbarItem
-    , title = page.title
-    , body = Element.map parentMsg page.body
-    }
 
 
 toHtmlDocument :

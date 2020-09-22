@@ -9,11 +9,6 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Region as Region
 import Html.Attributes exposing (class)
-import Icon
-
-
-
--- TYPES
 
 
 type alias Href =
@@ -21,35 +16,17 @@ type alias Href =
 
 
 
--- COMMON ATTRIBUTES (FOR INTERNAL USE)
+-- Font Scaling
 
 
-headerFooterBg : Attribute msg
-headerFooterBg =
-    Background.color Colors.black
-
-
-zeroEdges : { bottom : number, left : number, right : number, top : number }
-zeroEdges =
-    { top = 0, left = 0, right = 0, bottom = 0 }
-
-
-shadow : { blur : number, color : Color, offset : ( number, number ), size : number }
-shadow =
-    { offset = ( 4, 4 )
-    , size = -5
-    , blur = 16
-    , color = Colors.black
-    }
-
-
-contentRoundness : number
-contentRoundness =
-    10
+fontSizeBy : Int -> Int
+fontSizeBy =
+    modular 16 1.25
+        >> round
 
 
 
--- STYLE CONFIGURATIONS
+-- Styles
 
 
 root : List (Attribute msg)
@@ -252,10 +229,6 @@ footerElement =
     [ width fill ]
 
 
-
--- OTHER STYLE CONFIGURATIONS
-
-
 contentHeader : Int -> List (Attribute msg)
 contentHeader heading =
     let
@@ -271,7 +244,7 @@ contentHeader heading =
 
 
 
--- MISC. EXPOSED STYLE CONFIGURATIONS
+-- Misc. Style Data
 
 
 navbarSpacing : Attribute msg
@@ -293,10 +266,28 @@ focus =
 
 
 
--- FONT SCALING
+-- Helpers
 
 
-fontSizeBy : Int -> Int
-fontSizeBy =
-    modular 16 1.25
-        >> round
+headerFooterBg : Attribute msg
+headerFooterBg =
+    Background.color Colors.black
+
+
+zeroEdges : { bottom : number, left : number, right : number, top : number }
+zeroEdges =
+    { top = 0, left = 0, right = 0, bottom = 0 }
+
+
+shadow : { blur : number, color : Color, offset : ( number, number ), size : number }
+shadow =
+    { offset = ( 4, 4 )
+    , size = -5
+    , blur = 16
+    , color = Colors.black
+    }
+
+
+contentRoundness : number
+contentRoundness =
+    10

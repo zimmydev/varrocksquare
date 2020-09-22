@@ -10,16 +10,21 @@ import Json.Decode.Pipeline exposing (required)
 import Json.Encode exposing (Value)
 
 
-
--- TYPES
-
-
 type alias Flags =
     { size : Device.Size }
 
 
 
--- SERIALIZATION
+-- Defaults
+
+
+default : Flags
+default =
+    { size = Device.Size 1280 800 }
+
+
+
+-- Serializing Flags
 
 
 {-| Decode JSON flags into a nice elm data structure. Currently, in the case of
@@ -36,12 +41,3 @@ decoder : Decoder Flags
 decoder =
     Decode.succeed Flags
         |> required "size" Device.decoder
-
-
-
--- DEFAULTS
-
-
-default : Flags
-default =
-    { size = Device.Size 1280 800 }

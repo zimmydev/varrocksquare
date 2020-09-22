@@ -5,16 +5,12 @@ import Json.Encode as Encode exposing (Value)
 import Url.Parser exposing (Parser)
 
 
-
--- TYPES
-
-
 type Slug
     = Slug String
 
 
 
--- CREATION
+-- Obtaining a Slug
 
 
 decoder : Decoder Slug
@@ -22,8 +18,13 @@ decoder =
     Decode.map Slug Decode.string
 
 
+urlParser : Parser (Slug -> a) a
+urlParser =
+    Url.Parser.map Slug Url.Parser.string
 
--- TRANSFORMATION
+
+
+-- Converting a Slug
 
 
 encode : Slug -> Value
@@ -37,17 +38,7 @@ toString (Slug rawSlug) =
 
 
 
--- URL PARSING
-
-
-urlParser : Parser (Slug -> a) a
-urlParser =
-    Url.Parser.custom "SLUG"
-        (Just << Slug)
-
-
-
--- DEBUG
+-- Debugging a Slug
 
 
 debug : String -> Slug

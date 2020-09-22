@@ -6,10 +6,6 @@ import Time
 import Username exposing (Username)
 
 
-
--- TYPES
-
-
 type Post p
     = Post p Metadata
 

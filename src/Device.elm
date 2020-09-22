@@ -4,10 +4,6 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 
 
-
--- TYPES
-
-
 type alias Size =
     { width : Int, height : Int }
 
@@ -22,7 +18,7 @@ type alias ResizeHandler msg =
 
 
 
--- PROFILING
+-- Device Profiling
 
 
 resizeHandler : Profile -> { resized : Profile -> msg, noOp : msg } -> ResizeHandler msg
@@ -58,7 +54,7 @@ responsive prof { compact, full } =
 
 
 
--- SIZE SERIALIZATION
+-- Serialization
 
 
 decoder : Decoder Size

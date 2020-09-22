@@ -3,16 +3,12 @@ module CommentId exposing (CommentId, decoder, toString)
 import Json.Decode as Decode exposing (Decoder)
 
 
-
--- TYPES
-
-
 type CommentId
     = CommentId Int
 
 
 
--- CREATION
+-- Obtaining a CommentId
 
 
 decoder : Decoder CommentId
@@ -21,7 +17,7 @@ decoder =
 
 
 
--- TRANSFORMATION
+-- Converting a CommentId
 
 
 toString : CommentId -> String

@@ -1,17 +1,15 @@
-module Config.Layout exposing (copyright, credentialed, credentialedLink, credentialedOrNone, credit, externalLink, fullscreenOrNone, guestLink, iconified, inertLink, label, link, logo, pill, privacyPolicyLink, spinner)
+module Config.Layout exposing (applyIcon, copyright, credentialed, credentialedLink, credentialedOrNone, credit, externalLink, fullscreenOrNone, guestLink, inertLink, label, link, logo, pill, privacyPolicyLink, spinner)
 
 {-| This module is for reusable visual elements, e.g. loading spinners, etc.
 Additionally, this module holds general-purpose functions that perform common
-transformations on elements, e.g. labeling.
+transformations on elements, e.g. labeling, applying an icon, etc.
 -}
 
-import Browser
 import Config.Assets as Assets
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Device
 import Element exposing (..)
-import Element.Input as Input
 import Html exposing (div)
 import Html.Attributes exposing (class)
 import Icon exposing (Icon)
@@ -23,7 +21,7 @@ import Username
 
 
 
--- NAVBAR
+-- Navbar
 
 
 logo : Device.Profile -> Element msg
@@ -48,19 +46,8 @@ logo devpro =
         }
 
 
-spinner : List (Attribute msg) -> Element msg
-spinner attrs =
-    let
-        emptyDiv =
-            div [] []
-    in
-    el (attrs ++ Styles.spinner) <|
-        html <|
-            div [ class "spinner" ] (List.repeat 4 emptyDiv)
 
-
-
--- FOOTER
+-- Footer
 
 
 credit : Element msg
@@ -88,7 +75,22 @@ copyright =
 
 
 
--- ELM-UI API WRAPPER
+-- Page
+
+
+spinner : List (Attribute msg) -> Element msg
+spinner attrs =
+    let
+        emptyDiv =
+            div [] []
+    in
+    el (attrs ++ Styles.spinner) <|
+        html <|
+            div [ class "spinner" ] (List.repeat 4 emptyDiv)
+
+
+
+-- mdgriffith/elm-ui API Wrappers
 
 
 link : List (Attribute msg) -> { route : Route, body : Element msg } -> Element msg
@@ -110,7 +112,7 @@ inertLink attrs body =
 
 
 
--- ELEMENT TRANSFORMATIONS
+-- Transforming an Element
 
 
 credentialed : Session -> { loggedIn : LoggedInUser -> Element msg, guest : Element msg } -> Element msg
@@ -163,8 +165,8 @@ fullscreenOrNone devpro element =
         }
 
 
-iconified : Icon -> String -> Element msg
-iconified icon lbl =
+applyIcon : Icon -> String -> Element msg
+applyIcon icon lbl =
     Icon.view icon
         |> label lbl
 
@@ -195,7 +197,7 @@ pill count element =
 
 
 
--- HELPERS
+-- Helpers
 
 
 place : { left : Element msg, right : Element msg } -> Element msg

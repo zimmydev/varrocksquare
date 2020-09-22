@@ -3,16 +3,12 @@ module MessageId exposing (MessageId, decoder, toString)
 import Json.Decode as Decode exposing (Decoder)
 
 
-
--- TYPES
-
-
 type MessageId
     = MessageId Int
 
 
 
--- CREATION
+-- Obtaining a MessageId
 
 
 decoder : Decoder MessageId
@@ -21,7 +17,7 @@ decoder =
 
 
 
--- TRANSFORMATION
+-- Converting a MessageId
 
 
 toString : MessageId -> String

@@ -5,10 +5,6 @@ import Profile exposing (Profile)
 import Username exposing (Username)
 
 
-
--- TYPES
-
-
 type User
     = IsFollowing FollowedUser
     | IsNotFollowing UnfollowedUser
@@ -24,7 +20,7 @@ type UnfollowedUser
 
 
 
--- INFO
+-- Info on User
 
 
 username : User -> Username

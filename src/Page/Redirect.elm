@@ -7,16 +7,12 @@ import Page exposing (Page)
 import Url
 
 
-
--- TYPES
-
-
 type alias Href =
     String
 
 
 
--- VIEWS
+-- Views
 
 
 view : Href -> Page msg
@@ -36,6 +32,10 @@ body label =
     el Styles.seguePage <|
         el [ centerX, centerY ] <|
             text label
+
+
+
+-- Helpers
 
 
 redirectingString : Href -> String

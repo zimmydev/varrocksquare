@@ -4,7 +4,7 @@ import Element exposing (Color, rgb255)
 
 
 
--- PRIMARY
+-- Primary Colors
 
 
 black : Color
@@ -51,27 +51,7 @@ pink =
 
 
 
--- OTHER
-
-
-ink : Color
-ink =
-    -- #2f1600
-    rgb255 47 22 0
-
-
-fadedInk : Color
-fadedInk =
-    rgb255 111 84 54
-
-
-parchment : Color
-parchment =
-    rgb255 188 159 118
-
-
-
--- GREYSCALE
+-- Greyscale Colors
 
 
 lightGrey : Int -> Color
@@ -111,3 +91,23 @@ darkGrey level =
 
         _ ->
             black
+
+
+
+-- Other Colors
+
+
+ink : Color
+ink =
+    -- #2f1600
+    rgb255 47 22 0
+
+
+fadedInk : Color
+fadedInk =
+    rgb255 111 84 54
+
+
+parchment : Color
+parchment =
+    rgb255 188 159 118

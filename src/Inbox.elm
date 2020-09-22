@@ -3,12 +3,16 @@ module Inbox exposing (Inbox, Message, debug, message, messageCount, sender)
 import Username exposing (Username)
 
 
-
--- INBOX
-
-
 type alias Inbox =
     List Message
+
+
+type Message
+    = Message Username String
+
+
+
+-- Info on Inbox
 
 
 messageCount : Inbox -> Int
@@ -17,11 +21,7 @@ messageCount =
 
 
 
--- MESSAGE
-
-
-type Message
-    = Message Username String
+-- Info on Messages
 
 
 sender : Message -> Username
@@ -35,7 +35,7 @@ message (Message _ mess) =
 
 
 
--- DEBUG
+-- Debugging an Inbox
 
 
 debug : Inbox

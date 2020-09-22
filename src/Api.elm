@@ -5,16 +5,12 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 
 
-
--- AUTHTOKEN: TYPES
-
-
 type AuthToken
     = AuthToken String
 
 
 
--- AUTHTOKEN: CREATE
+-- Obtaining an AuthToken
 
 
 tokenDecoder : Decoder AuthToken
@@ -24,7 +20,7 @@ tokenDecoder =
 
 
 
--- AUTHTOKEN: TRANSFORM
+-- Converting an AuthToken
 
 
 authHeader : AuthToken -> Http.Header
@@ -33,7 +29,7 @@ authHeader (AuthToken tok) =
 
 
 
--- DEBUG
+-- Debugging an AuthToken
 
 
 debugToken : AuthToken

@@ -19,7 +19,7 @@ import Username
 
 
 
--- MODEL
+-- Model
 
 
 type alias Model =
@@ -27,7 +27,7 @@ type alias Model =
 
 
 
--- MSG
+-- Messages
 
 
 type Msg parentMsg
@@ -36,7 +36,7 @@ type Msg parentMsg
 
 
 
--- EFFECTS
+-- Effects
 
 
 type Effect
@@ -44,7 +44,7 @@ type Effect
 
 
 
--- INIT
+-- Init
 
 
 init : () -> ( Model, Cmd msg )
@@ -53,7 +53,7 @@ init _ =
 
 
 
--- UPDATE
+-- Update
 
 
 update : Msg pmsg -> Model -> ( Model, Effect )
@@ -71,7 +71,7 @@ update msg model =
 
 
 
--- VIEWS
+-- Views
 
 
 view :

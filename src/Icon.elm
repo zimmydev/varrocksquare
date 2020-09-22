@@ -43,10 +43,6 @@ type alias Href =
     String
 
 
-
--- SIZES
-
-
 type Size
     = Small
     | Medium
@@ -54,7 +50,7 @@ type Size
 
 
 
--- ICONS (CREATION)
+-- Obtaining an Icon
 
 
 binoculars : Size -> Icon
@@ -105,14 +101,6 @@ donate =
 settings : Size -> Icon
 settings =
     Icon Settings
-
-
-
-{-
-   logout : Size -> Icon
-   logout =
-       Icon Logout
--}
 
 
 success : Size -> Icon
@@ -168,7 +156,7 @@ icons8 =
 
 
 
--- TRANSFORM
+-- Converting an Icon
 
 
 view : Icon -> Element msg
@@ -177,7 +165,7 @@ view icon =
 
 
 
--- HELPERS
+-- Helpers
 
 
 source : Icon -> Href

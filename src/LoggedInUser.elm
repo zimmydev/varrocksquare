@@ -8,10 +8,6 @@ import Json.Encode as Encode exposing (Value)
 import Username exposing (Username)
 
 
-
--- TYPES
-
-
 {-| The LoggedInUser type is meant to hang on to enough data to render your identity
 in the navbar (Avatar and Username) and verify your identity with an AuthToken.
 -}
@@ -22,7 +18,7 @@ type
 
 
 
--- CREATION
+-- Obtaining a LoggedInUser
 
 
 decoder : Decoder (AuthToken -> LoggedInUser)
@@ -33,7 +29,7 @@ decoder =
 
 
 
--- INFO
+-- Info on LoggedInUser
 
 
 username : LoggedInUser -> Username
@@ -52,7 +48,7 @@ authToken (LoggedInUser _ _ tok) =
 
 
 
--- DEBUG
+-- Debugging a LoggedInUser
 
 
 debug : LoggedInUser

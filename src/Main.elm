@@ -8,7 +8,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
 import Config.App as App
-import Config.Layout as Layout exposing (iconified, label, pill)
+import Config.Layout as Layout exposing (applyIcon, label, pill)
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Device
@@ -37,7 +37,7 @@ import Username
 
 
 
--- MODEL
+-- Model
 
 
 type alias Model =
@@ -51,7 +51,7 @@ type alias Model =
 
 
 
--- MESSAGES
+-- Messages
 
 
 type Msg
@@ -69,7 +69,7 @@ type Msg
 
 
 
--- EFFECTS
+-- Effects
 
 
 type Effect
@@ -87,7 +87,7 @@ type Effect
 
 
 
--- MAIN, SUBSCRIPTIONS & INIT
+-- Main, Subscriptions & Init
 
 
 main : Program Value Model Msg
@@ -169,7 +169,7 @@ init json url navKey =
 
 
 
--- UPDATE
+-- Update
 
 
 update : Msg -> Model -> ( Model, Effect )
@@ -285,7 +285,7 @@ update msg model =
 
 
 
--- VIEWS
+-- Views
 
 
 view : Model -> Document Msg
@@ -322,7 +322,7 @@ view ({ session, devpro, alerts } as model) =
 
 
 
--- PERFORMING EFFECTS
+-- Performing Effects
 
 
 perform : Nav.Key -> Effect -> Cmd Msg

@@ -12,7 +12,7 @@ import Task
 
 
 
--- COMMANDS
+-- Commands
 
 
 focusSearchbar : msg -> Cmd msg
@@ -21,7 +21,7 @@ focusSearchbar focusedSearchbar =
 
 
 
--- VIEW
+-- Views
 
 
 view : (String -> msg) -> String -> Page msg
@@ -58,6 +58,10 @@ searchbar searchbarChanged query =
         , placeholder = Just placeholder
         , label = Input.labelHidden "Searchbar"
         }
+
+
+
+-- Helpers
 
 
 searchingString : String -> String

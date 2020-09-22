@@ -8,8 +8,16 @@ import Page exposing (Page)
 import Utils.String exposing (abridge)
 
 
+
+-- Model
+
+
 type alias Model =
     ()
+
+
+
+-- Views
 
 
 view : Model -> Page msg

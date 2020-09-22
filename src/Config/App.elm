@@ -1,24 +1,24 @@
 module Config.App exposing (logEffect, logInfo, logMsg, logProblem, messagePreviewLength)
 
+{-| Configurations that affect the entire app.
+-}
 
+
+{-| The max length of message alert previews.
+-}
 messagePreviewLength : Int
 messagePreviewLength =
-    -- The max length of message alert previews
     50
 
 
 
--- DEBUGGING
+-- Debug Logging
 
 
 allowedLogs =
     { verbose = True
     , logic = True
     }
-
-
-
--- LOGGING API
 
 
 logInfo : List a -> String -> a -> a
@@ -43,7 +43,7 @@ logProblem output replacement item =
 
 
 
--- HELPERS
+-- Debug Logging (Helpers)
 
 
 tagString : String -> String -> String

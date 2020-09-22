@@ -10,10 +10,6 @@ import Url.Parser.Query as Query
 import Username exposing (Username)
 
 
-
--- TYPES
-
-
 {-| `Route` represents the current routing of the application. Routes as a concept are related to
 pages, but not 1:1.
 
@@ -56,7 +52,7 @@ type alias Href =
 
 
 
--- URLS
+-- External Hrefs
 
 
 companyWebsite : Href
@@ -87,16 +83,7 @@ icons8 =
 
 
 
--- URL HELPERS
-
-
-top : Href
-top =
-    Builder.absolute [] []
-
-
-
--- ROUTE PARSING
+-- Routing
 
 
 parser : Parser (Route -> a) a
@@ -132,10 +119,6 @@ parser =
         ]
 
 
-
--- ROUTING
-
-
 routeUrl : Url -> Route
 routeUrl url =
     url
@@ -144,7 +127,7 @@ routeUrl url =
 
 
 
--- ROUTING COMMANDS
+-- Commands
 
 
 push : Nav.Key -> Route -> Cmd msg
@@ -158,7 +141,7 @@ replace key route =
 
 
 
--- DEROUTING
+-- De-Routing
 
 
 toHref : Route -> Href
