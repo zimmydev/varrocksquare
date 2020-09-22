@@ -24,9 +24,8 @@ elm make src/Main.elm --optimize --output=public/main.js && uglifyjs public/main
 ```
 
 ## To-do
-- Write tests
-	- Travis integration
-- `Http` API
+* Write more tests…
+* `Http` API
 
 ## Contributions
 
