@@ -139,7 +139,8 @@ init json url navKey =
         effects =
             case initialRoute of
                 Route.NotFound ->
-                    DelayEffect 3000 (PushRoute Route.Root)
+                    Route.NotFound
+                        |> App.logProblem "Initial route not found" (DelayEffect 3000 (PushRoute Route.Root))
 
                 Route.Redirect href ->
                     -- Redirect works on fresh page load and on re-route
@@ -204,7 +205,7 @@ update msg model =
 
         LinkClicked (Browser.External href) ->
             Browser.External href
-                |> App.problem "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
+                |> App.logProblem "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
 
         RouteChanged nextRoute ->
             case nextRoute of
@@ -326,7 +327,7 @@ view ({ session, devpro, alerts } as model) =
 
 perform : Nav.Key -> Effect -> Cmd Msg
 perform navKey effect =
-    case effect |> App.logEffect [ NoEffect ] of
+    case effect |> App.logEffect [ NoEffect, SettingsEffect Page.Settings.NoEffect ] of
         NoEffect ->
             Cmd.none
 
@@ -358,7 +359,7 @@ perform navKey effect =
             Alert.fire AlertFired alert
 
         ExpireAlert alert ->
-            Alert.expire AlertExpired alert
+            Alert.expire 5000 AlertExpired alert
 
         SettingsEffect Page.Settings.NoEffect ->
             Cmd.none

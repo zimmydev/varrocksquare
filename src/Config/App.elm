@@ -1,4 +1,4 @@
-module Config.App exposing (logEffect, logMsg, messagePreviewLength, problem, verbose)
+module Config.App exposing (logEffect, logLogic, logMsg, logProblem, logVerbose, messagePreviewLength)
 
 
 messagePreviewLength : Int
@@ -11,32 +11,51 @@ messagePreviewLength =
 -- DEBUGGING
 
 
-verboseIsActive : Bool
-verboseIsActive =
-    True
+allowedLogs =
+    { verbose = True
+    , logic = True
+    }
+
+
+
+-- HELPERS
+
+
+tagString : String -> String -> String
+tagString tag string =
+    "[" ++ String.toUpper tag ++ "] " ++ string
+
+
+log : Bool -> String -> List a -> String -> a -> a
+log enabled tag ignored output item =
+    if enabled && not (List.member item ignored) then
+        item |> Debug.log (tagString tag output)
+
+    else
+        item
+
+
+logVerbose : List a -> String -> a -> a
+logVerbose =
+    log allowedLogs.verbose "verbose"
+
+
+logLogic : List a -> String -> a -> a
+logLogic =
+    log allowedLogs.logic "logic"
+
+
+logProblem : String -> b -> a -> b
+logProblem output replacement item =
+    log True "problem" [] output item
+        |> always replacement
 
 
 logMsg : List a -> a -> a
-logMsg =
-    verbose "Received a message"
+logMsg ignored =
+    logLogic ignored "Received a message"
 
 
 logEffect : List a -> a -> a
-logEffect =
-    verbose "Performing an effect"
-
-
-verbose : String -> List a -> a -> a
-verbose label ignored item =
-    if verboseIsActive && not (List.member item ignored) then
-        Debug.log ("[VERBOSE] " ++ label) item
-
-    else
-        identity item
-
-
-problem : String -> b -> a -> b
-problem label replacement item =
-    item
-        |> Debug.log ("[PROBLEM] " ++ label)
-        |> always replacement
+logEffect ignored =
+    logLogic ignored "Performing an effect"

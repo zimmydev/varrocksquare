@@ -128,9 +128,9 @@ fire alertFired alert =
         |> Task.perform (alert >> alertFired)
 
 
-expire : (Alert -> msg) -> Alert -> Cmd msg
-expire expireAlert alert =
-    Process.sleep 5000
+expire : Float -> (Alert -> msg) -> Alert -> Cmd msg
+expire timeout expireAlert alert =
+    Process.sleep timeout
         |> Task.perform (always (expireAlert alert))
 
 
