@@ -1,4 +1,4 @@
-module Session exposing (Session, authToken, isGuest, navKey, new, viewer)
+module Session exposing (Session, authToken, isGuest, navKey, new, loggedInUser)
 
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
@@ -6,7 +6,7 @@ import Browser.Navigation as Nav
 import Inbox exposing (Inbox)
 import Profile exposing (Profile)
 import Username exposing (Username)
-import Viewer exposing (Viewer)
+import LoggedInUser exposing (LoggedInUser)
 
 
 
@@ -15,7 +15,7 @@ import Viewer exposing (Viewer)
 
 type Session
     = Guest Nav.Key
-    | LoggedIn Nav.Key Viewer
+    | LoggedIn Nav.Key LoggedInUser
 
 
 
@@ -42,14 +42,14 @@ navKey session =
             key
 
 
-viewer : Session -> Maybe Viewer
-viewer session =
+loggedInUser : Session -> Maybe LoggedInUser
+loggedInUser session =
     case session of
         Guest _ ->
             Nothing
 
-        LoggedIn _ vwr ->
-            Just vwr
+        LoggedIn _ user ->
+            Just user
 
 
 authToken : Session -> Maybe AuthToken
@@ -58,19 +58,19 @@ authToken session =
         Guest _ ->
             Nothing
 
-        LoggedIn _ vwr ->
-            Just (Viewer.authToken vwr)
+        LoggedIn _ user ->
+            Just (LoggedInUser.authToken user)
 
 
 
 -- CHANGES TO THE SESSION
 
 
-new : Nav.Key -> Maybe Viewer -> Session
-new key maybeViewer =
-    case maybeViewer of
-        Just vwr ->
-            LoggedIn key vwr
+new : Nav.Key -> Maybe LoggedInUser -> Session
+new key maybeLoggedInUser =
+    case maybeLoggedInUser of
+        Just user ->
+            LoggedIn key user
 
         Nothing ->
             Guest key

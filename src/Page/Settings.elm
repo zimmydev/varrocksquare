@@ -15,7 +15,7 @@ import Page exposing (Page)
 import Route
 import Session exposing (Session(..))
 import Username
-import Viewer
+import LoggedInUser
 
 
 
@@ -122,13 +122,13 @@ body requestAlert session model =
                 (text "Mismatch passwords")
             , Layout.credentialed session
                 { loggedIn =
-                    \viewer ->
+                    \loggedInUser ->
                         Layout.inertLink
                             [ Events.onClick <|
                                 ParentMsg <|
                                     requestAlert <|
                                         Alert.receivedMessage
-                                            (Viewer.authToken viewer)
+                                            (LoggedInUser.authToken loggedInUser)
                                             Username.debug
                                             "A little bit of technique in there as well."
                             ]
@@ -137,13 +137,13 @@ body requestAlert session model =
                 }
             , Layout.credentialed session
                 { loggedIn =
-                    \viewer ->
+                    \loggedInUser ->
                         Layout.inertLink
                             [ Events.onClick <|
                                 ParentMsg <|
                                     requestAlert <|
                                         Alert.receivedMessage
-                                            (Viewer.authToken viewer)
+                                            (LoggedInUser.authToken loggedInUser)
                                             Username.debug
                                             "I can double your GP just meet me at the chaos altar"
                             ]

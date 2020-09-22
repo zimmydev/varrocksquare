@@ -1,4 +1,4 @@
-module Viewer exposing (Viewer, authToken, avatar, debug, decoder, username)
+module LoggedInUser exposing (LoggedInUser, authToken, avatar, debug, decoder, username)
 
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
@@ -12,22 +12,22 @@ import Username exposing (Username)
 -- TYPES
 
 
-{-| The Viewer type is meant to hang on to enough data to render your identity
+{-| The LoggedInUser type is meant to hang on to enough data to render your identity
 in the navbar (Avatar and Username) and verify your identity with an AuthToken.
 -}
 type
-    Viewer
+    LoggedInUser
     -- AuthToken being at the end is an implem. detail to simplify decoding
-    = Viewer Username Avatar AuthToken
+    = LoggedInUser Username Avatar AuthToken
 
 
 
 -- CREATION
 
 
-decoder : Decoder (AuthToken -> Viewer)
+decoder : Decoder (AuthToken -> LoggedInUser)
 decoder =
-    Decode.succeed Viewer
+    Decode.succeed LoggedInUser
         |> required "username" Username.decoder
         |> optional "avatar" Avatar.decoder Avatar.default
 
@@ -36,18 +36,18 @@ decoder =
 -- INFO
 
 
-username : Viewer -> Username
-username (Viewer name _ _) =
+username : LoggedInUser -> Username
+username (LoggedInUser name _ _) =
     name
 
 
-avatar : Viewer -> Avatar
-avatar (Viewer _ av _) =
+avatar : LoggedInUser -> Avatar
+avatar (LoggedInUser _ av _) =
     av
 
 
-authToken : Viewer -> AuthToken
-authToken (Viewer _ _ tok) =
+authToken : LoggedInUser -> AuthToken
+authToken (LoggedInUser _ _ tok) =
     tok
 
 
@@ -55,6 +55,6 @@ authToken (Viewer _ _ tok) =
 -- DEBUG
 
 
-debug : Viewer
+debug : LoggedInUser
 debug =
-    Viewer Username.debug Avatar.debug Api.debugToken
+    LoggedInUser Username.debug Avatar.debug Api.debugToken

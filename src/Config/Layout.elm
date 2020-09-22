@@ -15,11 +15,11 @@ import Element.Input as Input
 import Html exposing (div)
 import Html.Attributes exposing (class)
 import Icon exposing (Icon)
+import LoggedInUser exposing (LoggedInUser)
 import Route exposing (Route)
 import Session exposing (Session)
 import Url.Builder as Builder
 import Username
-import Viewer exposing (Viewer)
 
 
 
@@ -113,17 +113,17 @@ inertLink attrs body =
 -- ELEMENT TRANSFORMATIONS
 
 
-credentialed : Session -> { loggedIn : Viewer -> Element msg, guest : Element msg } -> Element msg
+credentialed : Session -> { loggedIn : LoggedInUser -> Element msg, guest : Element msg } -> Element msg
 credentialed session { loggedIn, guest } =
-    case Session.viewer session of
+    case Session.loggedInUser session of
         Nothing ->
             guest
 
-        Just vwr ->
-            loggedIn vwr
+        Just user ->
+            loggedIn user
 
 
-credentialedOrNone : Session -> (Viewer -> Element msg) -> Element msg
+credentialedOrNone : Session -> (LoggedInUser -> Element msg) -> Element msg
 credentialedOrNone session loggedIn =
     credentialed session
         { loggedIn = loggedIn

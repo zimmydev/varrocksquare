@@ -19,6 +19,7 @@ import Element.Lazy exposing (..)
 import Icon
 import Inbox
 import Json.Encode exposing (Value)
+import LoggedInUser
 import Main.Flags as Flags
 import Page
 import Page.Home
@@ -33,7 +34,6 @@ import Task
 import Time
 import Url exposing (Url)
 import Username
-import Viewer
 
 
 
@@ -159,7 +159,7 @@ init json url navKey =
     [ effects, alwaysEffects ]
         |> Effects
         |> Tuple.pair
-            { session = Session.new navKey (Just Viewer.debug)
+            { session = Session.new navKey (Just LoggedInUser.debug)
             , route = initialRoute
             , devpro = Device.profile flags.size
             , alerts = Queue.empty
@@ -217,13 +217,13 @@ update msg model =
 
                 Route.Login ->
                     let
-                        newViewer =
-                            Viewer.debug
+                        newLoggedInUser =
+                            LoggedInUser.debug
 
                         username =
-                            Viewer.username newViewer
+                            LoggedInUser.username newLoggedInUser
                     in
-                    ( { model | session = Session.new navKey (Just newViewer) }
+                    ( { model | session = Session.new navKey (Just newLoggedInUser) }
                     , Effects
                         [ FireAlert (Alert.loggedIn username)
                         , PushRoute (Route.Profile username)

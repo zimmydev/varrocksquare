@@ -18,7 +18,7 @@ import Icon
 import Route
 import Session exposing (Session)
 import Username exposing (Username)
-import Viewer
+import LoggedInUser
 
 
 
@@ -307,15 +307,15 @@ navbarItem item session devpro activeItem =
                                 |> Layout.label "Guest"
                         }
                 , loggedIn =
-                    \viewer ->
+                    \loggedInUser ->
                         let
                             username =
-                                Viewer.username viewer
+                                LoggedInUser.username loggedInUser
                         in
                         Layout.link Styles.highlighted
                             { route = Route.Profile username
                             , body =
-                                Viewer.avatar viewer
+                                LoggedInUser.avatar loggedInUser
                                     |> Avatar.view avatarSize
                                     |> label ("@" ++ Username.toString username)
                                     |> el Styles.highlighted
