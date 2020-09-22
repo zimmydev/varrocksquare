@@ -4,7 +4,6 @@ import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
-import Json.Encode as Encode exposing (Value)
 import Username exposing (Username)
 
 

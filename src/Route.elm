@@ -1,7 +1,6 @@
 module Route exposing (Href, Route(..), companyWebsite, discord, donate, github, icons8, push, replace, routeUrl, toHref)
 
 import Browser.Navigation as Nav
-import Config.Strings as Strings
 import Post.Slug as Slug exposing (Slug)
 import Url exposing (Url)
 import Url.Builder as Builder

@@ -1,7 +1,7 @@
 module Profile exposing (Profile, avatar, bio, debug, decoder)
 
 import Avatar exposing (Avatar)
-import Json.Decode as Decode exposing (Decoder, field, nullable, string)
+import Json.Decode as Decode exposing (Decoder, nullable, string)
 import Json.Decode.Extra exposing (datetime)
 import Json.Decode.Pipeline exposing (optional, required)
 import Time

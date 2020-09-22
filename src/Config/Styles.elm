@@ -8,7 +8,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Region as Region
-import Html.Attributes exposing (class)
+import Html.Attributes as HtmlAttr
 
 
 type alias Href =
@@ -165,7 +165,7 @@ footer =
 
 searchbar : List (Attribute msg)
 searchbar =
-    [ htmlAttribute (Html.Attributes.id "searchbar")
+    [ htmlAttribute (HtmlAttr.id "searchbar")
     , width fill
     , Font.color Colors.black
     , Background.color Colors.white

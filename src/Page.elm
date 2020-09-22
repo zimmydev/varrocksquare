@@ -18,7 +18,7 @@ import Icon
 import LoggedInUser
 import Route
 import Session exposing (Session)
-import Username exposing (Username)
+import Username
 
 
 type alias Page msg =

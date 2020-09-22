@@ -2,22 +2,12 @@ module Main exposing (Model)
 
 import Alert exposing (Alert, fire)
 import Alert.Queue as Queue exposing (Queue)
-import Api exposing (AuthToken)
-import Avatar
 import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
 import Config.App as App
-import Config.Layout as Layout exposing (applyIcon, label, pill)
-import Config.Strings as Strings
-import Config.Styles as Styles
 import Device
 import Element exposing (..)
-import Element.Events as Events
-import Element.Font as Font
-import Element.Lazy exposing (..)
-import Icon
-import Inbox
 import Json.Encode exposing (Value)
 import LoggedInUser
 import Main.Flags as Flags
@@ -31,9 +21,7 @@ import Process
 import Route exposing (Href, Route)
 import Session exposing (Session(..))
 import Task
-import Time
 import Url exposing (Url)
-import Username
 
 
 
@@ -239,7 +227,10 @@ update msg model =
                     )
 
                 Route.Search maybeQuery ->
-                    ( { model | route = nextRoute }
+                    ( { model
+                        | route = nextRoute
+                        , searchQuery = Maybe.withDefault "" maybeQuery
+                      }
                     , FocusSearchbar
                     )
 

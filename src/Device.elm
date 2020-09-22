@@ -5,7 +5,9 @@ import Json.Decode.Pipeline exposing (required)
 
 
 type alias Size =
-    { width : Int, height : Int }
+    { width : Int
+    , height : Int
+    }
 
 
 type Profile

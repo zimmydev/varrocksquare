@@ -1,7 +1,6 @@
 module Page.Settings exposing (Effect(..), Model, Msg(..), init, update, view)
 
 import Alert exposing (Alert)
-import Browser.Navigation as Nav
 import Config.Layout as Layout
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
@@ -10,10 +9,9 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (..)
-import Icon exposing (Icon)
+import Icon
 import LoggedInUser
 import Page exposing (Page)
-import Route
 import Session exposing (Session(..))
 import Username
 
@@ -63,7 +61,7 @@ update msg model =
             ( model, NoEffect )
     in
     case msg of
-        ParentMsg m ->
+        ParentMsg _ ->
             ignore
 
         ChangedAlerts bool ->

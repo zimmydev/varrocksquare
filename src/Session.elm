@@ -1,12 +1,8 @@
 module Session exposing (Session, authToken, isGuest, loggedInUser, navKey, new)
 
 import Api exposing (AuthToken)
-import Avatar exposing (Avatar)
 import Browser.Navigation as Nav
-import Inbox exposing (Inbox)
 import LoggedInUser exposing (LoggedInUser)
-import Profile exposing (Profile)
-import Username exposing (Username)
 
 
 type Session

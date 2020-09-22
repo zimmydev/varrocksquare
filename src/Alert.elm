@@ -4,7 +4,7 @@ import Api exposing (AuthToken)
 import Config.App as App
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
-import Element exposing (Attribute, Color, Element)
+import Element exposing (Color, Element)
 import Icon exposing (Icon)
 import Process
 import Task
