@@ -1,4 +1,4 @@
-module Config.App exposing (logEffect, logLogic, logMsg, logProblem, logVerbose, messagePreviewLength)
+module Config.App exposing (logEffect, logInfo, logMsg, logProblem, messagePreviewLength)
 
 
 messagePreviewLength : Int
@@ -15,6 +15,31 @@ allowedLogs =
     { verbose = True
     , logic = True
     }
+
+
+
+-- LOGGING API
+
+
+logInfo : List a -> String -> a -> a
+logInfo =
+    log allowedLogs.verbose "info"
+
+
+logMsg : List a -> a -> a
+logMsg ignored =
+    logLogic ignored "Received a message"
+
+
+logEffect : List a -> a -> a
+logEffect ignored =
+    logLogic ignored "Performing an effect"
+
+
+logProblem : String -> b -> a -> b
+logProblem output replacement item =
+    log True "problem" [] output item
+        |> always replacement
 
 
 
@@ -35,27 +60,6 @@ log enabled tag ignored output item =
         item
 
 
-logVerbose : List a -> String -> a -> a
-logVerbose =
-    log allowedLogs.verbose "verbose"
-
-
 logLogic : List a -> String -> a -> a
 logLogic =
     log allowedLogs.logic "logic"
-
-
-logProblem : String -> b -> a -> b
-logProblem output replacement item =
-    log True "problem" [] output item
-        |> always replacement
-
-
-logMsg : List a -> a -> a
-logMsg ignored =
-    logLogic ignored "Received a message"
-
-
-logEffect : List a -> a -> a
-logEffect ignored =
-    logLogic ignored "Performing an effect"
