@@ -67,7 +67,7 @@ searchbar searchbarChanged query =
 searchingString : String -> String
 searchingString query =
     if String.isEmpty query then
-        "Searching…"
+        "Search"
 
     else
         "Searching for '" ++ query ++ "'…"

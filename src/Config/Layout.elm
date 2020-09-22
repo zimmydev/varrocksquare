@@ -1,4 +1,4 @@
-module Config.Layout exposing (applyIcon, copyright, credentialed, credentialedLink, credentialedOrNone, credit, externalLink, fullscreenOrNone, guestLink, inertLink, label, link, logo, pill, privacyPolicyLink, spinner)
+module Config.Layout exposing (applyIcon, copyright, credit, externalLink, fullscreenOrNone, inertLink, label, link, logo, pill, privacyPolicyLink, spinner)
 
 {-| This module is for reusable visual elements, e.g. loading spinners, etc.
 Additionally, this module holds general-purpose functions that perform common
@@ -113,48 +113,6 @@ inertLink attrs body =
 
 
 -- Transforming an Element
-
-
-credentialed : Session -> { loggedIn : LoggedInUser -> Element msg, guest : Element msg } -> Element msg
-credentialed session { loggedIn, guest } =
-    case Session.user session of
-        Nothing ->
-            guest
-
-        Just user ->
-            loggedIn user
-
-
-credentialedOrNone : Session -> (LoggedInUser -> Element msg) -> Element msg
-credentialedOrNone session loggedIn =
-    credentialed session
-        { loggedIn = loggedIn
-        , guest = none
-        }
-
-
-credentialedLink :
-    Session
-    -> List (Attribute msg)
-    -> { route : Route, body : Element msg }
-    -> Element msg
-credentialedLink session attrs config =
-    credentialed session
-        { loggedIn = \_ -> link attrs config
-        , guest = none
-        }
-
-
-guestLink :
-    Session
-    -> List (Attribute msg)
-    -> { route : Route, body : Element msg }
-    -> Element msg
-guestLink session attrs config =
-    credentialed session
-        { loggedIn = always none
-        , guest = link attrs config
-        }
 
 
 fullscreenOrNone : Device.Profile -> Element msg -> Element msg

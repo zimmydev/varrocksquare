@@ -118,7 +118,7 @@ body requestAlert session model =
                     ParentMsg (requestAlert Alert.passwordsDontMatch)
                 ]
                 (text "Mismatch passwords")
-            , Layout.credentialed session
+            , Session.withLoggedInUser session
                 { loggedIn =
                     \loggedInUser ->
                         Layout.inertLink
@@ -133,7 +133,7 @@ body requestAlert session model =
                             (text "Short message")
                 , guest = none
                 }
-            , Layout.credentialed session
+            , Session.withLoggedInUser session
                 { loggedIn =
                     \loggedInUser ->
                         Layout.inertLink

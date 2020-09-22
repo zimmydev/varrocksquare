@@ -1,4 +1,4 @@
-module Session exposing (Session, authToken, navKey, new, user)
+module Session exposing (Session, authToken, credentialed, navKey, new, user, withLoggedInUser)
 
 import Api exposing (AuthToken)
 import Browser.Navigation as Nav
@@ -56,3 +56,27 @@ authToken session =
 
         LoggedIn _ loggedInUser ->
             Just (LoggedInUser.authToken loggedInUser)
+
+
+
+-- Tranforming a Session
+
+
+credentialed : Session -> { loggedIn : a, guest : a } -> a
+credentialed session { loggedIn, guest } =
+    case session of
+        Guest _ ->
+            guest
+
+        LoggedIn _ _ ->
+            loggedIn
+
+
+withLoggedInUser : Session -> { loggedIn : LoggedInUser -> a, guest : a } -> a
+withLoggedInUser session { loggedIn, guest } =
+    case session of
+        Guest _ ->
+            guest
+
+        LoggedIn _ loggedInUser ->
+            loggedIn loggedInUser

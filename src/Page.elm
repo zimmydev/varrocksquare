@@ -162,13 +162,16 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.pencil iconSize
             in
-            Layout.credentialedLink session
-                itemStyle
-                { route = Route.NewPost
-                , body =
-                    Device.responsive devpro
-                        { compact = Icon.view icon
-                        , full = applyIcon icon "New Post"
+            Session.credentialed session
+                { guest = none
+                , loggedIn =
+                    Layout.link itemStyle
+                        { route = Route.NewPost
+                        , body =
+                            Device.responsive devpro
+                                { compact = Icon.view icon
+                                , full = applyIcon icon "New Post"
+                                }
                         }
                 }
 
@@ -207,13 +210,16 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.starBox iconSize
             in
-            Layout.credentialedLink session
-                itemStyle
-                { route = Route.Starred
-                , body =
-                    Device.responsive devpro
-                        { compact = Icon.view icon
-                        , full = applyIcon icon "Starred"
+            Session.credentialed session
+                { guest = none
+                , loggedIn =
+                    Layout.link itemStyle
+                        { route = Route.Starred
+                        , body =
+                            Device.responsive devpro
+                                { compact = Icon.view icon
+                                , full = applyIcon icon "Starred"
+                                }
                         }
                 }
 
@@ -222,14 +228,16 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.paperPlane iconSize
             in
-            Layout.credentialedLink session
-                itemStyle
-                { route = Route.Inbox
-                , body =
-                    Device.responsive devpro
-                        { compact = Icon.view icon
-                        , full =
-                            "Inbox" |> applyIcon icon |> pill 69
+            Session.credentialed session
+                { guest = none
+                , loggedIn =
+                    Layout.link itemStyle
+                        { route = Route.Inbox
+                        , body =
+                            Device.responsive devpro
+                                { compact = Icon.view icon
+                                , full = "Inbox" |> applyIcon icon |> pill 69
+                                }
                         }
                 }
 
@@ -265,17 +273,23 @@ navbarItem item session devpro activeItem =
                 }
 
         Login ->
-            Layout.guestLink session
-                itemStyle
-                { route = Route.Login
-                , body = text "Login"
+            Session.credentialed session
+                { loggedIn = none
+                , guest =
+                    Layout.link itemStyle
+                        { route = Route.Login
+                        , body = text "Login"
+                        }
                 }
 
         Register ->
-            Layout.guestLink session
-                itemStyle
-                { route = Route.Register
-                , body = text "Register"
+            Session.credentialed session
+                { loggedIn = none
+                , guest =
+                    Layout.link itemStyle
+                        { route = Route.Register
+                        , body = text "Register"
+                        }
                 }
 
         Settings ->
@@ -283,25 +297,31 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.settings iconSize
             in
-            Layout.credentialedLink session
-                itemStyle
-                { route = Route.Settings
-                , body =
-                    Device.responsive devpro
-                        { compact = Icon.view icon
-                        , full = applyIcon icon "Settings"
+            Session.credentialed session
+                { guest = none
+                , loggedIn =
+                    Layout.link itemStyle
+                        { route = Route.Settings
+                        , body =
+                            Device.responsive devpro
+                                { compact = Icon.view icon
+                                , full = applyIcon icon "Settings"
+                                }
                         }
                 }
 
         Logout ->
-            Layout.credentialedLink session
-                itemStyle
-                { route = Route.Logout
-                , body = text "Logout"
+            Session.credentialed session
+                { guest = none
+                , loggedIn =
+                    Layout.link itemStyle
+                        { route = Route.Logout
+                        , body = text "Logout"
+                        }
                 }
 
         Profile ->
-            Layout.credentialed session
+            Session.withLoggedInUser session
                 { guest =
                     Layout.link Styles.highlighted
                         { route = Route.Register
