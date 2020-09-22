@@ -7,6 +7,7 @@ e.g. the navbar, the footer, page title, formatting, etc.
 import Alert.Queue as Queue exposing (Queue)
 import Avatar
 import Browser
+import Config.App as App
 import Config.Layout as Layout exposing (iconified, label, pill)
 import Config.Strings as Strings
 import Config.Styles as Styles
@@ -323,7 +324,7 @@ navbarItem item session devpro activeItem =
 
         Other ->
             Other
-                |> Debug.log "Accidently tried to render this page!"
+                |> App.log "Accidently tried to render an `Other` page"
                 |> always none
 
 

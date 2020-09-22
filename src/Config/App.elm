@@ -1,4 +1,4 @@
-module Config.App exposing (logEffect, logMsg, messagePreviewLength)
+module Config.App exposing (log, logEffect, logMsg, messagePreviewLength)
 
 
 messagePreviewLength : Int
@@ -18,19 +18,24 @@ verbose =
 
 logMsg : List a -> a -> a
 logMsg =
-    log "Received a message"
+    logIgnoring "Received a message"
 
 
 logEffect : List a -> a -> a
 logEffect =
-    log "Performing an effect"
+    logIgnoring "Performing an effect"
 
 
-log : String -> List a -> a -> a
-log label ignored item =
+logIgnoring : String -> List a -> a -> a
+logIgnoring label ignored item =
     if verbose && not (List.member item ignored) then
         item
-            |> Debug.log ("[VERBOSE MODE] " ++ label)
+            |> Debug.log ("[VERBOSE] " ++ label)
 
     else
         identity item
+
+
+log : String -> a -> a
+log label =
+    Debug.log ("[DEBUG] " ++ label)

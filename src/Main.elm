@@ -203,8 +203,9 @@ update msg model =
                 ( model, PushRoute nextRoute )
 
         LinkClicked (Browser.External href) ->
-            -- NOTE: Use internal `/link?href=…` external link redirection mechanism
-            ignore
+            LinkClicked (Browser.External href)
+                |> App.log "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)"
+                |> always ignore
 
         RouteChanged nextRoute ->
             case nextRoute of
@@ -272,7 +273,6 @@ update msg model =
         QueryChanged query ->
             ( { model | searchQuery = query }, NoEffect )
 
-        -- SETTINGS
         SettingsMessaged (Page.Settings.ParentMsg myMsg) ->
             update myMsg model
 
