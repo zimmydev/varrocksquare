@@ -33,7 +33,7 @@ view href =
 
 body : String -> Element msg
 body label =
-    el Styles.redirectPage <|
+    el Styles.seguePage <|
         el [ centerX, centerY ] <|
             text label
 

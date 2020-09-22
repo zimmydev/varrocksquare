@@ -1,4 +1,4 @@
-module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, redirectPage, root, searchPlaceholder, searchbar, smallSpacing, spinner)
+module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, root, searchPlaceholder, searchbar, seguePage, smallSpacing, spinner)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -164,8 +164,8 @@ content =
     ]
 
 
-redirectPage : List (Attribute msg)
-redirectPage =
+seguePage : List (Attribute msg)
+seguePage =
     [ width fill
     , height fill
     , Font.bold

@@ -1,4 +1,4 @@
-module Route exposing (Href, Route(..), companyWebsite, discord, donate, github, icons8, push, redirect, replace, routeUrl, toHref)
+module Route exposing (Href, Route(..), companyWebsite, discord, donate, github, icons8, push, replace, routeUrl, toHref)
 
 import Browser.Navigation as Nav
 import Config.Strings as Strings
@@ -145,11 +145,6 @@ routeUrl url =
 
 
 -- ROUTING COMMANDS
-
-
-redirect : Nav.Key -> Href -> Cmd msg
-redirect key href =
-    Nav.load (Debug.log "A redirect is required to" href)
 
 
 push : Nav.Key -> Route -> Cmd msg

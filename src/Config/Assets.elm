@@ -35,6 +35,11 @@ defaultAvatar =
     image "default-avatar.png"
 
 
+notFoundImage : Href
+notFoundImage =
+    image "not-found.png"
+
+
 
 -- IMAGE HELPERS
 

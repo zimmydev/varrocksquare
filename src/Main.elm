@@ -7,6 +7,7 @@ import Avatar
 import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
+import Config.App as App
 import Config.Layout as Layout exposing (iconified, label, pill)
 import Config.Strings as Strings
 import Config.Styles as Styles
@@ -21,11 +22,14 @@ import Json.Encode exposing (Value)
 import Main.Flags as Flags
 import Page
 import Page.Home
+import Page.NotFound
 import Page.Redirect
 import Page.Search
 import Page.Settings
+import Process
 import Route exposing (Href, Route)
 import Session exposing (Session(..))
+import Task
 import Time
 import Url exposing (Url)
 import Username
@@ -47,35 +51,43 @@ type alias Model =
 
 
 
--- MESSAGES & EFFECTS
+-- MESSAGES
 
 
 type Msg
     = Ignored
-    | ClickedLink UrlRequest
-    | ChangedRoute Route
+    | EffectDelayed Effect
+    | LoadingTimedOut -- Display a loading spinner… (should be roughly 200-600ms)
+    | LinkClicked UrlRequest
+    | RouteChanged Route
     | ResizedDevice Device.Profile
     | AlertRequested (Alert.Id -> Alert)
     | AlertFired Alert
     | AlertExpired Alert
-    | ChangedQuery String
-    | SettingsMsg (Page.Settings.Msg Msg)
+    | QueryChanged String
+    | SettingsMessaged (Page.Settings.Msg Msg)
+
+
+
+-- EFFECTS
 
 
 type Effect
     = NoEffect
     | Effects (List Effect)
+    | DelayEffect Float Effect
+    | DelayMsg Float Msg
     | PushRoute Route
     | ReplaceRoute Route
     | Redirect Href
     | FocusSearchbar
     | FireAlert (Alert.Id -> Alert)
     | ExpireAlert Alert
-    | SettingsCommand (Cmd (Page.Settings.Msg Msg))
+    | SettingsEffect Page.Settings.Effect
 
 
 
--- MAIN & INIT
+-- MAIN, SUBSCRIPTIONS & INIT
 
 
 main : Program Value Model Msg
@@ -92,8 +104,8 @@ main =
         { init = \json url key -> init json url key |> performEffect
         , subscriptions = subscriptions
         , update = \msg model -> update msg model |> performEffect
-        , onUrlRequest = ClickedLink
-        , onUrlChange = ChangedRoute << Route.routeUrl
+        , onUrlRequest = LinkClicked
+        , onUrlChange = RouteChanged << Route.routeUrl
         , view = view
         }
 
@@ -121,8 +133,14 @@ init json url navKey =
         ( settings, settingsCmd ) =
             Page.Settings.init ()
 
-        commands =
+        alwaysEffects =
+            DelayMsg 350 LoadingTimedOut
+
+        effects =
             case initialRoute of
+                Route.NotFound ->
+                    DelayEffect 3000 (PushRoute Route.Root)
+
                 Route.Redirect href ->
                     -- Redirect works on fresh page load and on re-route
                     Redirect href
@@ -137,7 +155,8 @@ init json url navKey =
                 _ ->
                     NoEffect
     in
-    commands
+    [ effects, alwaysEffects ]
+        |> Effects
         |> Tuple.pair
             { session = Session.new navKey (Just Viewer.debug)
             , route = initialRoute
@@ -161,11 +180,18 @@ update msg model =
         navKey =
             Session.navKey model.session
     in
-    case msg of
+    case msg |> App.logMsg [ Ignored ] of
         Ignored ->
             ignore
 
-        ClickedLink (Browser.Internal url) ->
+        EffectDelayed effect ->
+            ( model, effect )
+
+        LoadingTimedOut ->
+            -- TODO: Write loading spinner logic.
+            ignore
+
+        LinkClicked (Browser.Internal url) ->
             let
                 nextRoute =
                     Route.routeUrl url
@@ -176,12 +202,15 @@ update msg model =
             else
                 ( model, PushRoute nextRoute )
 
-        ClickedLink (Browser.External href) ->
+        LinkClicked (Browser.External href) ->
             -- NOTE: Use internal `/link?href=…` external link redirection mechanism
             ignore
 
-        ChangedRoute nextRoute ->
+        RouteChanged nextRoute ->
             case nextRoute of
+                Route.NotFound ->
+                    ( model, DelayEffect 3000 (PushRoute Route.Root) )
+
                 Route.Redirect href ->
                     ( model, Redirect href )
 
@@ -240,19 +269,19 @@ update msg model =
         AlertExpired alert ->
             ( { model | alerts = model.alerts |> Queue.remove alert }, NoEffect )
 
-        ChangedQuery query ->
+        QueryChanged query ->
             ( { model | searchQuery = query }, NoEffect )
 
         -- SETTINGS
-        SettingsMsg (Page.Settings.ParentMsg myMsg) ->
+        SettingsMessaged (Page.Settings.ParentMsg myMsg) ->
             update myMsg model
 
-        SettingsMsg submsg ->
+        SettingsMessaged submsg ->
             let
-                ( newSettings, subcmd ) =
+                ( newSettings, effect ) =
                     Page.Settings.update submsg model.settings
             in
-            ( { model | settings = newSettings }, SettingsCommand subcmd )
+            ( { model | settings = newSettings }, SettingsEffect effect )
 
 
 
@@ -266,6 +295,10 @@ view ({ session, devpro, alerts } as model) =
             Page.view session devpro alerts
     in
     case model.route of
+        Route.NotFound ->
+            Page.NotFound.view
+                |> Page.unthemed
+
         Route.Redirect href ->
             Page.Redirect.view href
                 |> Page.unthemed
@@ -275,12 +308,12 @@ view ({ session, devpro, alerts } as model) =
                 |> viewPage
 
         Route.Search _ ->
-            Page.Search.view ChangedQuery model.searchQuery
+            Page.Search.view QueryChanged model.searchQuery
                 |> viewPage
 
         Route.Settings ->
             Page.Settings.view AlertRequested model.session model.settings
-                |> Page.map SettingsMsg
+                |> Page.map SettingsMessaged
                 |> viewPage
 
         _ ->
@@ -294,13 +327,21 @@ view ({ session, devpro, alerts } as model) =
 
 perform : Nav.Key -> Effect -> Cmd Msg
 perform navKey effect =
-    case effect of
+    case effect |> App.logEffect [ NoEffect ] of
         NoEffect ->
             Cmd.none
 
         Effects effects ->
             Cmd.batch <|
                 List.map (perform navKey) effects
+
+        DelayMsg delay msg ->
+            Process.sleep delay
+                |> Task.perform (always msg)
+
+        DelayEffect delay delayedEffect ->
+            Process.sleep delay
+                |> Task.perform (\_ -> EffectDelayed delayedEffect)
 
         PushRoute route ->
             Route.push navKey route
@@ -309,7 +350,7 @@ perform navKey effect =
             Route.replace navKey route
 
         Redirect href ->
-            Route.redirect navKey href
+            Nav.load href
 
         FocusSearchbar ->
             Page.Search.focusSearchbar Ignored
@@ -320,5 +361,5 @@ perform navKey effect =
         ExpireAlert alert ->
             Alert.expire AlertExpired alert
 
-        SettingsCommand cmd ->
-            Cmd.map SettingsMsg cmd
+        SettingsEffect Page.Settings.NoEffect ->
+            Cmd.none

@@ -60,7 +60,7 @@ type
 view : Session -> Device.Profile -> Queue -> Page msg -> Browser.Document msg
 view session devpro alerts page =
     toHtmlDocument <|
-        { title = page.title ++ " • " ++ Strings.appName
+        { title = appTitle page.title
         , body =
             column
                 [ width fill, height fill ]
@@ -85,7 +85,7 @@ view session devpro alerts page =
 unthemed : Page msg -> Browser.Document msg
 unthemed page =
     toHtmlDocument <|
-        { title = page.title
+        { title = appTitle page.title
         , body = page.body
         , style = []
         , focus = Styles.focus
@@ -322,7 +322,9 @@ navbarItem item session devpro activeItem =
                 }
 
         Other ->
-            none |> Debug.log "Accidently tried to render a `Page.Other`"
+            Other
+                |> Debug.log "Accidently tried to render this page!"
+                |> always none
 
 
 
@@ -337,6 +339,15 @@ footer =
             , Layout.privacyPolicyLink
             , Layout.copyright
             ]
+
+
+
+-- HELPERS
+
+
+appTitle : String -> String
+appTitle pageTitle =
+    pageTitle ++ " • " ++ Strings.appName
 
 
 

@@ -1,4 +1,4 @@
-module Page.Settings exposing (Model, Msg(..), init, update, view)
+module Page.Settings exposing (Effect(..), Model, Msg(..), init, update, view)
 
 import Alert exposing (Alert)
 import Browser.Navigation as Nav
@@ -19,11 +19,32 @@ import Viewer
 
 
 
--- MODEL & INIT
+-- MODEL
 
 
 type alias Model =
     { alerts : Bool }
+
+
+
+-- MSG
+
+
+type Msg parentMsg
+    = ParentMsg parentMsg
+    | ChangedAlerts Bool
+
+
+
+-- EFFECTS
+
+
+type Effect
+    = NoEffect
+
+
+
+-- INIT
 
 
 init : () -> ( Model, Cmd msg )
@@ -35,27 +56,22 @@ init _ =
 -- UPDATE
 
 
-type Msg parentMsg
-    = ParentMsg parentMsg
-    | ChangedAlerts Bool
-
-
-update : Msg pmsg -> Model -> ( Model, Cmd (Msg pmsg) )
+update : Msg pmsg -> Model -> ( Model, Effect )
 update msg model =
     let
         ignore =
-            ( model, Cmd.none )
+            ( model, NoEffect )
     in
     case msg of
-        ParentMsg _ ->
+        ParentMsg m ->
             ignore
 
         ChangedAlerts bool ->
-            ( { model | alerts = bool }, Cmd.none )
+            ( { model | alerts = bool }, NoEffect )
 
 
 
--- VIEW
+-- VIEWS
 
 
 view :
