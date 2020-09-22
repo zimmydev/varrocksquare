@@ -324,8 +324,7 @@ navbarItem item session devpro activeItem =
 
         Other ->
             Other
-                |> App.log "Accidently tried to render an `Other` page"
-                |> always none
+                |> App.problem "Accidently tried to render an `Other` page" none
 
 
 

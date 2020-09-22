@@ -203,9 +203,8 @@ update msg model =
                 ( model, PushRoute nextRoute )
 
         LinkClicked (Browser.External href) ->
-            LinkClicked (Browser.External href)
-                |> App.log "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)"
-                |> always ignore
+            Browser.External href
+                |> App.problem "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
 
         RouteChanged nextRoute ->
             case nextRoute of
