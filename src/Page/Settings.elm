@@ -11,11 +11,11 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (..)
 import Icon exposing (Icon)
+import LoggedInUser
 import Page exposing (Page)
 import Route
 import Session exposing (Session(..))
 import Username
-import LoggedInUser
 
 
 
