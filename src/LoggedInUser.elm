@@ -1,9 +1,10 @@
-module LoggedInUser exposing (LoggedInUser, authToken, avatar, debug, decoder, username)
+module LoggedInUser exposing (LoggedInUser, authToken, avatar, debug, decoder, profile, username)
 
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
+import Profile exposing (Profile)
 import Username exposing (Username)
 
 
@@ -13,7 +14,7 @@ in the navbar (Avatar and Username) and verify your identity with an AuthToken.
 type
     LoggedInUser
     -- AuthToken being at the end is an implem. detail to simplify decoding
-    = LoggedInUser Username Avatar AuthToken
+    = LoggedInUser Username Profile AuthToken
 
 
 
@@ -24,11 +25,16 @@ decoder : Decoder (AuthToken -> LoggedInUser)
 decoder =
     Decode.succeed LoggedInUser
         |> required "username" Username.decoder
-        |> optional "avatar" Avatar.decoder Avatar.default
+        |> required "profile" Profile.decoder
 
 
 
 -- Info on LoggedInUser
+
+
+authToken : LoggedInUser -> AuthToken
+authToken (LoggedInUser _ _ tok) =
+    tok
 
 
 username : LoggedInUser -> Username
@@ -37,13 +43,13 @@ username (LoggedInUser name _ _) =
 
 
 avatar : LoggedInUser -> Avatar
-avatar (LoggedInUser _ av _) =
-    av
+avatar (LoggedInUser _ prof _) =
+    Profile.avatar prof
 
 
-authToken : LoggedInUser -> AuthToken
-authToken (LoggedInUser _ _ tok) =
-    tok
+profile : LoggedInUser -> Profile
+profile (LoggedInUser _ prof _) =
+    prof
 
 
 
@@ -52,4 +58,4 @@ authToken (LoggedInUser _ _ tok) =
 
 debug : LoggedInUser
 debug =
-    LoggedInUser Username.debug Avatar.debug Api.debugToken
+    LoggedInUser Username.debug Profile.debug Api.debugToken
