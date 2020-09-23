@@ -1,6 +1,7 @@
-module Route exposing (Href, Route(..), companyWebsite, discord, donate, github, icons8, push, replace, routeUrl, toHref)
+module Route exposing (ExternalLink(..), Href, Route(..), external, inert, link, push, replace, routeUrl, toHref)
 
 import Browser.Navigation as Nav
+import Element exposing (Attribute, Element)
 import Post.Slug as Slug exposing (Slug)
 import Url exposing (Url)
 import Url.Builder as Builder
@@ -23,6 +24,8 @@ Some notes about app-specific routing:
 -}
 type Route
     = NotFound
+      -- Redirection
+    | Redirect Href
       -- Main routes
     | Root
     | Home
@@ -42,43 +45,59 @@ type Route
     | Login
     | Logout
     | Register
-      -- Redirection
-    | Redirect Href
 
 
 type alias Href =
     String
 
 
-
--- External Hrefs
-
-
-companyWebsite : Href
-companyWebsite =
-    -- TODO: Establish a better company website link
-    Builder.crossOrigin "https://github.com/zimmydev" [] []
+type ExternalLink
+    = Company
+    | Donate
+    | Github
+    | Discord
 
 
-github : Href
-github =
-    Builder.crossOrigin "https://github.com" [ "zimmydev", "varrocksquare" ] []
+
+-- Links
 
 
-discord : Href
-discord =
-    Builder.crossOrigin "https://discord.gg" [ "jq3gaCS" ] []
+link : List (Attribute msg) -> { route : Route, body : Element msg } -> Element msg
+link attrs { route, body } =
+    Element.link attrs
+        { url = toHref route, label = body }
 
 
-donate : Href
-donate =
-    -- TODO: Currently intert; establish a donation link
-    Builder.crossOrigin "http://example.com" [] []
+inert : List (Attribute msg) -> Element msg -> Element msg
+inert attrs body =
+    Element.link attrs
+        { url = Builder.relative [] [], label = body }
 
 
-icons8 : Href
-icons8 =
-    Builder.crossOrigin "https://icons8.com" [] []
+external : List (Attribute msg) -> { target : ExternalLink, body : Element msg } -> Element msg
+external attrs { target, body } =
+    let
+        ( root, paths, queries ) =
+            case target of
+                Company ->
+                    ( "https://github.com", [ "zimmydev" ], [] )
+
+                Donate ->
+                    ( "http://example.com", [], [] )
+
+                Github ->
+                    ( "https://github.com", [ "zimmydev", "varrocksquare" ], [] )
+
+                Discord ->
+                    ( "https://discord.gg", [ "jq3gaCS" ], [] )
+
+        redirectionLink =
+            Builder.crossOrigin root paths queries
+                |> Redirect
+                |> toHref
+    in
+    Element.newTabLink attrs
+        { url = redirectionLink, label = body }
 
 
 
@@ -98,7 +117,7 @@ parser =
         , Parser.map Profile (s "profile" </> Username.urlParser)
         , Parser.map Search (s "search" <?> Query.string "query")
         , Parser.map Tools (s "tools")
-        , Parser.map (requireQuery Redirect) (s "link" <?> Query.string "href")
+        , Parser.map (requireQuery Redirect) (s "redirect" <?> Query.string "href")
 
         -- Main routes (credentialed)
         , Parser.map NewPost (s "editor")
@@ -207,6 +226,6 @@ toHref route =
                     ( [ "register" ], [] )
 
                 Redirect href ->
-                    ( [ "link" ], [ Builder.string "href" href ] )
+                    ( [ "redirect" ], [ Builder.string "href" href ] )
     in
     Builder.absolute paths queries

@@ -1,7 +1,6 @@
-module Page.Settings exposing (Effect(..), Model, Msg(..), init, update, view)
+module Page.Settings exposing (DateFormat(..), Effect(..), Model, Msg(..), init, update, view)
 
 import Alert exposing (Alert)
-import Config.Layout as Layout
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
 import Element exposing (..)
@@ -12,6 +11,7 @@ import Element.Lazy exposing (..)
 import Icon
 import LoggedInUser
 import Page exposing (Page)
+import Route
 import Session exposing (Session(..))
 import Username
 
@@ -21,7 +21,15 @@ import Username
 
 
 type alias Model =
-    { alerts : Bool }
+    { alerts : Bool
+    , dateFormat : DateFormat
+    }
+
+
+type DateFormat
+    = Short
+    | Medium
+    | Long
 
 
 
@@ -47,7 +55,11 @@ type Effect
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( { alerts = True }, Cmd.none )
+    ( { alerts = True
+      , dateFormat = Medium
+      }
+    , Cmd.none
+    )
 
 
 
@@ -98,11 +110,11 @@ body requestAlert session model =
                 , options =
                     [ Input.optionWith True <|
                         \state ->
-                            Layout.label "On" <|
+                            Page.label "On" <|
                                 Icon.view (Icon.radio state Icon.Medium)
                     , Input.optionWith False <|
                         \state ->
-                            Layout.label "Off" <|
+                            Page.label "Off" <|
                                 Icon.view (Icon.radio state Icon.Medium)
                     ]
                 }
@@ -113,7 +125,7 @@ body requestAlert session model =
             , el
                 [ Font.color Colors.fadedInk ]
                 (text "« Fire Test Notifications »")
-            , Layout.inertLink
+            , Route.inert
                 [ Events.onClick <|
                     ParentMsg (requestAlert Alert.passwordsDontMatch)
                 ]
@@ -121,7 +133,7 @@ body requestAlert session model =
             , Session.withLoggedInUser session
                 { loggedIn =
                     \loggedInUser ->
-                        Layout.inertLink
+                        Route.inert
                             [ Events.onClick <|
                                 ParentMsg <|
                                     requestAlert <|
@@ -136,7 +148,7 @@ body requestAlert session model =
             , Session.withLoggedInUser session
                 { loggedIn =
                     \loggedInUser ->
-                        Layout.inertLink
+                        Route.inert
                             [ Events.onClick <|
                                 ParentMsg <|
                                     requestAlert <|

@@ -1,7 +1,6 @@
 module Page.NotFound exposing (view)
 
 import Config.Assets as Assets
-import Config.Layout as Layout
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Element exposing (..)
@@ -26,7 +25,7 @@ body : Element msg
 body =
     el Styles.seguePage <|
         column [ centerX, centerY, spacing 30 ] <|
-            [ Layout.link [ centerX ] <|
+            [ Route.link [ centerX ] <|
                 { route = Route.Root
                 , body =
                     image []

@@ -1,8 +1,5 @@
 module Icon exposing (Icon, Size(..), arrow, binoculars, discord, donate, envelope, error, espresso, github, help, icons8, paperPlane, pencil, radio, search, settings, starBox, success, view, wrench)
 
-{-| TODO: Merge into `Config.Assets`!
--}
-
 import Config.Assets as Assets
 import Element exposing (Element)
 import Element.Input as Input
@@ -46,7 +43,6 @@ type alias Href =
 type Size
     = Small
     | Medium
-    | Large
 
 
 
@@ -254,6 +250,3 @@ sizeToInt sz =
 
         Medium ->
             24
-
-        Large ->
-            32

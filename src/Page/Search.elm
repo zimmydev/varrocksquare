@@ -1,7 +1,6 @@
 module Page.Search exposing (focusSearchbar, view)
 
 import Browser.Dom as Dom
-import Config.Layout as Layout
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Element exposing (..)
@@ -12,6 +11,7 @@ import Task
 
 
 
+-- TODO: Upgrade Search page with its own update function
 -- Commands
 
 
@@ -41,7 +41,7 @@ body searchbarChanged query =
 
           else
             el Styles.content
-                (Layout.spinner [])
+                (Page.spinner [])
         ]
 
 

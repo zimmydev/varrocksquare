@@ -3,7 +3,7 @@ module LoggedInUser exposing (LoggedInUser, authToken, avatar, debug, decoder, p
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (required)
 import Profile exposing (Profile)
 import User exposing (User)
 import Username exposing (Username)

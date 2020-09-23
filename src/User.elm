@@ -46,5 +46,6 @@ avatar user =
 -- Debugging a User
 
 
+debug : User
 debug =
     User Username.debug Profile.debug

@@ -1,4 +1,4 @@
-module Api.Endpoint exposing (Endpoint, comment, commentsByPost, commentsByUser, createComment, createMessage, createPost, createUser, follow, globalFeed, login, logout, message, messages, myFeed, post, request, searchPosts, searchUsers, star, user)
+module Api.Endpoint exposing (Endpoint, comment, commentsByPost, commentsByUser, createComment, createMessage, createPost, createUser, follow, globalFeed, login, message, messages, myFeed, post, request, searchPosts, searchUsers, star, user)
 
 import CommentId exposing (CommentId)
 import Http
@@ -52,13 +52,6 @@ login : Endpoint
 login =
     -- * POST
     endpoint [ "login" ] []
-
-
-logout : Endpoint
-logout =
-    -- * POST
-    -- TODO: Is this necessary?
-    endpoint [ "logout" ] []
 
 
 
@@ -184,7 +177,6 @@ createUser =
 follow : Username -> Endpoint
 follow username =
     -- * POST (Must be logged-in)
-    -- TODO: Do we need an /unfollow route as well?
     endpoint [ "users", Username.toString username, "follow" ] []
 
 

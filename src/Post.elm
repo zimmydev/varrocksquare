@@ -1,14 +1,13 @@
-module Post exposing (Full, Post, Preview)
+module Post exposing (Full, Post, Preview, metadata)
 
+import Author exposing (Author)
 import Post.Body exposing (Body)
 import Post.Slug exposing (Slug)
 import Time
-import User exposing (User)
-import Username exposing (Username)
 
 
-type Post p
-    = Post Metadata p
+type Post either
+    = Post Metadata either
 
 
 type Preview
@@ -22,7 +21,7 @@ type Full
 type alias Metadata =
     { slug : Slug
     , title : String
-    , author : User
+    , author : Author
     , tags : List String
     , createdAt : Time.Posix
     , updatedAt : Time.Posix
@@ -30,3 +29,12 @@ type alias Metadata =
     , starCount : Int
     , commentCount : Int
     }
+
+
+
+-- Info on Post
+
+
+metadata : Post either -> Metadata
+metadata (Post meta _) =
+    meta

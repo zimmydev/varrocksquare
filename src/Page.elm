@@ -1,4 +1,4 @@
-module Page exposing (NavbarItem(..), Page, map, unthemed, view)
+module Page exposing (NavbarItem(..), Page, label, labelIcon, map, pill, spinner, unthemed, view)
 
 {-| This module mostly contains the view rendering that's common to all pages,
 e.g. the navbar, the footer, page title, formatting, etc.
@@ -8,13 +8,15 @@ import Alert.Queue as Queue exposing (Queue)
 import Avatar
 import Browser
 import Config.App as App
-import Config.Layout as Layout exposing (applyIcon, label, pill)
+import Config.Assets as Assets
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Device
 import Element exposing (..)
 import Element.Lazy exposing (..)
-import Icon
+import Html
+import Html.Attributes
+import Icon exposing (Icon)
 import LoggedInUser
 import Route
 import Session exposing (Session)
@@ -81,8 +83,8 @@ view session devpro alerts page =
         , focus = Styles.focus
         , hud =
             Just
-                { navbar = navbar session devpro page.navbarItem
-                , alertArea = Queue.view alerts
+                { navbar = lazy3 navbar session devpro page.navbarItem
+                , alertArea = lazy Queue.view alerts
                 }
         }
 
@@ -132,10 +134,32 @@ navbar session devpro activeItem =
     in
     row (Styles.navbar devpro) <|
         List.concat <|
-            [ List.singleton (Layout.logo devpro)
+            [ List.singleton (logo devpro)
             , convert leftLinks
             , convert rightLinks
             ]
+
+
+logo : Device.Profile -> Element msg
+logo devpro =
+    let
+        logotype =
+            Device.responsive devpro
+                { compact = Strings.appNameCompact
+                , full = Strings.appName
+                }
+    in
+    Route.link []
+        { route = Route.Home
+        , body =
+            row Styles.logo
+                [ image []
+                    { src = Assets.logo
+                    , description = "The " ++ Strings.appName ++ " logo"
+                    }
+                , text logotype
+                ]
+        }
 
 
 navbarItem : NavbarItem -> Session -> Device.Profile -> NavbarItem -> Element msg
@@ -165,12 +189,12 @@ navbarItem item session devpro activeItem =
             Session.credentialed session
                 { guest = none
                 , loggedIn =
-                    Layout.link itemStyle
+                    Route.link itemStyle
                         { route = Route.NewPost
                         , body =
                             Device.responsive devpro
                                 { compact = Icon.view icon
-                                , full = applyIcon icon "New Post"
+                                , full = labelIcon icon "New Post"
                                 }
                         }
                 }
@@ -180,13 +204,13 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.search iconSize
             in
-            Layout.link
+            Route.link
                 itemStyle
                 { route = Route.Search Nothing
                 , body =
                     Device.responsive devpro
                         { compact = Icon.view icon
-                        , full = applyIcon icon "Search"
+                        , full = labelIcon icon "Search"
                         }
                 }
 
@@ -195,13 +219,13 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.wrench iconSize
             in
-            Layout.link
+            Route.link
                 itemStyle
                 { route = Route.Tools
                 , body =
                     Device.responsive devpro
                         { compact = Icon.view icon
-                        , full = applyIcon icon "Tools"
+                        , full = labelIcon icon "Tools"
                         }
                 }
 
@@ -213,12 +237,12 @@ navbarItem item session devpro activeItem =
             Session.credentialed session
                 { guest = none
                 , loggedIn =
-                    Layout.link itemStyle
+                    Route.link itemStyle
                         { route = Route.Starred
                         , body =
                             Device.responsive devpro
                                 { compact = Icon.view icon
-                                , full = applyIcon icon "Starred"
+                                , full = labelIcon icon "Starred"
                                 }
                         }
                 }
@@ -231,12 +255,12 @@ navbarItem item session devpro activeItem =
             Session.credentialed session
                 { guest = none
                 , loggedIn =
-                    Layout.link itemStyle
+                    Route.link itemStyle
                         { route = Route.Inbox
                         , body =
                             Device.responsive devpro
                                 { compact = Icon.view icon
-                                , full = "Inbox" |> applyIcon icon |> pill 69
+                                , full = "Inbox" |> labelIcon icon |> pill 69
                                 }
                         }
                 }
@@ -246,28 +270,34 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.donate iconSize
             in
-            Layout.inertLink (Styles.donate devpro) <|
+            Route.inert (Styles.donate devpro) <|
                 Device.responsive devpro
                     { compact = Icon.view icon
-                    , full = applyIcon icon "Donate!"
+                    , full = labelIcon icon "Donate!"
                     }
 
         Discord ->
-            Layout.fullscreenOrNone devpro <|
-                Layout.externalLink []
-                    { href = Route.discord
-                    , body = Icon.view (Icon.discord iconSize)
-                    }
+            Device.responsive devpro <|
+                { compact = none
+                , full =
+                    Route.external []
+                        { target = Route.Discord
+                        , body = Icon.view (Icon.discord iconSize)
+                        }
+                }
 
         Github ->
-            Layout.fullscreenOrNone devpro <|
-                Layout.externalLink []
-                    { href = Route.github
-                    , body = Icon.view (Icon.github iconSize)
-                    }
+            Device.responsive devpro <|
+                { compact = none
+                , full =
+                    Route.external []
+                        { target = Route.Github
+                        , body = Icon.view (Icon.github iconSize)
+                        }
+                }
 
         Help ->
-            Layout.link []
+            Route.link []
                 { route = Route.Help
                 , body = Icon.view (Icon.help iconSize)
                 }
@@ -276,7 +306,7 @@ navbarItem item session devpro activeItem =
             Session.credentialed session
                 { loggedIn = none
                 , guest =
-                    Layout.link itemStyle
+                    Route.link itemStyle
                         { route = Route.Login
                         , body = text "Login"
                         }
@@ -286,7 +316,7 @@ navbarItem item session devpro activeItem =
             Session.credentialed session
                 { loggedIn = none
                 , guest =
-                    Layout.link itemStyle
+                    Route.link itemStyle
                         { route = Route.Register
                         , body = text "Register"
                         }
@@ -300,12 +330,12 @@ navbarItem item session devpro activeItem =
             Session.credentialed session
                 { guest = none
                 , loggedIn =
-                    Layout.link itemStyle
+                    Route.link itemStyle
                         { route = Route.Settings
                         , body =
                             Device.responsive devpro
                                 { compact = Icon.view icon
-                                , full = applyIcon icon "Settings"
+                                , full = labelIcon icon "Settings"
                                 }
                         }
                 }
@@ -314,7 +344,7 @@ navbarItem item session devpro activeItem =
             Session.credentialed session
                 { guest = none
                 , loggedIn =
-                    Layout.link itemStyle
+                    Route.link itemStyle
                         { route = Route.Logout
                         , body = text "Logout"
                         }
@@ -323,12 +353,12 @@ navbarItem item session devpro activeItem =
         Profile ->
             Session.withLoggedInUser session
                 { guest =
-                    Layout.link Styles.highlighted
+                    Route.link Styles.highlighted
                         { route = Route.Register
                         , body =
                             Avatar.default
                                 |> Avatar.view avatarSize
-                                |> Layout.label "Guest"
+                                |> label "Guest"
                         }
                 , loggedIn =
                     \loggedInUser ->
@@ -336,7 +366,7 @@ navbarItem item session devpro activeItem =
                             username =
                                 LoggedInUser.username loggedInUser
                         in
-                        Layout.link Styles.highlighted
+                        Route.link Styles.highlighted
                             { route = Route.Profile username
                             , body =
                                 LoggedInUser.avatar loggedInUser
@@ -359,10 +389,80 @@ footer : Element msg
 footer =
     row Styles.footer <|
         List.map (el Styles.footerElement)
-            [ Layout.credit
-            , Layout.privacyPolicyLink
-            , Layout.copyright
+            [ credit
+            , privacyPolicyLink
+            , copyright
             ]
+
+
+credit : Element msg
+credit =
+    Route.link [ alignLeft ]
+        { route = Route.Profile Username.appAuthor
+        , body = text "Made with ♥︎ by Zimmy"
+        }
+
+
+privacyPolicyLink : Element msg
+privacyPolicyLink =
+    Route.link [ centerX ]
+        { route = Route.PrivacyPolicy
+        , body = text "Privacy Policy"
+        }
+
+
+copyright : Element msg
+copyright =
+    Route.external [ alignRight ]
+        { target = Route.Company
+        , body = text Strings.copyright
+        }
+
+
+
+-- Exposed Reusable Page Elements
+
+
+spinner : List (Attribute msg) -> Element msg
+spinner attrs =
+    let
+        emptyDiv =
+            Html.div [] []
+    in
+    el (attrs ++ Styles.spinner) <|
+        html <|
+            Html.div [ Html.Attributes.class "spinner" ] (List.repeat 4 emptyDiv)
+
+
+labelIcon : Icon -> String -> Element msg
+labelIcon icon lbl =
+    Icon.view icon
+        |> label lbl
+
+
+label : String -> Element msg -> Element msg
+label lbl element =
+    place
+        { left = element
+        , right = text lbl
+        }
+
+
+pill : Int -> Element msg -> Element msg
+pill count element =
+    let
+        pillNode =
+            el Styles.pill <|
+                text (String.fromInt count)
+    in
+    if count > 0 then
+        place
+            { left = element
+            , right = pillNode
+            }
+
+    else
+        element
 
 
 
@@ -400,3 +500,13 @@ toHtmlDocument config =
     { title = config.title
     , body = List.singleton <| layoutBody config.body
     }
+
+
+place : { left : Element msg, right : Element msg } -> Element msg
+place { left, right } =
+    smallSpace [ left, right ]
+
+
+smallSpace : List (Element msg) -> Element msg
+smallSpace children =
+    row [ Styles.smallSpacing ] children

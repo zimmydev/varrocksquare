@@ -15,7 +15,9 @@ messagePreviewLength =
 -- Debug Logging
 
 
+allowedLogs : { verbose : Bool, logic : Bool }
 allowedLogs =
+    -- Debug message type flags
     { verbose = True
     , logic = True
     }

@@ -17,11 +17,13 @@ import Page.NotFound
 import Page.Redirect
 import Page.Search
 import Page.Settings
+import Post exposing (Post, Preview)
 import Process
 import Route exposing (Href, Route)
 import Session exposing (Session(..))
 import Task
 import Url exposing (Url)
+import User exposing (User)
 
 
 
@@ -52,7 +54,11 @@ type Msg
     | AlertRequested (Alert.Id -> Alert)
     | AlertFired Alert
     | AlertExpired Alert
+      -- Search Page
     | QueryChanged String
+    | PostSearchResultsArrived (List (Post Preview))
+    | UserSearchResultsArrived (List User)
+      -- Settings Page
     | SettingsMessaged (Page.Settings.Msg Msg)
 
 
@@ -68,9 +74,11 @@ type Effect
     | PushRoute Route
     | ReplaceRoute Route
     | Redirect Href
-    | FocusSearchbar
     | FireAlert (Alert.Id -> Alert)
     | ExpireAlert Alert
+      -- Search Page
+    | FocusSearchbar
+      -- Settings Page
     | SettingsEffect Page.Settings.Effect
 
 
@@ -118,7 +126,8 @@ init json url navKey =
         initialRoute =
             Route.routeUrl url
 
-        ( settings, settingsCmd ) =
+        ( settings, _ ) =
+            -- TODO: Figure out Settings Effects
             Page.Settings.init ()
 
         alwaysEffects =
@@ -128,7 +137,8 @@ init json url navKey =
             case initialRoute of
                 Route.NotFound ->
                     Route.NotFound
-                        |> App.logProblem "Initial route not found" (DelayEffect 3000 (PushRoute Route.Root))
+                        |> App.logProblem "Initial route not found"
+                            (DelayEffect 3000 (PushRoute Route.Root))
 
                 Route.Redirect href ->
                     -- Redirect works on fresh page load and on re-route
@@ -262,7 +272,19 @@ update msg model =
             ( { model | alerts = model.alerts |> Queue.remove alert }, NoEffect )
 
         QueryChanged query ->
+            {- TODO: If it's been a certain amount of time since the query has last changed, AND
+               the query doesn't exist in our search cache, send the query off to the `searchUsers`
+               and `searchPosts` API endpoints.
+            -}
             ( { model | searchQuery = query }, NoEffect )
+
+        PostSearchResultsArrived _ ->
+            -- TODO: Cache the search results and place them in the model.
+            ignore
+
+        UserSearchResultsArrived _ ->
+            -- TODO: Cache the search results and place them in the model.
+            ignore
 
         SettingsMessaged (Page.Settings.ParentMsg myMsg) ->
             update myMsg model

@@ -1,4 +1,4 @@
-module Config.Assets exposing (..)
+module Config.Assets exposing (appBackground, contentBackground, defaultAvatar, icon, image, logo, notFoundImage)
 
 import Url.Builder as Builder
 
