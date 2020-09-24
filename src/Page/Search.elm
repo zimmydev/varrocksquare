@@ -24,29 +24,30 @@ focusSearchbar focusedSearchbar =
 -- Views
 
 
-view : (String -> msg) -> String -> Page msg
-view searchbarChanged query =
+view : (String -> msg) -> Maybe String -> Page msg
+view searchbarChanged maybeQuery =
     { navbarItem = Page.Search
-    , title = searchingString query
-    , body = lazy2 body searchbarChanged query
+    , title = searchingString maybeQuery
+    , body = lazy2 body searchbarChanged maybeQuery
     }
 
 
-body : (String -> msg) -> String -> Element msg
-body searchbarChanged query =
+body : (String -> msg) -> Maybe String -> Element msg
+body searchbarChanged maybeQuery =
     column Styles.page
-        [ lazy2 searchbar searchbarChanged query
-        , if String.isEmpty query then
-            none
+        [ lazy2 searchbar searchbarChanged maybeQuery
+        , case maybeQuery of
+            Nothing ->
+                none
 
-          else
-            el Styles.content
-                (Page.spinner [])
+            _ ->
+                el Styles.content <|
+                    Page.spinner []
         ]
 
 
-searchbar : (String -> msg) -> String -> Element msg
-searchbar searchbarChanged query =
+searchbar : (String -> msg) -> Maybe String -> Element msg
+searchbar searchbarChanged maybeQuery =
     let
         placeholder =
             Input.placeholder Styles.searchPlaceholder
@@ -54,7 +55,7 @@ searchbar searchbarChanged query =
     in
     Input.text Styles.searchbar
         { onChange = searchbarChanged
-        , text = query
+        , text = maybeQuery |> Maybe.withDefault ""
         , placeholder = Just placeholder
         , label = Input.labelHidden "Searchbar"
         }
@@ -64,10 +65,11 @@ searchbar searchbarChanged query =
 -- Helpers
 
 
-searchingString : String -> String
-searchingString query =
-    if String.isEmpty query then
-        "Search"
+searchingString : Maybe String -> String
+searchingString maybeQuery =
+    case maybeQuery of
+        Nothing ->
+            "Search"
 
-    else
-        "Searching for '" ++ query ++ "'…"
+        Just query ->
+            "Searching for '" ++ query ++ "'…"

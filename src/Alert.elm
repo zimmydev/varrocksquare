@@ -1,11 +1,11 @@
-module Alert exposing (Alert(..), Id, canSilence, expire, fire, id, loggedIn, loggedOut, passwordsDontMatch, payload, receivedMessage, view)
+module Alert exposing (Alert, Id, announcement, canSilence, expire, fire, id, loggedIn, loggedOut, passwordsDontMatch, payload, receivedMessage, view)
 
-import Api exposing (AuthToken)
 import Config.App as App
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
 import Element exposing (Color, Element)
 import Icon exposing (Icon)
+import LoggedInUser exposing (LoggedInUser)
 import Process
 import Task
 import Time
@@ -18,6 +18,7 @@ type Alert
     | Success String Id
     | Error String Id
     | ReceivedMessage String Id
+    | Announcement String Id
 
 
 type alias Id =
@@ -43,13 +44,18 @@ passwordsDontMatch =
     Error "The password fields don't match one another!"
 
 
-receivedMessage : AuthToken -> Username -> String -> Id -> Alert
+receivedMessage : LoggedInUser -> Username -> String -> Id -> Alert
 receivedMessage _ sender mess =
     let
         preview =
             abridge App.messagePreviewLength mess
     in
     ReceivedMessage (Username.toString sender ++ ": " ++ preview)
+
+
+announcement : String -> Id -> Alert
+announcement mess =
+    Announcement mess
 
 
 
@@ -71,6 +77,9 @@ id alert =
         ReceivedMessage _ i ->
             i
 
+        Announcement _ i ->
+            i
+
 
 payload : Alert -> String
 payload alert =
@@ -85,6 +94,9 @@ payload alert =
             pl
 
         ReceivedMessage pl _ ->
+            pl
+
+        Announcement pl _ ->
             pl
 
 
@@ -152,3 +164,6 @@ style alert =
 
         ReceivedMessage _ _ ->
             ( Icon.envelope size, Colors.blue )
+
+        Announcement _ _ ->
+            ( Icon.espresso size, Colors.orange )

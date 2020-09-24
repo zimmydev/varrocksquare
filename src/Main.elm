@@ -5,6 +5,7 @@ import Alert.Queue as Queue exposing (Queue)
 import Browser exposing (Document, UrlRequest)
 import Browser.Events
 import Browser.Navigation as Nav
+import Cache exposing (Cache)
 import Config.App as App
 import Device
 import Element exposing (..)
@@ -21,6 +22,7 @@ import Post exposing (Post, Preview)
 import Process
 import Route exposing (Href, Route)
 import Session exposing (Session(..))
+import Settings exposing (Settings)
 import Task
 import Url exposing (Url)
 import User exposing (User)
@@ -35,8 +37,11 @@ type alias Model =
     , route : Route
     , devpro : Device.Profile
     , alerts : Queue
-    , searchQuery : String
-    , settings : Page.Settings.Model
+    , search :
+        { query : Maybe String
+        , cache : Cache (List (Post Preview))
+        }
+    , settings : Settings
     }
 
 
@@ -161,7 +166,7 @@ init json url navKey =
             , route = initialRoute
             , devpro = Device.profile flags.size
             , alerts = Queue.empty
-            , searchQuery = ""
+            , search = { query = Nothing, cache = Cache.empty }
             , settings = settings
             }
 
@@ -237,10 +242,14 @@ update msg model =
                     )
 
                 Route.Search maybeQuery ->
-                    ( { model
-                        | route = nextRoute
-                        , searchQuery = Maybe.withDefault "" maybeQuery
-                      }
+                    let
+                        search =
+                            model.search
+
+                        nextSearch =
+                            { search | query = maybeQuery }
+                    in
+                    ( { model | route = nextRoute, search = nextSearch }
                     , FocusSearchbar
                     )
 
@@ -276,7 +285,21 @@ update msg model =
                the query doesn't exist in our search cache, send the query off to the `searchUsers`
                and `searchPosts` API endpoints.
             -}
-            ( { model | searchQuery = query }, NoEffect )
+            let
+                search =
+                    model.search
+
+                nextQuery =
+                    if String.isEmpty query then
+                        Nothing
+
+                    else
+                        Just query
+
+                nextSearch =
+                    { search | query = nextQuery }
+            in
+            ( { model | search = nextSearch }, NoEffect )
 
         PostSearchResultsArrived _ ->
             -- TODO: Cache the search results and place them in the model.
@@ -321,7 +344,7 @@ view ({ session, devpro, alerts } as model) =
                 |> viewPage
 
         Route.Search _ ->
-            Page.Search.view QueryChanged model.searchQuery
+            Page.Search.view QueryChanged model.search.query
                 |> viewPage
 
         Route.Settings ->
