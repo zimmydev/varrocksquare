@@ -20,11 +20,11 @@ empty =
 -- Transforming a Cache
 
 
-store : comparableKey -> value -> Dict comparableKey value -> Dict comparableKey value
-store =
-    Dict.insert
+store : comparableKey -> value -> Cache comparableKey value -> Cache comparableKey value
+store key value (Cache dict) =
+    dict |> Dict.insert key value |> Cache
 
 
-retrieve : comparableKey -> Dict comparableKey value -> Maybe value
-retrieve =
-    Dict.get
+retrieve : comparableKey -> Cache comparableKey value -> Maybe value
+retrieve key (Cache dict) =
+    dict |> Dict.get key
