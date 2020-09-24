@@ -1,17 +1,20 @@
 module Cache exposing (Cache, empty, retrieve, store)
 
+{-| A `Cache` is a `Dict` with a `String` key, more or less.
+-}
+
 import Dict exposing (Dict)
 
 
-type Cache comparableKey value
-    = Cache (Dict comparableKey value)
+type Cache value
+    = Cache (Dict String value)
 
 
 
 -- Obtaining a Cache
 
 
-empty : Cache comparableKey value
+empty : Cache value
 empty =
     Cache Dict.empty
 
@@ -20,11 +23,11 @@ empty =
 -- Transforming a Cache
 
 
-store : comparableKey -> value -> Cache comparableKey value -> Cache comparableKey value
+store : String -> value -> Cache value -> Cache value
 store key value (Cache dict) =
     dict |> Dict.insert key value |> Cache
 
 
-retrieve : comparableKey -> Cache comparableKey value -> Maybe value
+retrieve : String -> Cache value -> Maybe value
 retrieve key (Cache dict) =
     dict |> Dict.get key
