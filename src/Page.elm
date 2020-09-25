@@ -354,13 +354,9 @@ navbarItem item session devpro activeItem =
         Profile ->
             Session.withLoggedInUser session
                 { guest =
-                    Route.link Styles.highlighted
-                        { route = Route.Register
-                        , body =
-                            Avatar.default
-                                |> Avatar.view avatarSize
-                                |> label "Guest"
-                        }
+                    Avatar.default
+                        |> Avatar.view avatarSize
+                        |> label "Guest"
                 , loggedIn =
                     \loggedInUser ->
                         let
