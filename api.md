@@ -103,3 +103,19 @@
     ]
 }
 ```
+
+## Errors
+
+```js
+{
+    "errors": {
+        "unauthorized": [
+            "Client did not provide an authentication token."
+        ],
+    }
+}
+```
+
+### Notes
+
+* This particular error would also return a `401 Unauthorized` status
