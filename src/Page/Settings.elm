@@ -1,4 +1,4 @@
-module Page.Settings exposing (Effect(..), Msg(..), init, update, view)
+module Page.Settings exposing (Effect(..), Msg(..), State, init, update, view)
 
 import Alert exposing (Alert)
 import Config.Styles as Styles
@@ -15,6 +15,14 @@ import Route
 import Session exposing (Session(..))
 import Settings exposing (Settings)
 import Username
+
+
+
+-- Model
+
+
+type alias State =
+    { settings : Settings }
 
 
 
@@ -38,10 +46,10 @@ type Effect
 -- Init
 
 
-init : () -> ( Settings, Cmd msg )
-init _ =
-    ( Settings.default
-    , Cmd.none
+init : Settings -> ( State, Effect )
+init settings =
+    ( { settings = settings }
+    , NoEffect
     )
 
 
@@ -49,18 +57,21 @@ init _ =
 -- Update
 
 
-update : Msg pmsg -> Settings -> ( Settings, Effect )
-update msg settings =
+update : Msg parentMsg -> State -> ( State, Effect )
+update msg state =
     let
         ignore =
-            ( settings, NoEffect )
+            ( state, NoEffect )
+
+        settings =
+            state.settings
     in
     case msg of
         ParentMsg _ ->
             ignore
 
         ChangedAlerts bool ->
-            ( { settings | alerts = bool }, NoEffect )
+            ( { state | settings = { settings | alerts = bool } }, NoEffect )
 
 
 
@@ -70,12 +81,12 @@ update msg settings =
 view :
     ((Alert.Id -> Alert) -> parentMsg)
     -> Session
-    -> Settings
+    -> State
     -> Page (Msg parentMsg)
-view requestAlert session settings =
+view requestAlert session state =
     { navbarItem = Page.Settings
     , title = "User Settings"
-    , body = lazy3 body requestAlert session settings
+    , body = lazy3 body requestAlert session state.settings
     }
 
 
@@ -83,7 +94,7 @@ body : ((Alert.Id -> Alert) -> parentMsg) -> Session -> Settings -> Element (Msg
 body requestAlert session settings =
     column Styles.page
         [ el Styles.content <|
-            Input.radioRow [ spacing 20 ]
+            Input.radioRow Styles.radioRow
                 { onChange = ChangedAlerts
                 , selected = Just settings.alerts
                 , label =
@@ -92,13 +103,13 @@ body requestAlert session settings =
                         (text "Message Notifications:")
                 , options =
                     [ Input.optionWith True <|
-                        \state ->
+                        \optionState ->
                             Page.label "On" <|
-                                Icon.view (Icon.radio state Icon.Medium)
+                                Icon.view (Icon.radio optionState Icon.Medium)
                     , Input.optionWith False <|
-                        \state ->
+                        \optionState ->
                             Page.label "Off" <|
-                                Icon.view (Icon.radio state Icon.Medium)
+                                Icon.view (Icon.radio optionState Icon.Medium)
                     ]
                 }
         , textColumn Styles.content

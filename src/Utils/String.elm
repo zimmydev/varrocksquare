@@ -1,4 +1,4 @@
-module Utils.String exposing (abridge)
+module Utils.String exposing (abridge, surround)
 
 
 abridge : Int -> String -> String
@@ -15,3 +15,26 @@ abridge maxLength string =
         |> String.left maxLength
         |> String.trimRight
         |> optionalEllipses
+
+
+surround : String -> String -> String
+surround left string =
+    let
+        right =
+            case left of
+                "(" ->
+                    ")"
+
+                "[" ->
+                    "]"
+
+                "{" ->
+                    "}"
+
+                "<" ->
+                    ">"
+
+                other ->
+                    other
+    in
+    left ++ string ++ right

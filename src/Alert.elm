@@ -139,7 +139,7 @@ fire alertFired alert =
 expire : Float -> (Alert -> msg) -> Alert -> Cmd msg
 expire timeout expireAlert alert =
     Process.sleep timeout
-        |> Task.perform (always (expireAlert alert))
+        |> Task.perform (\_ -> expireAlert alert)
 
 
 

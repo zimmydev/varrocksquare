@@ -1,4 +1,4 @@
-module Page exposing (NavbarItem(..), Page, label, labelIcon, map, pill, spinner, unthemed, view)
+module Page exposing (NavbarItem(..), Page, column, content, form, inputField, label, labelIcon, map, pill, spinner, unthemed, view)
 
 {-| This module mostly contains the view rendering that's common to all pages,
 e.g. the navbar, the footer, page title, formatting, etc.
@@ -12,7 +12,8 @@ import Config.Assets as Assets
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Device
-import Element exposing (..)
+import Element exposing (Attribute, Element, FocusStyle, alignLeft, alignRight, centerX, fill, fillPortion, focusStyle, height, spacing, width)
+import Element.Input as Input
 import Element.Lazy exposing (..)
 import Html
 import Html.Attributes
@@ -69,15 +70,15 @@ view session devpro alerts page =
     toHtmlDocument <|
         { title = appTitle page.title
         , body =
-            column
+            Element.column
                 [ width fill, height fill ]
-                [ row
+                [ Element.row
                     [ width fill ]
-                    [ el [ width (fillPortion 1) ] none
+                    [ Element.el [ width (fillPortion 1) ] Element.none
                     , page.body
-                    , el [ width (fillPortion 1) ] none
+                    , Element.el [ width (fillPortion 1) ] Element.none
                     ]
-                , lazy (always footer) ()
+                , lazy (\_ -> footer) ()
                 ]
         , style = Styles.root
         , focus = Styles.focus
@@ -132,7 +133,7 @@ navbar session devpro activeItem =
             , Profile
             ]
     in
-    row (Styles.navbar devpro) <|
+    Element.row (Styles.navbar devpro) <|
         List.concat <|
             [ List.singleton (logo devpro)
             , convert leftLinks
@@ -150,14 +151,14 @@ logo devpro =
                 }
     in
     Route.link []
-        { route = Route.Home
+        { route = Route.Feeds
         , body =
-            row Styles.logo
-                [ image []
+            Element.row Styles.logo
+                [ Element.image []
                     { src = Assets.logo
                     , description = "The " ++ Strings.appName ++ " logo"
                     }
-                , text logotype
+                , Element.text logotype
                 ]
         }
 
@@ -187,7 +188,7 @@ navbarItem item session devpro activeItem =
                     Icon.pencil iconSize
             in
             Session.credentialed session
-                { guest = none
+                { guest = Element.none
                 , loggedIn =
                     Route.link itemStyle
                         { route = Route.NewPost
@@ -235,7 +236,7 @@ navbarItem item session devpro activeItem =
                     Icon.starBox iconSize
             in
             Session.credentialed session
-                { guest = none
+                { guest = Element.none
                 , loggedIn =
                     Route.link itemStyle
                         { route = Route.Starred
@@ -253,7 +254,7 @@ navbarItem item session devpro activeItem =
                     Icon.paperPlane iconSize
             in
             Session.credentialed session
-                { guest = none
+                { guest = Element.none
                 , loggedIn =
                     Route.link itemStyle
                         { route = Route.Inbox
@@ -278,7 +279,7 @@ navbarItem item session devpro activeItem =
 
         Discord ->
             Device.responsive devpro <|
-                { compact = none
+                { compact = Element.none
                 , full =
                     Route.external []
                         { target = Route.Discord
@@ -288,7 +289,7 @@ navbarItem item session devpro activeItem =
 
         Github ->
             Device.responsive devpro <|
-                { compact = none
+                { compact = Element.none
                 , full =
                     Route.external []
                         { target = Route.Github
@@ -304,21 +305,21 @@ navbarItem item session devpro activeItem =
 
         Login ->
             Session.credentialed session
-                { loggedIn = none
+                { loggedIn = Element.none
                 , guest =
                     Route.link itemStyle
                         { route = Route.Login
-                        , body = text "Login"
+                        , body = Element.text "Login"
                         }
                 }
 
         Register ->
             Session.credentialed session
-                { loggedIn = none
+                { loggedIn = Element.none
                 , guest =
                     Route.link itemStyle
                         { route = Route.Register
-                        , body = text "Register"
+                        , body = Element.text "Register"
                         }
                 }
 
@@ -328,7 +329,7 @@ navbarItem item session devpro activeItem =
                     Icon.settings iconSize
             in
             Session.credentialed session
-                { guest = none
+                { guest = Element.none
                 , loggedIn =
                     Route.link itemStyle
                         { route = Route.Settings
@@ -342,11 +343,11 @@ navbarItem item session devpro activeItem =
 
         Logout ->
             Session.credentialed session
-                { guest = none
+                { guest = Element.none
                 , loggedIn =
                     Route.link itemStyle
                         { route = Route.Logout
-                        , body = text "Logout"
+                        , body = Element.text "Logout"
                         }
                 }
 
@@ -372,13 +373,13 @@ navbarItem item session devpro activeItem =
                                 LoggedInUser.avatar loggedInUser
                                     |> Avatar.view avatarSize
                                     |> label ("@" ++ Username.toString username)
-                                    |> el Styles.highlighted
+                                    |> Element.el Styles.highlighted
                             }
                 }
 
         Other ->
             Other
-                |> App.logProblem "Accidently tried to render an `Other` page" none
+                |> App.logProblem "Accidently tried to render an `Other` page" Element.none
 
 
 
@@ -387,8 +388,8 @@ navbarItem item session devpro activeItem =
 
 footer : Element msg
 footer =
-    row Styles.footer <|
-        List.map (el Styles.footerElement)
+    Element.row Styles.footer <|
+        List.map (Element.el Styles.footerElement)
             [ credit
             , privacyPolicyLink
             , copyright
@@ -399,7 +400,7 @@ credit : Element msg
 credit =
     Route.link [ alignLeft ]
         { route = Route.Profile Username.appAuthor
-        , body = text "Made with ♥︎ by Zimmy"
+        , body = Element.text "Made with ♥︎ by Zimmy"
         }
 
 
@@ -407,7 +408,7 @@ privacyPolicyLink : Element msg
 privacyPolicyLink =
     Route.link [ centerX ]
         { route = Route.PrivacyPolicy
-        , body = text "Privacy Policy"
+        , body = Element.text "Privacy Policy"
         }
 
 
@@ -415,8 +416,40 @@ copyright : Element msg
 copyright =
     Route.external [ alignRight ]
         { target = Route.Company
-        , body = text Strings.copyright
+        , body = Element.text Strings.copyright
         }
+
+
+
+-- Elm-UI Wrappers
+
+
+column : List (Element msg) -> Element msg
+column =
+    Element.column Styles.page
+
+
+content : Element msg -> Element msg
+content =
+    Element.el Styles.content
+
+
+form : { title : String, devpro : Device.Profile, forms : List (Element msg) } -> Element msg
+form { title, devpro, forms } =
+    let
+        formPortion =
+            Device.responsive devpro
+                { compact = 15
+                , full = 3
+                }
+    in
+    Element.row Styles.content
+        [ Element.el [ width (fillPortion 1) ] Element.none
+        , Element.column [ width (fillPortion formPortion), spacing 12 ] <|
+            Element.el (centerX :: Styles.contentHeader 2) (Element.text title)
+                :: forms
+        , Element.el [ width (fillPortion 1) ] Element.none
+        ]
 
 
 
@@ -429,9 +462,30 @@ spinner attrs =
         emptyDiv =
             Html.div [] []
     in
-    el (attrs ++ Styles.spinner) <|
-        html <|
+    Element.el (attrs ++ Styles.spinner) <|
+        Element.html <|
             Html.div [ Html.Attributes.class "spinner" ] (List.repeat 4 emptyDiv)
+
+
+inputField :
+    { onChange : String -> msg
+    , label : String
+    , placeholder : String
+    , value : String
+    }
+    -> Element msg
+inputField config =
+    Input.text Styles.input
+        { onChange = config.onChange
+        , text = config.value
+        , placeholder =
+            Just <|
+                Input.placeholder Styles.searchPlaceholder <|
+                    Element.text config.placeholder
+        , label =
+            Input.labelLeft Styles.inputLabel <|
+                Element.text (config.label ++ ":")
+        }
 
 
 labelIcon : Icon -> String -> Element msg
@@ -444,7 +498,7 @@ label : String -> Element msg -> Element msg
 label lbl element =
     place
         { left = element
-        , right = text lbl
+        , right = Element.text lbl
         }
 
 
@@ -452,8 +506,8 @@ pill : Int -> Element msg -> Element msg
 pill count element =
     let
         pillNode =
-            el Styles.pill <|
-                text (String.fromInt count)
+            Element.el Styles.pill <|
+                Element.text (String.fromInt count)
     in
     if count > 0 then
         place
@@ -491,11 +545,14 @@ toHtmlDocument config =
         layoutBody =
             case config.hud of
                 Just hud ->
-                    layoutWith { options = [ focusStyle config.focus ] }
-                        (inFront hud.navbar :: inFront hud.alertArea :: config.style)
+                    Element.layoutWith { options = [ focusStyle config.focus ] }
+                        (Element.inFront hud.navbar
+                            :: Element.inFront hud.alertArea
+                            :: config.style
+                        )
 
                 Nothing ->
-                    layout config.style
+                    Element.layout config.style
     in
     { title = config.title
     , body = List.singleton <| layoutBody config.body
@@ -509,4 +566,4 @@ place { left, right } =
 
 smallSpace : List (Element msg) -> Element msg
 smallSpace children =
-    row [ Styles.smallSpacing ] children
+    Element.row [ Styles.smallSpacing ] children

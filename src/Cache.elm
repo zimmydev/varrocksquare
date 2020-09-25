@@ -7,7 +7,7 @@ import Dict exposing (Dict)
 
 
 type Cache value
-    = Cache (Dict String value)
+    = Cache (Dict String (List value))
 
 
 
@@ -23,11 +23,21 @@ empty =
 -- Transforming a Cache
 
 
-store : String -> value -> Cache value -> Cache value
-store key value (Cache dict) =
-    dict |> Dict.insert key value |> Cache
+store : String -> List value -> Cache value -> Cache value
+store key values (Cache dict) =
+    dict
+        |> Dict.update key
+            (\mv ->
+                case mv of
+                    Nothing ->
+                        Just values
+
+                    Just oldValues ->
+                        Just <| values ++ oldValues
+            )
+        |> Cache
 
 
-retrieve : String -> Cache value -> Maybe value
+retrieve : String -> Cache value -> Maybe (List value)
 retrieve key (Cache dict) =
     dict |> Dict.get key

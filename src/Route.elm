@@ -23,16 +23,15 @@ Some notes about app-specific routing:
 
 -}
 type Route
-    = NotFound
-      -- Redirection
-    | Redirect Href
+    = Redirect Href
+    | NotFound
       -- Main routes
-    | Root
     | Home
-    | Post Slug
-    | Profile Username
+    | Feeds
     | Search (Maybe String)
     | Tools
+    | Post Slug
+    | Profile Username
     | Help
     | PrivacyPolicy
       -- Main routes (Must be logged-in)
@@ -113,10 +112,11 @@ parser =
     Parser.oneOf
         [ -- Main routes
           Parser.map Home Parser.top
-        , Parser.map Post (s "post" </> Slug.urlParser)
-        , Parser.map Profile (s "profile" </> Username.urlParser)
+        , Parser.map Feeds (s "feeds")
         , Parser.map Search (s "search" <?> Query.string "query")
         , Parser.map Tools (s "tools")
+        , Parser.map Post (s "post" </> Slug.urlParser)
+        , Parser.map Profile (s "profile" </> Username.urlParser)
         , Parser.map (requireQuery Redirect) (s "redirect" <?> Query.string "href")
 
         -- Main routes (credentialed)
@@ -170,17 +170,11 @@ toHref route =
                 NotFound ->
                     ( [], [] )
 
-                Root ->
-                    ( [], [] )
-
                 Home ->
                     ( [], [] )
 
-                Post slug ->
-                    ( [ "post", Slug.toString slug ], [] )
-
-                Profile username ->
-                    ( [ "profile", Username.toString username ], [] )
+                Feeds ->
+                    ( [ "feeds" ], [] )
 
                 Search maybeQuery ->
                     ( [ "search" ]
@@ -194,6 +188,12 @@ toHref route =
 
                 Tools ->
                     ( [ "tools" ], [] )
+
+                Post slug ->
+                    ( [ "post", Slug.toString slug ], [] )
+
+                Profile username ->
+                    ( [ "profile", Username.toString username ], [] )
 
                 Help ->
                     ( [ "help" ], [] )

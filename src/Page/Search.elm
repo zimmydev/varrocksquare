@@ -1,4 +1,4 @@
-module Page.Search exposing (focusSearchbar, view)
+module Page.Search exposing (Effect(..), Msg(..), State, init, update, view)
 
 import Browser.Dom as Dom
 import Config.Strings as Strings
@@ -7,56 +7,138 @@ import Element exposing (..)
 import Element.Input as Input
 import Element.Lazy exposing (..)
 import Page exposing (Page)
+import Post exposing (Post, Preview)
 import Task
+import User exposing (User)
+import Utils.String exposing (surround)
 
 
 
--- TODO: Upgrade Search page with its own update function
--- Commands
+-- Model
 
 
-focusSearchbar : msg -> Cmd msg
-focusSearchbar focusedSearchbar =
-    Task.attempt (always focusedSearchbar) (Dom.focus "searchbar")
+type alias State =
+    { query : Maybe String
+    , postResults : ServerData (List (Post Preview))
+    , userResults : ServerData (List User)
+    }
+
+
+type ServerData a
+    = NotAsked
+    | Loading String
+    | Success a
+    | Failure
+
+
+
+-- Messages
+
+
+type Msg parentMsg
+    = ParentMsg parentMsg
+      -- TODO: Add some kind of ResponseArrived variant
+    | SearchbarChanged String
+    | PostSearchResultsArrived (List (Post Preview))
+    | UserSearchResultsArrived (List User)
+
+
+
+-- Effects
+
+
+type Effect
+    = NoEffect
+    | FocusSearchbar
+    | ReplaceQuery (Maybe String)
+
+
+
+-- Init
+
+
+init : Maybe String -> ( State, Effect )
+init query =
+    ( { query = Nothing
+      , postResults = NotAsked
+      , userResults = NotAsked
+      }
+    , FocusSearchbar
+    )
+
+
+
+-- Update
+
+
+update : Msg parentMsg -> State -> ( State, Effect )
+update msg state =
+    let
+        ignore =
+            ( state, NoEffect )
+    in
+    case msg of
+        ParentMsg _ ->
+            ignore
+
+        SearchbarChanged value ->
+            let
+                query =
+                    if String.isEmpty value then
+                        Nothing
+
+                    else
+                        Just value
+            in
+            {- TODO: If it's been a certain amount of time since the query has last changed, AND
+               the query doesn't exist in our search cache, send the query off to the `searchUsers`
+               and `searchPosts` API endpoints.
+            -}
+            ( { state | query = query }, NoEffect )
+
+        PostSearchResultsArrived _ ->
+            -- TODO: Cache the search results and place them in the model.
+            ignore
+
+        UserSearchResultsArrived _ ->
+            -- TODO: Cache the search results and place them in the model.
+            ignore
 
 
 
 -- Views
 
 
-view : (String -> msg) -> Maybe String -> Page msg
-view searchbarChanged maybeQuery =
+view : State -> Page (Msg parentMsg)
+view state =
     { navbarItem = Page.Search
-    , title = searchingString maybeQuery
-    , body = lazy2 body searchbarChanged maybeQuery
+    , title = title state.query
+    , body = lazy body state.query
     }
 
 
-body : (String -> msg) -> Maybe String -> Element msg
-body searchbarChanged maybeQuery =
-    column Styles.page
-        [ lazy2 searchbar searchbarChanged maybeQuery
-        , case maybeQuery of
+body : Maybe String -> Element (Msg parentMsg)
+body query =
+    Page.column
+        [ searchbar query
+        , case query of
             Nothing ->
                 none
 
             _ ->
-                el Styles.content <|
-                    Page.spinner []
+                Page.content (Page.spinner [])
         ]
 
 
-searchbar : (String -> msg) -> Maybe String -> Element msg
-searchbar searchbarChanged maybeQuery =
-    let
-        placeholder =
-            Input.placeholder Styles.searchPlaceholder
-                (text Strings.searchPlaceholder)
-    in
+searchbar : Maybe String -> Element (Msg parentMsg)
+searchbar query =
     Input.text Styles.searchbar
-        { onChange = searchbarChanged
-        , text = maybeQuery |> Maybe.withDefault ""
-        , placeholder = Just placeholder
+        { onChange = SearchbarChanged
+        , text = query |> Maybe.withDefault ""
+        , placeholder =
+            Just <|
+                Input.placeholder Styles.searchPlaceholder <|
+                    text Strings.searchPlaceholder
         , label = Input.labelHidden "Searchbar"
         }
 
@@ -65,11 +147,11 @@ searchbar searchbarChanged maybeQuery =
 -- Helpers
 
 
-searchingString : Maybe String -> String
-searchingString maybeQuery =
+title : Maybe String -> String
+title maybeQuery =
     case maybeQuery of
         Nothing ->
             "Search"
 
         Just query ->
-            "Searching for '" ++ query ++ "'…"
+            "Searching for " ++ surround "'" query ++ "…"

@@ -31,6 +31,7 @@ type TimeFormat
 -- Defaults
 
 
+default : Settings
 default =
     { alerts = True
     , timestamps = Relative

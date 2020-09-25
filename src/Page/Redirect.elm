@@ -18,12 +18,12 @@ type alias Href =
 view : Href -> Page msg
 view href =
     let
-        redirecting =
-            redirectingString href
+        redirectingString =
+            title href
     in
     { navbarItem = Page.Other
-    , title = redirecting
-    , body = lazy body redirecting
+    , title = redirectingString
+    , body = lazy body redirectingString
     }
 
 
@@ -38,8 +38,8 @@ body label =
 -- Helpers
 
 
-redirectingString : Href -> String
-redirectingString href =
+title : Href -> String
+title href =
     href
         |> Url.fromString
         |> Maybe.map .host

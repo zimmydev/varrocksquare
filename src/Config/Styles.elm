@@ -1,4 +1,4 @@
-module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, root, searchPlaceholder, searchbar, seguePage, smallSpacing, spinner)
+module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, input, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, radioRow, root, searchPlaceholder, searchbar, seguePage, smallSpacing, spinner)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -35,7 +35,7 @@ root =
     , clipX
     , Font.color Colors.white
     , Font.size (fontSizeBy 1)
-    , Font.family [ Font.typeface "Nunito", Font.sansSerif ]
+    , uiFont
     , Background.tiled Assets.appBackground
     ]
 
@@ -59,9 +59,9 @@ navbar devpro =
 logo : List (Attribute msg)
 logo =
     [ spacing 8
+    , logoFont
     , Font.bold
     , Font.size (fontSizeBy 2)
-    , Font.family [ Font.typeface "Cinzel Decorative", Font.serif ]
     ]
 
 
@@ -80,7 +80,7 @@ pill =
     , paddingXY 6 3
     , Font.bold
     , Font.color Colors.white
-    , Font.size (fontSizeBy -2)
+    , Font.size 10
     , Background.color Colors.red
     , Border.rounded 8
     ]
@@ -131,8 +131,9 @@ page =
 content : List (Attribute msg)
 content =
     [ width (fill |> minimum 360 |> maximum 1080)
-    , padding 25
-    , spacing 25
+    , padding 20
+    , spacing 15
+    , contentFont
     , Font.justify
     , Font.color Colors.ink
     , Background.tiled Assets.contentBackground
@@ -157,6 +158,7 @@ footer =
     , paddingXY 24 12
     , spacing 24
     , alignBottom
+    , uiFont
     , Font.color (Colors.darkGrey 2)
     , Font.size (fontSizeBy -1)
     , headerFooterBg
@@ -176,7 +178,9 @@ searchbar =
 
 searchPlaceholder : List (Attribute msg)
 searchPlaceholder =
-    [ Font.color (Colors.lightGrey 4) ]
+    [ uiFont
+    , Font.color (Colors.lightGrey 4)
+    ]
 
 
 spinner : List (Attribute msg)
@@ -216,11 +220,28 @@ button =
     ]
 
 
+input : List (Attribute msg)
+input =
+    [ width fill
+    , uiFont
+    , Font.color Colors.black
+    , Background.color Colors.white
+    , Border.rounded 1000
+    ]
+
+
 inputLabel : List (Attribute msg)
 inputLabel =
-    [ centerY
-    , width (px 200)
-    , Font.bold
+    [ paddingEach { zeroEdges | right = 12 }
+    , centerY
+    , uiFont
+    ]
+
+
+radioRow : List (Attribute msg)
+radioRow =
+    [ spacing 20
+    , uiFont
     ]
 
 
@@ -267,6 +288,26 @@ focus =
 
 
 -- Helpers
+
+
+logoFont : Attribute msg
+logoFont =
+    Font.family
+        [ Font.typeface "Cinzel Decorative", Font.serif ]
+
+
+uiFont : Attribute msg
+uiFont =
+    Font.family
+        [ Font.typeface "Nunito Sans", Font.sansSerif ]
+
+
+contentFont : Attribute msg
+contentFont =
+    Font.family
+        [ Font.typeface "Lora"
+        , Font.serif
+        ]
 
 
 headerFooterBg : Attribute msg

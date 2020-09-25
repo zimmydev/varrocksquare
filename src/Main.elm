@@ -1,8 +1,9 @@
-module Main exposing (Model)
+module Main exposing (App)
 
 import Alert exposing (Alert, fire)
 import Alert.Queue as Queue exposing (Queue)
 import Browser exposing (Document, UrlRequest)
+import Browser.Dom as Dom
 import Browser.Events
 import Browser.Navigation as Nav
 import Cache exposing (Cache)
@@ -10,14 +11,25 @@ import Config.App as App
 import Device
 import Element exposing (..)
 import Json.Encode exposing (Value)
-import LoggedInUser
+import LoggedInUser exposing (LoggedInUser)
 import Main.Flags as Flags
 import Page
+import Page.Editor
+import Page.Feeds
+import Page.Help
 import Page.Home
+import Page.Inbox
+import Page.Login
 import Page.NotFound
+import Page.Post
+import Page.PrivacyPolicy
+import Page.Profile
 import Page.Redirect
+import Page.Register
 import Page.Search
 import Page.Settings
+import Page.Starred
+import Page.Tools
 import Post exposing (Post, Preview)
 import Process
 import Route exposing (Href, Route)
@@ -32,15 +44,33 @@ import User exposing (User)
 -- Model
 
 
-type alias Model =
+type App
+    = RedirectState Global Href
+    | NotFoundState Global ()
+    | HomeState Global ()
+    | FeedsState Global Page.Feeds.State
+    | EditorState Global Page.Editor.State LoggedInUser
+    | SearchState Global Page.Search.State
+    | ToolsState Global Page.Tools.State
+    | StarredState Global Page.Starred.State LoggedInUser
+    | InboxState Global Page.Inbox.State LoggedInUser
+    | SettingsState Global Page.Settings.State LoggedInUser
+    | RegisterState Global Page.Register.State
+      {- NOTE: There is no LogoutState because logging out can be handled by `transition` without
+         the need for an actual interim state existing.
+      -}
+    | LoginState Global Page.Login.State
+    | ProfileState Global Page.Profile.State
+    | PostState Global Page.Post.State
+    | HelpState Global ()
+    | PrivacyPolicyState Global ()
+
+
+type alias Global =
     { session : Session
-    , route : Route
     , devpro : Device.Profile
     , alerts : Queue
-    , search :
-        { query : Maybe String
-        , cache : Cache (List (Post Preview))
-        }
+    , searchCache : Cache (Post Preview)
     , settings : Settings
     }
 
@@ -59,12 +89,13 @@ type Msg
     | AlertRequested (Alert.Id -> Alert)
     | AlertFired Alert
     | AlertExpired Alert
-      -- Search Page
-    | QueryChanged String
-    | PostSearchResultsArrived (List (Post Preview))
-    | UserSearchResultsArrived (List User)
-      -- Settings Page
+      -- Pages
+    | EditorMessaged (Page.Editor.Msg Msg)
+    | SearchMessaged (Page.Search.Msg Msg)
+    | InboxMessaged (Page.Inbox.Msg Msg)
     | SettingsMessaged (Page.Settings.Msg Msg)
+    | RegisterMessaged (Page.Register.Msg Msg)
+    | LoginMessaged (Page.Login.Msg Msg)
 
 
 
@@ -72,8 +103,8 @@ type Msg
 
 
 type Effect
-    = NoEffect
-    | Effects (List Effect)
+    = Effects (List Effect)
+    | NoEffect -- No-op
     | DelayEffect Float Effect
     | DelayMsg Float Msg
     | PushRoute Route
@@ -81,25 +112,35 @@ type Effect
     | Redirect Href
     | FireAlert (Alert.Id -> Alert)
     | ExpireAlert Alert
-      -- Search Page
-    | FocusSearchbar
-      -- Settings Page
+      -- Pages
+    | EditorEffect Page.Editor.Effect
+    | SearchEffect Page.Search.Effect
+    | ToolsEffect Page.Tools.Effect
+    | StarredEffect Page.Starred.Effect
+    | InboxEffect Page.Inbox.Effect
     | SettingsEffect Page.Settings.Effect
+    | RegisterEffect Page.Register.Effect
+    | LoginEffect Page.Login.Effect
+    | PostEffect Page.Post.Effect
+    | ProfileEffect Page.Profile.Effect
 
 
 
--- Main, Subscriptions & Init
+-- Main, Init & Subscriptions
 
 
-main : Program Value Model Msg
+main : Program Value App Msg
 main =
     let
-        performEffect ( model, effect ) =
+        performEffect ( app, effect ) =
             let
+                global =
+                    globalState app
+
                 navKey =
-                    Session.navKey model.session
+                    Session.navKey global.session
             in
-            ( model, perform navKey effect )
+            ( app, perform navKey effect )
     in
     Browser.application
         { init = \json url key -> init json url key |> performEffect
@@ -111,85 +152,65 @@ main =
         }
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
+init : Value -> Url -> Nav.Key -> ( App, Effect )
+init json url navKey =
+    let
+        flags =
+            Flags.decode json
+
+        initRoute =
+            Route.routeUrl url
+
+        ( initAppState, initEffect ) =
+            start initRoute <|
+                { session = Session.new navKey App.startUser
+                , devpro = Device.profile flags.size
+                , alerts = Queue.empty
+                , searchCache = Cache.empty
+                , settings = Settings.default
+                }
+    in
+    Effects [ initEffect, DelayMsg 350 LoadingTimedOut ]
+        |> Tuple.pair initAppState
+
+
+subscriptions : App -> Sub Msg
+subscriptions app =
+    let
+        global =
+            globalState app
+    in
     Sub.batch
         [ Browser.Events.onResize <|
-            Device.resizeHandler model.devpro
+            Device.resizeHandler global.devpro
                 { resized = ResizedDevice
                 , noOp = Ignored
                 }
         ]
 
 
-init : Value -> Url -> Nav.Key -> ( Model, Effect )
-init json url navKey =
-    let
-        flags =
-            Flags.decode json
-
-        initialRoute =
-            Route.routeUrl url
-
-        ( settings, _ ) =
-            -- TODO: Figure out Settings Effects
-            Page.Settings.init ()
-
-        alwaysEffects =
-            DelayMsg 350 LoadingTimedOut
-
-        effects =
-            case initialRoute of
-                Route.NotFound ->
-                    Route.NotFound
-                        |> App.logProblem "Initial route not found"
-                            (DelayEffect 3000 (PushRoute Route.Root))
-
-                Route.Redirect href ->
-                    -- Redirect works on fresh page load and on re-route
-                    Redirect href
-
-                Route.Logout ->
-                    -- Not supposed to load fresh on this page, redirect to root
-                    PushRoute Route.Root
-
-                Route.Search _ ->
-                    FocusSearchbar
-
-                _ ->
-                    NoEffect
-    in
-    [ effects, alwaysEffects ]
-        |> Effects
-        |> Tuple.pair
-            { session = Session.new navKey (Just LoggedInUser.debug)
-            , route = initialRoute
-            , devpro = Device.profile flags.size
-            , alerts = Queue.empty
-            , search = { query = Nothing, cache = Cache.empty }
-            , settings = settings
-            }
-
-
 
 -- Update
 
 
-update : Msg -> Model -> ( Model, Effect )
-update msg model =
+update : Msg -> App -> ( App, Effect )
+update msg app =
     let
+        global =
+            globalState app
+
         ignore =
-            ( model, NoEffect )
+            ( app, NoEffect )
 
         navKey =
-            Session.navKey model.session
+            Session.navKey global.session
     in
     case msg |> App.logMsg [ Ignored ] of
         Ignored ->
             ignore
 
         EffectDelayed effect ->
-            ( model, effect )
+            ( app, effect )
 
         LoadingTimedOut ->
             -- TODO: Write loading spinner logic.
@@ -200,161 +221,666 @@ update msg model =
                 nextRoute =
                     Route.routeUrl url
             in
-            if nextRoute == model.route then
-                ignore
-
-            else
-                ( model, PushRoute nextRoute )
+            ( app, PushRoute nextRoute )
 
         LinkClicked (Browser.External href) ->
             Browser.External href
                 |> App.logProblem "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
 
-        RouteChanged nextRoute ->
-            case nextRoute of
-                Route.NotFound ->
-                    ( model, DelayEffect 3000 (PushRoute Route.Root) )
-
-                Route.Redirect href ->
-                    ( model, Redirect href )
-
-                Route.Login ->
-                    let
-                        newLoggedInUser =
-                            LoggedInUser.debug
-
-                        username =
-                            LoggedInUser.username newLoggedInUser
-                    in
-                    ( { model | session = Session.new navKey (Just newLoggedInUser) }
-                    , Effects
-                        [ FireAlert (Alert.loggedIn username)
-                        , PushRoute (Route.Profile username)
-                        ]
-                    )
-
-                Route.Logout ->
-                    ( { model | session = Session.new navKey Nothing }
-                    , Effects
-                        [ FireAlert Alert.loggedOut
-                        , PushRoute Route.Root
-                        ]
-                    )
-
-                Route.Search maybeQuery ->
-                    let
-                        search =
-                            model.search
-
-                        nextSearch =
-                            { search | query = maybeQuery }
-                    in
-                    ( { model | route = nextRoute, search = nextSearch }
-                    , FocusSearchbar
-                    )
-
-                _ ->
-                    ( { model | route = nextRoute }, NoEffect )
+        RouteChanged newRoute ->
+            app |> transition newRoute
 
         ResizedDevice devpro ->
-            ( { model | devpro = devpro }, NoEffect )
+            ( { global | devpro = devpro } |> updateApp app, NoEffect )
 
         AlertRequested alert ->
-            ( model, FireAlert alert )
+            ( app, FireAlert alert )
 
         AlertFired alert ->
             let
                 allowed =
-                    model.settings.alerts
+                    global.settings.alerts
                         || not (Alert.canSilence alert)
 
                 nextQueue =
                     if allowed then
-                        model.alerts |> Queue.push alert
+                        global.alerts |> Queue.push alert
 
                     else
-                        model.alerts
+                        global.alerts
             in
-            ( { model | alerts = nextQueue }, ExpireAlert alert )
+            ( { global | alerts = nextQueue } |> updateApp app, ExpireAlert alert )
 
         AlertExpired alert ->
-            ( { model | alerts = model.alerts |> Queue.remove alert }, NoEffect )
+            ( { global | alerts = global.alerts |> Queue.remove alert } |> updateApp app
+            , NoEffect
+            )
 
-        QueryChanged query ->
-            {- TODO: If it's been a certain amount of time since the query has last changed, AND
-               the query doesn't exist in our search cache, send the query off to the `searchUsers`
-               and `searchPosts` API endpoints.
-            -}
-            let
-                search =
-                    model.search
-
-                nextQuery =
-                    if String.isEmpty query then
-                        Nothing
-
-                    else
-                        Just query
-
-                nextSearch =
-                    { search | query = nextQuery }
-            in
-            ( { model | search = nextSearch }, NoEffect )
-
-        PostSearchResultsArrived _ ->
-            -- TODO: Cache the search results and place them in the model.
-            ignore
-
-        UserSearchResultsArrived _ ->
-            -- TODO: Cache the search results and place them in the model.
-            ignore
-
+        -- Settings Page
+        --
         SettingsMessaged (Page.Settings.ParentMsg myMsg) ->
-            update myMsg model
+            app |> update myMsg
 
         SettingsMessaged submsg ->
-            let
-                ( newSettings, effect ) =
-                    Page.Settings.update submsg model.settings
-            in
-            ( { model | settings = newSettings }, SettingsEffect effect )
+            case app of
+                SettingsState _ local loggedInUser ->
+                    let
+                        ( nextLocal, effect ) =
+                            Page.Settings.update submsg local
+                    in
+                    ( SettingsState global nextLocal loggedInUser
+                    , SettingsEffect effect
+                    )
+
+                _ ->
+                    ignore
+
+        -- Editor Page
+        --
+        EditorMessaged (Page.Editor.ParentMsg myMsg) ->
+            app |> update myMsg
+
+        EditorMessaged submsg ->
+            case app of
+                EditorState _ local loggedInUser ->
+                    let
+                        ( nextLocal, effect ) =
+                            Page.Editor.update submsg local
+                    in
+                    ( EditorState global nextLocal loggedInUser
+                    , EditorEffect effect
+                    )
+
+                _ ->
+                    ignore
+
+        -- Search Page
+        --
+        SearchMessaged (Page.Search.ParentMsg myMsg) ->
+            app |> update myMsg
+
+        SearchMessaged submsg ->
+            case app of
+                SearchState _ local ->
+                    let
+                        ( nextLocal, effect ) =
+                            Page.Search.update submsg local
+                    in
+                    ( SearchState global nextLocal
+                    , SearchEffect effect
+                    )
+
+                _ ->
+                    ignore
+
+        -- Inbox Page
+        --
+        InboxMessaged (Page.Inbox.ParentMsg myMsg) ->
+            app |> update myMsg
+
+        InboxMessaged submsg ->
+            case app of
+                InboxState _ local loggedInUser ->
+                    let
+                        ( nextLocal, effect ) =
+                            Page.Inbox.update submsg local
+                    in
+                    ( InboxState global nextLocal loggedInUser
+                    , InboxEffect effect
+                    )
+
+                _ ->
+                    ignore
+
+        -- Register Page
+        --
+        RegisterMessaged (Page.Register.ParentMsg myMsg) ->
+            app |> update myMsg
+
+        RegisterMessaged submsg ->
+            case app of
+                RegisterState _ local ->
+                    let
+                        ( nextLocal, effect ) =
+                            Page.Register.update submsg local
+                    in
+                    ( RegisterState global nextLocal
+                    , RegisterEffect effect
+                    )
+
+                _ ->
+                    ignore
+
+        -- Login Page
+        --
+        LoginMessaged (Page.Login.ParentMsg myMsg) ->
+            app |> update myMsg
+
+        LoginMessaged submsg ->
+            case app of
+                LoginState _ local ->
+                    let
+                        ( nextLocal, effect ) =
+                            Page.Login.update submsg local
+                    in
+                    ( LoginState global nextLocal
+                    , LoginEffect effect
+                    )
+
+                _ ->
+                    ignore
 
 
 
 -- Views
 
 
-view : Model -> Document Msg
-view ({ session, devpro, alerts } as model) =
+view : App -> Document Msg
+view app =
     let
-        viewPage =
+        { session, devpro, alerts } =
+            globalState app
+
+        page =
             Page.view session devpro alerts
     in
-    case model.route of
-        Route.NotFound ->
-            Page.NotFound.view
-                |> Page.unthemed
-
-        Route.Redirect href ->
+    case app of
+        RedirectState _ href ->
             Page.Redirect.view href
                 |> Page.unthemed
 
-        Route.Home ->
-            Page.Home.view ()
-                |> viewPage
+        NotFoundState _ () ->
+            Page.NotFound.view
+                |> Page.unthemed
 
-        Route.Search _ ->
-            Page.Search.view QueryChanged model.search.query
-                |> viewPage
+        HomeState _ () ->
+            Page.Home.view
+                |> page
 
-        Route.Settings ->
-            Page.Settings.view AlertRequested model.session model.settings
+        FeedsState _ () ->
+            Page.Feeds.view ()
+                |> page
+
+        EditorState _ local _ ->
+            Page.Editor.view local
+                |> page
+
+        SearchState _ local ->
+            Page.Search.view local
+                |> Page.map SearchMessaged
+                |> page
+
+        ToolsState _ local ->
+            Page.Tools.view local
+                |> page
+
+        StarredState _ local _ ->
+            Page.Starred.view local
+                |> page
+
+        InboxState _ local _ ->
+            Page.Inbox.view local
+                |> page
+
+        SettingsState _ local _ ->
+            Page.Settings.view AlertRequested session local
                 |> Page.map SettingsMessaged
-                |> viewPage
+                |> page
 
-        _ ->
-            Page.Home.view ()
-                |> viewPage
+        RegisterState _ local ->
+            Page.Register.view devpro local
+                |> Page.map RegisterMessaged
+                |> page
+
+        LoginState _ local ->
+            Page.Login.view devpro local
+                |> Page.map LoginMessaged
+                |> page
+
+        ProfileState _ local ->
+            Page.Profile.view local
+                |> page
+
+        PostState _ local ->
+            Page.Post.view local
+                |> page
+
+        HelpState _ () ->
+            Page.Help.view ()
+                |> page
+
+        PrivacyPolicyState _ () ->
+            Page.PrivacyPolicy.view ()
+                |> page
+
+
+
+-- Transitioning the App State
+
+
+start : Route -> Global -> ( App, Effect )
+start initRoute initGlobal =
+    HomeState initGlobal ()
+        |> transition initRoute
+
+
+transition : Route -> App -> ( App, Effect )
+transition nextRoute app =
+    let
+        navKey =
+            Session.navKey global.session
+
+        global =
+            globalState app
+    in
+    {- Here, we're checking the *old state* against the *new route* to see how we should transition
+       and build a new AppState. Note: `_` in first tuple position here means *coming from any
+       previous state (inherently discarding previous local state; global state is available as
+       `global`)*
+    -}
+    case ( app, nextRoute ) of
+        ( _, Route.Redirect href ) ->
+            ( RedirectState global href
+            , Redirect href
+            )
+
+        ( _, Route.NotFound ) ->
+            ( NotFoundState global ()
+            , DelayEffect 3000 (PushRoute Route.Home)
+            )
+
+        ( _, Route.Home ) ->
+            ( HomeState global ()
+            , NoEffect
+            )
+
+        -- Feeds
+        --
+        ( _, Route.Feeds ) ->
+            -- TODO: IMPORTANT: Create a feeds page!
+            ( FeedsState global ()
+            , NoEffect
+            )
+
+        -- Search
+        --
+        ( SearchState _ local, Route.Search maybeQuery ) ->
+            ( SearchState global { local | query = maybeQuery }
+            , NoEffect
+            )
+
+        ( _, Route.Search maybeQuery ) ->
+            let
+                ( initLocal, initEffect ) =
+                    -- Initialize page state
+                    Page.Search.init maybeQuery
+            in
+            ( SearchState global initLocal
+            , SearchEffect initEffect
+            )
+
+        -- Tools
+        --
+        ( ToolsState _ local, Route.Tools ) ->
+            -- Ignore transition
+            ( ToolsState global local, NoEffect )
+
+        ( _, Route.Tools ) ->
+            let
+                ( initLocal, initEffect ) =
+                    -- Initialize page state
+                    Page.Tools.init ()
+            in
+            ( ToolsState global initLocal
+            , ToolsEffect initEffect
+            )
+
+        -- Post
+        --
+        ( _, Route.Post slug ) ->
+            let
+                ( initLocal, initEffect ) =
+                    Page.Post.init slug
+            in
+            ( PostState global initLocal
+            , PostEffect initEffect
+            )
+
+        -- Profile
+        --
+        ( ProfileState _ local, Route.Profile username ) ->
+            if Page.Profile.username local == username then
+                -- Ignore transition
+                ( ProfileState global local, NoEffect )
+
+            else
+                let
+                    maybeUser =
+                        Session.user global.session
+
+                    ( initLocal, initEffect ) =
+                        -- Initialize page state
+                        Page.Profile.init maybeUser username
+                in
+                ( ProfileState global initLocal
+                , ProfileEffect initEffect
+                )
+
+        ( _, Route.Profile username ) ->
+            let
+                maybeUser =
+                    Session.user global.session
+
+                ( initLocal, initEffect ) =
+                    -- Initialize page state
+                    Page.Profile.init maybeUser username
+            in
+            ( ProfileState global initLocal
+            , ProfileEffect initEffect
+            )
+
+        -- Help
+        --
+        ( _, Route.Help ) ->
+            ( HelpState global ()
+            , NoEffect
+            )
+
+        -- Privacy Policy
+        --
+        ( _, Route.PrivacyPolicy ) ->
+            ( PrivacyPolicyState global ()
+            , NoEffect
+            )
+
+        -- New Post
+        --
+        ( EditorState _ local loggedInUser, Route.NewPost ) ->
+            if Page.Editor.isCreating local then
+                -- Ignore transition
+                ( EditorState global local loggedInUser, NoEffect )
+
+            else
+                let
+                    ( initLocal, initEffect ) =
+                        -- Initialize page state
+                        Page.Editor.init Nothing
+                in
+                ( EditorState global initLocal loggedInUser
+                , EditorEffect initEffect
+                )
+
+        ( _, Route.NewPost ) ->
+            Session.withLoggedInUser global.session
+                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                { guest = app |> transition Route.NotFound
+                , loggedIn =
+                    \loggedInUser ->
+                        let
+                            ( initLocal, initEffect ) =
+                                Page.Editor.init Nothing
+
+                            -- Initialize page state
+                        in
+                        ( EditorState global initLocal loggedInUser
+                        , EditorEffect initEffect
+                        )
+                }
+
+        -- Edit Post
+        --
+        ( EditorState _ local loggedInUser, Route.EditPost slug ) ->
+            if not (Page.Editor.isCreating local) then
+                -- Ignore transition
+                ( EditorState global local loggedInUser, NoEffect )
+
+            else
+                let
+                    ( initLocal, initEffect ) =
+                        -- Initialize page state
+                        Page.Editor.init (Just slug)
+                in
+                ( EditorState global initLocal loggedInUser
+                , EditorEffect initEffect
+                )
+
+        ( _, Route.EditPost slug ) ->
+            Session.withLoggedInUser global.session
+                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                { guest = app |> transition Route.NotFound
+                , loggedIn =
+                    \loggedInUser ->
+                        let
+                            ( initState, initEffect ) =
+                                -- Initialize page state
+                                Page.Editor.init (Just slug)
+                        in
+                        ( EditorState global initState loggedInUser
+                        , EditorEffect initEffect
+                        )
+                }
+
+        -- Settings
+        --
+        ( SettingsState _ local loggedInUser, Route.Settings ) ->
+            -- Ignore transition
+            ( SettingsState global local loggedInUser, NoEffect )
+
+        ( _, Route.Settings ) ->
+            Session.withLoggedInUser global.session
+                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                { guest = app |> transition Route.NotFound
+                , loggedIn =
+                    \loggedInUser ->
+                        let
+                            ( initLocal, initEffect ) =
+                                -- Initialize page state
+                                Page.Settings.init global.settings
+                        in
+                        ( SettingsState global initLocal loggedInUser
+                        , SettingsEffect initEffect
+                        )
+                }
+
+        -- Starred
+        --
+        ( StarredState _ local loggedInUser, Route.Starred ) ->
+            -- Ignore transition
+            ( StarredState global local loggedInUser, NoEffect )
+
+        ( _, Route.Starred ) ->
+            Session.withLoggedInUser global.session
+                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                { guest = app |> transition Route.NotFound
+                , loggedIn =
+                    \loggedInUser ->
+                        let
+                            ( initLocal, initEffect ) =
+                                -- Initialize page state
+                                Page.Starred.init ()
+                        in
+                        ( StarredState global initLocal loggedInUser
+                        , StarredEffect initEffect
+                        )
+                }
+
+        -- Inbox
+        --
+        ( InboxState _ local loggedInUser, Route.Inbox ) ->
+            -- Ignore transition
+            ( InboxState global local loggedInUser, NoEffect )
+
+        ( _, Route.Inbox ) ->
+            Session.withLoggedInUser global.session
+                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                { guest = app |> transition Route.NotFound
+                , loggedIn =
+                    \loggedInUser ->
+                        let
+                            ( initLocal, initEffect ) =
+                                -- Initialize page state
+                                Page.Inbox.init ()
+                        in
+                        ( InboxState global initLocal loggedInUser
+                        , InboxEffect initEffect
+                        )
+                }
+
+        -- Login
+        --
+        ( LoginState _ local, Route.Login ) ->
+            -- Ignore state transition
+            ( LoginState global local, NoEffect )
+
+        ( _, Route.Login ) ->
+            let
+                ( initLocal, initEffect ) =
+                    -- Initialize page state
+                    Page.Login.init ()
+            in
+            Session.credentialed global.session
+                -- Whoops, we're already logged in!
+                { loggedIn = app |> transition Route.Home
+                , guest =
+                    ( LoginState global initLocal
+                    , LoginEffect initEffect
+                    )
+                }
+
+        ( _, Route.Logout ) ->
+            Session.credentialed global.session
+                -- Whoops, we're already logged out!
+                { guest = app |> transition Route.Home
+                , loggedIn =
+                    ( HomeState { global | session = Session.new navKey Nothing } ()
+                    , Effects
+                        [ FireAlert Alert.loggedOut
+                        , PushRoute Route.Home
+                        ]
+                    )
+                }
+
+        ( RegisterState _ local, Route.Register ) ->
+            -- Ignore state transition
+            ( RegisterState global local, NoEffect )
+
+        ( _, Route.Register ) ->
+            Session.credentialed global.session
+                { loggedIn = app |> transition Route.Home
+                , guest =
+                    let
+                        ( initLocal, initEffect ) =
+                            -- Initialize page state
+                            Page.Register.init ()
+                    in
+                    ( RegisterState global initLocal
+                    , RegisterEffect initEffect
+                    )
+                }
+
+
+updateApp : App -> Global -> App
+updateApp app global =
+    case app of
+        RedirectState _ href ->
+            RedirectState global href
+
+        NotFoundState _ () ->
+            NotFoundState global ()
+
+        HomeState _ () ->
+            HomeState global ()
+
+        FeedsState _ () ->
+            FeedsState global ()
+
+        EditorState _ local loggedInUser ->
+            EditorState global local loggedInUser
+
+        SearchState _ local ->
+            SearchState global local
+
+        ToolsState _ local ->
+            ToolsState global local
+
+        StarredState _ local loggedInUser ->
+            StarredState global local loggedInUser
+
+        InboxState _ local loggedInUser ->
+            InboxState global local loggedInUser
+
+        SettingsState _ local loggedInUser ->
+            SettingsState global local loggedInUser
+
+        RegisterState _ local ->
+            RegisterState global local
+
+        LoginState _ local ->
+            LoginState global local
+
+        ProfileState _ local ->
+            ProfileState global local
+
+        PostState _ local ->
+            PostState global local
+
+        HelpState _ () ->
+            HelpState global ()
+
+        PrivacyPolicyState _ () ->
+            PrivacyPolicyState global ()
+
+
+globalState : App -> Global
+globalState app =
+    case app of
+        RedirectState global _ ->
+            global
+
+        NotFoundState global () ->
+            global
+
+        HomeState global () ->
+            global
+
+        FeedsState global () ->
+            global
+
+        EditorState global _ _ ->
+            global
+
+        SearchState global _ ->
+            global
+
+        ToolsState global _ ->
+            global
+
+        StarredState global _ _ ->
+            global
+
+        InboxState global _ _ ->
+            global
+
+        SettingsState global _ _ ->
+            global
+
+        RegisterState global _ ->
+            global
+
+        LoginState global _ ->
+            global
+
+        ProfileState global _ ->
+            global
+
+        PostState global _ ->
+            global
+
+        HelpState global () ->
+            global
+
+        PrivacyPolicyState global () ->
+            global
 
 
 
@@ -363,17 +889,51 @@ view ({ session, devpro, alerts } as model) =
 
 perform : Nav.Key -> Effect -> Cmd Msg
 perform navKey effect =
-    case effect |> App.logEffect [ NoEffect, SettingsEffect Page.Settings.NoEffect ] of
-        NoEffect ->
+    let
+        ignore =
             Cmd.none
-
+    in
+    case effect |> App.logEffect [ NoEffect, SettingsEffect Page.Settings.NoEffect ] of
         Effects effects ->
             Cmd.batch <|
                 List.map (perform navKey) effects
 
+        NoEffect ->
+            ignore
+
+        SearchEffect Page.Search.NoEffect ->
+            ignore
+
+        SettingsEffect Page.Settings.NoEffect ->
+            ignore
+
+        RegisterEffect Page.Register.NoEffect ->
+            ignore
+
+        EditorEffect Page.Editor.NoEffect ->
+            ignore
+
+        ToolsEffect Page.Tools.NoEffect ->
+            ignore
+
+        StarredEffect Page.Starred.NoEffect ->
+            ignore
+
+        InboxEffect Page.Inbox.NoEffect ->
+            ignore
+
+        LoginEffect Page.Login.NoEffect ->
+            ignore
+
+        PostEffect Page.Post.NoEffect ->
+            ignore
+
+        ProfileEffect Page.Profile.NoEffect ->
+            ignore
+
         DelayMsg delay msg ->
             Process.sleep delay
-                |> Task.perform (always msg)
+                |> Task.perform (\_ -> msg)
 
         DelayEffect delay delayedEffect ->
             Process.sleep delay
@@ -388,14 +948,15 @@ perform navKey effect =
         Redirect href ->
             Nav.load href
 
-        FocusSearchbar ->
-            Page.Search.focusSearchbar Ignored
-
         FireAlert alert ->
             Alert.fire AlertFired alert
 
         ExpireAlert alert ->
             Alert.expire 5000 AlertExpired alert
 
-        SettingsEffect Page.Settings.NoEffect ->
-            Cmd.none
+        -- Search Page
+        SearchEffect Page.Search.FocusSearchbar ->
+            Task.attempt (\_ -> Ignored) (Dom.focus "searchbar")
+
+        SearchEffect (Page.Search.ReplaceQuery maybeQuery) ->
+            Route.replace navKey (Route.Search maybeQuery)

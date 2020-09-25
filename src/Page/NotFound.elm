@@ -17,7 +17,7 @@ view : Page msg
 view =
     { navbarItem = Page.Other
     , title = "Page not found!"
-    , body = lazy (always body) ()
+    , body = lazy (\_ -> body) ()
     }
 
 
@@ -26,15 +26,15 @@ body =
     el Styles.seguePage <|
         column [ centerX, centerY, spacing 30 ] <|
             [ Route.link [ centerX ] <|
-                { route = Route.Root
+                { route = Route.Home
                 , body =
                     image []
                         { src = Assets.notFoundImage
-                        , description = "Page not found! Back to " ++ Strings.appName ++ "…"
+                        , description = "Page not found!"
                         }
                 }
             , el [ centerX ] <|
                 text "Whoops! The page you were looking for is missing."
             , el [ centerX ] <|
-                text "You're be redirected shortly…"
+                text "You'll be redirected shortly…"
             ]

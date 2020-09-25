@@ -1,7 +1,7 @@
 module Post exposing (Full, Post, Preview, metadata)
 
 import Author exposing (Author)
-import Post.Body exposing (Body)
+import Post.Body as Body exposing (Body)
 import Post.Slug exposing (Slug)
 import Time
 
@@ -38,3 +38,8 @@ type alias Metadata =
 metadata : Post either -> Metadata
 metadata (Post meta _) =
     meta
+
+
+body : Post Full -> String
+body (Post _ (Full bod)) =
+    Body.toString bod

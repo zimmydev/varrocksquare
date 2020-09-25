@@ -1,42 +1,27 @@
 module Page.Home exposing (view)
 
-import Config.Strings as Strings
 import Config.Styles as Styles
 import Element exposing (..)
 import Element.Lazy exposing (..)
 import Page exposing (Page)
-import Utils.String exposing (abridge)
-
-
-
--- Model
-
-
-type alias Model =
-    ()
 
 
 
 -- Views
 
 
-view : Model -> Page msg
-view () =
+view : Page msg
+view =
     { navbarItem = Page.Other
     , title = "Home"
-    , body = lazy (always body) ()
+    , body = lazy (\_ -> body) ()
     }
 
 
 body : Element msg
 body =
-    column Styles.page
-        [ textColumn Styles.content
-            [ paragraph (Styles.contentHeader 1) [ text "Some kind of post" ]
-            , paragraph [ spacing 8 ] [ text (abridge 1500 Strings.loremIpsum) ]
-            ]
-        , textColumn Styles.content
-            [ paragraph (Styles.contentHeader 1) [ text "Some kind of other post" ]
-            , paragraph [ spacing 8 ] [ text (abridge 1500 Strings.loremIpsum) ]
-            ]
+    Page.column
+        [ Page.content <|
+            el (Styles.contentHeader 1) <|
+                text "Home"
         ]

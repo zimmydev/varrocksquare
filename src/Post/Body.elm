@@ -1,4 +1,4 @@
-module Post.Body exposing (Body, view)
+module Post.Body exposing (Body, toString, view)
 
 import Element exposing (Element)
 
@@ -13,6 +13,11 @@ type Body
 
 
 -- Converting a Body
+
+
+toString : Body -> String
+toString (Body md) =
+    md
 
 
 view : Body -> Element msg

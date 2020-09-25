@@ -1,7 +1,9 @@
-module Config.App exposing (logEffect, logInfo, logMsg, logProblem, messagePreviewLength)
+module Config.App exposing (logEffect, logInfo, logMsg, logProblem, messagePreviewLength, startUser)
 
 {-| Configurations that affect the entire app.
 -}
+
+import LoggedInUser exposing (LoggedInUser)
 
 
 {-| The max length of message alert previews.
@@ -9,6 +11,15 @@ module Config.App exposing (logEffect, logInfo, logMsg, logProblem, messagePrevi
 messagePreviewLength : Int
 messagePreviewLength =
     50
+
+
+
+-- Debugging
+
+
+startUser : Maybe LoggedInUser
+startUser =
+    Just LoggedInUser.debug
 
 
 
