@@ -6,17 +6,17 @@
 
 ## User
 
-```json
+```js
 {
-	"user": {
-		"username": "OtherUser",
-		"following": true,
-		"profile": {
-			"avatar": "https://example.com/happy.png",
-			"joinDate": "2020-09-25T15:12:35.126Z",
-			"bio": "Just here to help debug!"
-		}
-	}
+    "user": {
+        "username": "OtherUser",
+        "following": true,
+        "profile": {
+            "avatar": "https://example.com/happy.png",
+            "joinDate": "2020-09-25T15:12:35.126Z",
+            "bio": "Just here to help debug!"
+        }
+    }
 }
 ```
 
@@ -27,17 +27,17 @@
 
 ## Logged-in User
 
-```json
+```js
 {
-	"loggedInUser": {
-		"authToken": "AUTH_TOKEN_EXAMPLE",
-		"user": {
-			"username": "DebugUser",
-			"profile": {
-				"joinDate": "2020-09-25T15:12:35.126Z",
-			}
-		}
-	}
+    "loggedInUser": {
+        "authToken": "AUTH_TOKEN_EXAMPLE",
+        "user": {
+            "username": "DebugUser",
+            "profile": {
+                "joinDate": "2020-09-25T15:12:35.126Z",
+            }
+        }
+    }
 }
 ```
 
@@ -48,24 +48,24 @@
 
 ## Post
 
-```json
+```js
 {
     "post": {
         "slug": "my-first-post-3fd631",
         "author": {
-	        // User…
-	    }
+            // User…
+        }
         "title": "My First Post!",
-	    "description": "This is my very first post on VS!"
+        "description": "This is my very first post on VS!"
         "tags": [
-	        "introduction"
-	    ],
-	    "createdAt": "2020-09-25T16:23:01.277Z",
-	    "updatedAt": null,
-	    "starred": true,
-	    "starCount": 3,
-	    "commentCount": 0,
-	    "body": "This is an example post made of markdown."
+            "introduction"
+        ],
+        "createdAt": "2020-09-25T16:23:01.277Z",
+        "updatedAt": null,
+        "starred": true,
+        "starCount": 3,
+        "commentCount": 0,
+        "body": "This is an example post made of markdown."
     }
 }
 ```
@@ -76,30 +76,30 @@
 
 ## Lists of Posts
 
-```json
+```js
 {
-	"posts": [
-		{
-			// Post…
-		},
-		{
-			// Post…
-		}
-	]
+    "posts": [
+        {
+            // Post…
+        },
+        {
+            // Post…
+        }
+    ]
 }
 ```
 
 ## Lists of Users
 
-```json
+```js
 {
-	"users": [
-		{
-			// User…
-		},
-		{
-			// User…
-		}
-	]
+    "users": [
+        {
+            // User…
+        },
+        {
+            // User…
+        }
+    ]
 }
 ```

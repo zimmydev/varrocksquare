@@ -15,6 +15,10 @@ What if we can combine a written-content platform with the social aspect of, say
 
 # Repo
 
+## Documents
+
+* [API JSON Response Formats](api.md)
+
 ## Building
 
 Build for production using: (*must have* `uglify-js` *installed*)
