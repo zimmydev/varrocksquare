@@ -6,7 +6,7 @@ module MainTest exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Json.Encode as Encode
-import Main exposing (Model)
+import Main exposing (App)
 import Main.Flags as Flags exposing (Flags, decode, default)
 import Test exposing (..)
 
