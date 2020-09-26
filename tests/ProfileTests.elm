@@ -28,7 +28,7 @@ decodingTests =
     in
     describe "Decoding" <|
         [ describe "A valid JSON profile" <|
-            [ fuzz2 Fuzz.string Fuzz.string "…with no missing fields" <|
+            [ fuzz2 Fuzz.string Fuzz.string "…when all fields present" <|
                 \href bio ->
                     [ ( "avatar", Encode.string href )
                     , ( "joinDate", Encode.string iso8601String )
@@ -44,7 +44,7 @@ decodingTests =
                             , Result.map Profile.bio
                                 >> Expect.equal (Ok (Just bio))
                             ]
-            , fuzz Fuzz.string "…with a missing bio" <|
+            , fuzz Fuzz.string "…when missing a bio" <|
                 \href ->
                     [ ( "avatar", Encode.string href )
                     , ( "joinDate", Encode.string iso8601String )
@@ -59,7 +59,7 @@ decodingTests =
                             , Result.map Profile.bio
                                 >> Expect.equal (Ok Nothing)
                             ]
-            , fuzz Fuzz.string "…with a missing avatar" <|
+            , fuzz Fuzz.string "…when missing an avatar" <|
                 \bio ->
                     [ ( "joinDate", Encode.string iso8601String )
                     , ( "bio", Encode.string bio )
@@ -73,7 +73,7 @@ decodingTests =
                             , Result.map Profile.bio
                                 >> Expect.equal (Ok (Just bio))
                             ]
-            , test "…miss a missing avatar and bio" <|
+            , test "…when missing an avatar and a bio" <|
                 \() ->
                     [ ( "joinDate", Encode.string iso8601String ) ]
                         |> Encode.object
