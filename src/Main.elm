@@ -44,7 +44,9 @@ import User exposing (User)
 -- Model
 
 
-type App
+type
+    App
+    -- TODO: Rename to Model; rename Page.*.State to Page.*.Model
     = RedirectState Global Href
     | NotFoundState Global ()
     | HomeState Global ()
@@ -157,6 +159,15 @@ init json url navKey =
     let
         flags =
             Flags.decode json
+                {- TODO: Present some kind of error page for when the flags can't be read from JS
+                   instead of silently substituting defaults (there's probably something wrong).
+                -}
+                |> Result.withDefault
+                    { size =
+                        { width = 1280
+                        , height = 800
+                        }
+                    }
 
         initRoute =
             Route.routeUrl url
@@ -225,7 +236,7 @@ update msg app =
 
         LinkClicked (Browser.External href) ->
             Browser.External href
-                |> App.logProblem "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
+                |> App.logProblem "xternal link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
 
         RouteChanged newRoute ->
             app |> transition newRoute

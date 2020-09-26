@@ -28,7 +28,7 @@ decoder =
     Decode.succeed Internals
         |> optional "avatar" Avatar.decoder Avatar.default
         |> required "joinDate" datetime
-        |> required "bio" (nullable string)
+        |> optional "bio" (nullable string) Nothing
         |> Decode.map Profile
 
 

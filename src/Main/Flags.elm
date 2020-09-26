@@ -1,4 +1,4 @@
-module Main.Flags exposing (Flags, decode, default)
+module Main.Flags exposing (Flags, decode)
 
 {-| This module houses all of the business logic associated with decoding flags
 sent by JS to our elm app.
@@ -15,28 +15,18 @@ type alias Flags =
 
 
 
--- Defaults
-
-
-default : Flags
-default =
-    { size = Device.Size 1280 800 }
-
-
-
 -- Serializing Flags
 
 
-{-| Decode JSON flags into a nice elm data structure. Currently, in the case of
-a decoding error, a set of reasonable defaults will be silently substituted.
+{-| Decode a JSON `Value` into a nice elm record called `Flags`.
 -}
-decode : Value -> Flags
+decode : Value -> Result Decode.Error Flags
 decode json =
-    json
-        |> decodeValue decoder
-        |> Result.withDefault default
+    decodeValue decoder json
 
 
+{-| A `Flags` decoder.
+-}
 decoder : Decoder Flags
 decoder =
     Decode.succeed Flags
