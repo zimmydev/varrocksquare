@@ -51,7 +51,7 @@
 ```js
 {
     "post": {
-        "slug": "my-first-post-3fd631",
+        "slug": "my-first-post-3fd63",
         "author": {
             // User…
         }

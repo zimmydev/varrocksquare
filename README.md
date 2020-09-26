@@ -39,6 +39,3 @@ While contributions are usually appreciated and welcome, I won't be accepting pu
 ## License
 
 This project is licensed under the `GNU GPL v3`. See the [`LICENSE`](https://github.com/zimmydev/varrocksquare/blob/master/LICENSE) for details.
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbLTQyMzgzMTc3N119
--->
