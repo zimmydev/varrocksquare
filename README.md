@@ -7,7 +7,7 @@ Varrock Square is a social blogging platform designed for the free-to-play [Old 
 *Pre-alpha (under development)*
 
 ## Why does this project exist?
-The answer is twofold. Primarily, it's merely a pet project for me to use to hone my full-stack web development and design skills; in that regard, therefore, the project exists for its own sake. On the other hand, I can see the potential value of just such a platform for some people in the F2P community.
+The answer is twofold. Primarily, it's merely a pet project for me to use to hone my full-stack web development and design skills; in that regard, this project exists for its own sake. On the other hand, there is a lot of potential value for just such a platform in the F2P community.
 
 Currently, the *de jure* platform for the W385 community for anything resembling an article/blog/post is [the W385 subreddit](https://www.reddit.com/r/W385), which, while wonderful, active and well-moderated in its own right, leaves much to be desired as a blogging platform. The format of reddit just isn't conducive to writing articles or account diaries or blogposts <sup>[author's opinion]</sup>. The typical option for guides has typically just been a big pastebin blob; while it works, again, it's not optimal.
 
@@ -30,7 +30,7 @@ elm make src/Main.elm --optimize --output=public/main.js && uglifyjs public/main
 ## To-do
 * Write more tests…
 * `Decoder`s for all the server resources
-* `Http` API requests
+* `Http` requests
 
 ## Contributions
 
@@ -40,5 +40,5 @@ While contributions are usually appreciated and welcome, I won't be accepting pu
 
 This project is licensed under the `GNU GPL v3`. See the [`LICENSE`](https://github.com/zimmydev/varrocksquare/blob/master/LICENSE) for details.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTQzNTA5NTQ3NV19
+eyJoaXN0b3J5IjpbLTIyMzU2NTQ5Nl19
 -->
