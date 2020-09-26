@@ -11,7 +11,7 @@ The answer is twofold. Primarily, it's merely a pet project for me to use to hon
 
 Currently, the *de jure* platform for the W385 community for anything resembling an article/blog/post is [the W385 subreddit](https://www.reddit.com/r/W385), which, while wonderful, active and well-moderated in its own right, leaves much to be desired as a blogging platform. The format of reddit just isn't conducive to writing articles or account diaries or blogposts <sup>[author's opinion]</sup>. The typical option for guides has typically just been a big pastebin blob; while it works, again, it's not optimal.
 
-What if we can combine a written-content platform with the social aspect of, say, the subreddit or the [W385 Discord server](https://discord.gg/RA8bujG)? There are lots of potential ideas here. The Varrock Square project comes in here, as an exploration of some of those ideas.
+What if we can combine a written-content platform with the social aspect of, e.g., the subreddit or the [W385 Discord server](https://discord.gg/RA8bujG)? There are lots of potential ideas here. The Varrock Square project comes in here, as an exploration of some of those ideas.
 
 # Repo
 
@@ -40,5 +40,5 @@ While contributions are usually appreciated and welcome, I won't be accepting pu
 
 This project is licensed under the `GNU GPL v3`. See the [`LICENSE`](https://github.com/zimmydev/varrocksquare/blob/master/LICENSE) for details.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIyMzU2NTQ5Nl19
+eyJoaXN0b3J5IjpbMTY5MDY5NTk5NV19
 -->
