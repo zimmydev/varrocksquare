@@ -13,7 +13,8 @@ type CommentId
 
 decoder : Decoder CommentId
 decoder =
-    Decode.map CommentId Decode.int
+    Decode.int
+        |> Decode.map CommentId
 
 
 

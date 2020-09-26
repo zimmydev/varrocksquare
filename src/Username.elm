@@ -16,7 +16,8 @@ type Username
 
 decoder : Decoder Username
 decoder =
-    Decode.map Username Decode.string
+    Decode.string
+        |> Decode.map Username
 
 
 urlParser : Parser (Username -> a) a

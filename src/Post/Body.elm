@@ -1,6 +1,7 @@
-module Post.Body exposing (Body, toString, view)
+module Post.Body exposing (Body, decoder, toString, view)
 
 import Element exposing (Element)
+import Json.Decode as Decode exposing (Decoder)
 
 
 type alias MarkdownString =
@@ -9,6 +10,16 @@ type alias MarkdownString =
 
 type Body
     = Body MarkdownString
+
+
+
+-- Obtaining a Body
+
+
+decoder : Decoder Body
+decoder =
+    Decode.string
+        |> Decode.map Body
 
 
 

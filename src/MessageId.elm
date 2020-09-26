@@ -13,7 +13,8 @@ type MessageId
 
 decoder : Decoder MessageId
 decoder =
-    Decode.map MessageId Decode.int
+    Decode.int
+        |> Decode.map MessageId
 
 
 

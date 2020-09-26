@@ -4,6 +4,7 @@ import Config.Assets as Assets
 import Config.Styles as Styles
 import Element exposing (Element)
 import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline exposing (optional)
 import Json.Encode as Encode exposing (Value)
 
 
@@ -26,7 +27,8 @@ default =
 
 decoder : Decoder Avatar
 decoder =
-    Decode.map Avatar Decode.string
+    Decode.string
+        |> Decode.map Avatar
 
 
 

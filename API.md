@@ -22,7 +22,8 @@
 
 ### Notes
 
-* The `following` field will be missing in the event that the returned user is *you*.
+* The `following` field will be missing in the event that the returned user is *you*, or you are not
+  logged in.
 * The `avatar` and `bio` fields can be *missing* from the `profile` object in the event that the user has not set them.
 
 ## Logged-in User
@@ -56,12 +57,12 @@
             // User…
         }
         "title": "My First Post!",
-        "description": "This is my very first post on VS!"
+        "description": "This is my very first post on VS!",
         "tags": [
             "introduction"
         ],
         "createdAt": "2020-09-25T16:23:01.277Z",
-        "updatedAt": null,
+        "editedAt": "2020-09-26T12:05:28.843Z",
         "starred": true,
         "starCount": 3,
         "commentCount": 0,
@@ -72,6 +73,8 @@
 
 ### Notes
 
+* The `description` field can be *missing* in the event that the post does not have a description.
+* The `editedAt` field can be *missing* in the event that the post has never been edited.
 * The `body` field can be *missing* in the event that the `post` was received from an API endpoint which returns **lists of posts**; likewise, it will *exist* in the event that the `post` was received from an API endpoint for which returns **a specific post**.
 
 ## Lists of Posts

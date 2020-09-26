@@ -15,16 +15,17 @@ in the navbar (Avatar and Username) and verify your identity with an AuthToken.
 type
     LoggedInUser
     -- AuthToken being at the end is an implem. detail to simplify decoding
-    = LoggedInUser User AuthToken
+    = LoggedInUser AuthToken User
 
 
 
 -- Obtaining a LoggedInUser
 
 
-decoder : Decoder (AuthToken -> LoggedInUser)
+decoder : Decoder LoggedInUser
 decoder =
     Decode.succeed LoggedInUser
+        |> required "authToken" Api.authTokenDecoder
         |> required "user" User.decoder
 
 
@@ -33,7 +34,7 @@ decoder =
 
 
 authToken : LoggedInUser -> AuthToken
-authToken (LoggedInUser _ tok) =
+authToken (LoggedInUser tok _) =
     tok
 
 
@@ -60,7 +61,7 @@ avatar loggedInUser =
 
 
 user : LoggedInUser -> User
-user (LoggedInUser usr _) =
+user (LoggedInUser _ usr) =
     usr
 
 
@@ -70,4 +71,4 @@ user (LoggedInUser usr _) =
 
 debug : LoggedInUser
 debug =
-    LoggedInUser User.debug Api.debugToken
+    LoggedInUser Api.debugToken User.debug
