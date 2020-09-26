@@ -20,7 +20,10 @@ decoder =
 
 urlParser : Parser (Slug -> a) a
 urlParser =
-    Url.Parser.map Slug Url.Parser.string
+    Url.Parser.string
+        -- Slugs are case-insensitive in the URL but always represented as lowercased on the server
+        |> Url.Parser.map String.toLower
+        |> Url.Parser.map Slug
 
 
 
