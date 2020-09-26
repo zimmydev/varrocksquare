@@ -1,4 +1,4 @@
-module Avatar exposing (Avatar, debug, decoder, default, encode, view)
+module Avatar exposing (Avatar, debug, decoder, default, encode, href, view)
 
 import Config.Assets as Assets
 import Config.Styles as Styles
@@ -36,13 +36,18 @@ decoder =
 
 
 encode : Avatar -> Value
-encode (Avatar href) =
-    Encode.string href
+encode (Avatar hrf) =
+    Encode.string hrf
+
+
+href : Avatar -> Href
+href (Avatar hrf) =
+    hrf
 
 
 view : Int -> Avatar -> Element msg
-view size (Avatar href) =
-    Element.el (Styles.avatar size href)
+view size (Avatar hrf) =
+    Element.el (Styles.avatar size hrf)
         Element.none
 
 
