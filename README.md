@@ -17,7 +17,7 @@ What if we can combine a written-content platform with the social aspect of, say
 
 ## Documents
 
-* [API JSON Response Formats](api.md)
+* [API JSON Response Formats](API.md)
 
 ## Building
 
@@ -29,7 +29,8 @@ elm make src/Main.elm --optimize --output=public/main.js && uglifyjs public/main
 
 ## To-do
 * Write more tests…
-* `Http` API
+* `Decoder`s for all the server resources
+* `Http` API requests
 
 ## Contributions
 
@@ -38,3 +39,6 @@ While contributions are usually appreciated and welcome, I won't be accepting pu
 ## License
 
 This project is licensed under the `GNU GPL v3`. See the [`LICENSE`](https://github.com/zimmydev/varrocksquare/blob/master/LICENSE) for details.
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbMTQzNTA5NTQ3NV19
+-->
