@@ -30,8 +30,16 @@ decodingTests =
                 }
                     |> flagsObject
                     |> Flags.decode
-                    |> Expect.equal
-                        (Ok { size = { width = w, height = h } })
+                    |> Expect.all
+                        [ Expect.ok
+                        , Result.map .size
+                            >> Expect.all
+                                [ Result.map .width
+                                    >> Expect.equal (Ok w)
+                                , Result.map .height
+                                    >> Expect.equal (Ok h)
+                                ]
+                        ]
         , describe "An invalid JSON flags object results in an error"
             [ fuzz2 Fuzz.int Fuzz.string "…when `size` object has a mistyped field" <|
                 \w h ->

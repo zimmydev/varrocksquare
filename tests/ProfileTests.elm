@@ -3,6 +3,7 @@ module ProfileTests exposing (..)
 {-| This module tests the module `Profile`.
 -}
 
+import Avatar
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Json.Decode as Decode exposing (decodeValue)
@@ -35,7 +36,14 @@ decodingTests =
                     ]
                         |> Encode.object
                         |> decodeProfile
-                        |> Expect.ok
+                        |> Expect.all
+                            [ Expect.ok
+                            , Result.map Profile.avatar
+                                >> Result.map Avatar.href
+                                >> Expect.equal (Ok href)
+                            , Result.map Profile.bio
+                                >> Expect.equal (Ok (Just bio))
+                            ]
             , fuzz Fuzz.string "…with a missing bio" <|
                 \href ->
                     [ ( "avatar", Encode.string href )
@@ -43,7 +51,14 @@ decodingTests =
                     ]
                         |> Encode.object
                         |> decodeProfile
-                        |> Expect.ok
+                        |> Expect.all
+                            [ Expect.ok
+                            , Result.map Profile.avatar
+                                >> Result.map Avatar.href
+                                >> Expect.equal (Ok href)
+                            , Result.map Profile.bio
+                                >> Expect.equal (Ok Nothing)
+                            ]
             , fuzz Fuzz.string "…with a missing avatar" <|
                 \bio ->
                     [ ( "joinDate", Encode.string iso8601String )
@@ -51,12 +66,24 @@ decodingTests =
                     ]
                         |> Encode.object
                         |> decodeProfile
-                        |> Expect.ok
+                        |> Expect.all
+                            [ Expect.ok
+                            , Result.map Profile.avatar
+                                >> Expect.equal (Ok Avatar.default)
+                            , Result.map Profile.bio
+                                >> Expect.equal (Ok (Just bio))
+                            ]
             , test "…miss a missing avatar and bio" <|
                 \() ->
                     [ ( "joinDate", Encode.string iso8601String ) ]
                         |> Encode.object
                         |> decodeProfile
-                        |> Expect.ok
+                        |> Expect.all
+                            [ Expect.ok
+                            , Result.map Profile.avatar
+                                >> Expect.equal (Ok Avatar.default)
+                            , Result.map Profile.bio
+                                >> Expect.equal (Ok Nothing)
+                            ]
             ]
         ]
