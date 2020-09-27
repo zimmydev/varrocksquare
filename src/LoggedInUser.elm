@@ -3,18 +3,13 @@ module LoggedInUser exposing (LoggedInUser, authToken, avatar, debug, decoder, p
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline exposing (required)
+import Json.Decode.Pipeline exposing (custom, required)
 import Profile exposing (Profile)
 import User exposing (User)
 import Username exposing (Username)
 
 
-{-| The LoggedInUser type is meant to hang on to enough data to render your identity
-in the navbar (Avatar and Username) and verify your identity with an AuthToken.
--}
-type
-    LoggedInUser
-    -- AuthToken being at the end is an implem. detail to simplify decoding
+type LoggedInUser
     = LoggedInUser AuthToken User
 
 
@@ -26,7 +21,7 @@ decoder : Decoder LoggedInUser
 decoder =
     Decode.succeed LoggedInUser
         |> required "authToken" Api.authTokenDecoder
-        |> required "user" User.decoder
+        |> custom User.decoder
 
 
 

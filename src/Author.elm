@@ -39,23 +39,20 @@ decoder session =
                 { guest = Decode.succeed <| CantFollow (Unfollowable usr)
                 , loggedIn =
                     \loggedInUser ->
-                        case isFollowing of
-                            Just True ->
-                                Decode.succeed <| Following (Followed usr)
+                        if User.username usr == LoggedInUser.username loggedInUser then
+                            Decode.succeed <| CantFollow (Unfollowable usr)
 
-                            Just False ->
-                                Decode.succeed <| NotFollowing (Unfollowed usr)
+                        else
+                            case isFollowing of
+                                True ->
+                                    Decode.succeed <| Following (Followed usr)
 
-                            Nothing ->
-                                if User.username usr == LoggedInUser.username loggedInUser then
-                                    Decode.succeed <| CantFollow (Unfollowable usr)
-
-                                else
-                                    Decode.fail "Author is definitely someone else but I encountered a missing or null `following` field."
+                                False ->
+                                    Decode.succeed <| NotFollowing (Unfollowed usr)
                 }
     in
     Decode.succeed Tuple.pair
-        |> optional "following" (nullable Decode.bool) Nothing
+        |> optional "following" Decode.bool False
         |> custom User.decoder
         |> Decode.andThen authorDecoder
 

@@ -4,29 +4,16 @@
 
 * This is just a work-in-progress and is not finalized by any means. -BZ
 
-## Author/User
-
-```js
-{
-    "author": {
-        "username": "OtherUser",
-        "following": true,
-        "profile": {
-            "avatar": "https://example.com/happy.png",
-            "joinDate": "2020-09-25T15:12:35.126Z",
-            "bio": "Just here to help debug!"
-        }
-    }
-}
-```
+## User/Author
 
 ```js
 {
     "user": {
         "username": "OtherUser",
+        "following": false,
         "profile": {
             "avatar": "https://example.com/happy.png",
-            "joinDate": "2020-09-25T15:12:35.126Z",
+            "joinDate": "2020-09-20T12:22:53.867Z",
             "bio": "Just here to help debug!"
         }
     }
@@ -35,15 +22,12 @@
 
 ### Notes
 
-* An author is a user in the context of a post; in the context of a post, an author can be followed,
-  unfollowed, or unfollowable. When found as an `author` field on a post object, or when returned
-  from an endpoint which returns **a single user**, this author format is used.
-* In the event that this is returned as a **field on a post**, an author will be returned; other-
-  wise, a user will be returned. The only meaningful difference between the two aside from labels is
-  the omission of the `following` field from a user.
-* The `following` field will be missing from an author in the event that the returned user is
-  *you*, or you are not logged in.
-* The `avatar` and `bio` fields can be *missing* from the `profile` object in the event that the
+* In the event that this is returned as a **field on a post**, the object will be labeled as
+  `author`; otherwise, it will typically be `user`.
+* The `following` field will be **missing** from an author in the event that the returned user is
+  *you*, or you are *not logged in*. It is up to the client to determine which of those two states
+  the user is in.
+* The `avatar` and `bio` fields can be **missing** from the `profile` object in the event that the
   user has not set them.
 
 ## Logged-in User
@@ -52,11 +36,9 @@
 {
     "loggedInUser": {
         "authToken": "AUTH_TOKEN_EXAMPLE",
-        "user": {
-            "username": "DebugUser",
-            "profile": {
-                "joinDate": "2020-09-25T15:12:35.126Z",
-            }
+        "username": "DebugUser",
+        "profile": {
+            "joinDate": "2020-09-25T15:12:35.126Z",
         }
     }
 }
@@ -64,8 +46,8 @@
 
 ### Notes
 
-* The returned user is *always* you, and therefore the `following` field from the `user` object is always missing.
-* `profile` can still be missing `avatar` and `bio` fields if they have not been set.
+* The returned user is *always* you, and therefore the `following` field is **never present**.
+* `profile` can still be **missing** `avatar` and `bio` fields if they have not been set.
 
 ## Post
 
@@ -97,35 +79,33 @@
 * The `editedAt` field can be *missing* in the event that the post has never been edited.
 * The `body` field can be *missing* in the event that the `post` was received from an API endpoint which returns **lists of posts**; likewise, it will *exist* in the event that the `post` was received from an API endpoint for which returns **a specific post**.
 
-## Lists of Posts
-
-```js
-{
-    "posts": [
-        {
-            // Post…
-        },
-        {
-            // Post…
-        }
-    ]
-}
-```
-
 ## Lists of Users
 
-```js
+```json
 {
     "users": [
         {
-            // User…
+            "username": "DebugUser",
+            "profile": {
+                "joinDate": "2020-09-25T15:12:35.126Z",
+            }
         },
         {
-            // User…
+            "username": "OtherUser",
+            "following": false,
+            "profile": {
+                "avatar": "https://example.com/happy.png",
+                "joinDate": "2020-09-20T12:22:53.867Z",
+                "bio": "Just here to help debug!"
+            }
         }
     ]
 }
 ```
+
+## Lists of Posts
+
+*Same general format as [lists of users](#lists-of-users).
 
 ## Errors
 
