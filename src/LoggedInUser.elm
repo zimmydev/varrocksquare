@@ -39,30 +39,18 @@ authToken (LoggedInUser tok _) =
 
 
 username : LoggedInUser -> Username
-username loggedInUser =
-    user loggedInUser
-        |> User.username
+username (LoggedInUser _ user) =
+    User.username user
 
 
 profile : LoggedInUser -> Profile
-profile loggedInUser =
-    user loggedInUser
-        |> User.profile
+profile (LoggedInUser _ user) =
+    User.profile user
 
 
 avatar : LoggedInUser -> Avatar
-avatar loggedInUser =
-    user loggedInUser
-        |> User.avatar
-
-
-
--- Helpers
-
-
-user : LoggedInUser -> User
-user (LoggedInUser _ usr) =
-    usr
+avatar (LoggedInUser _ user) =
+    User.avatar user
 
 
 
