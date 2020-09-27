@@ -1,4 +1,4 @@
-module Post exposing (Full, Post, Preview, metadata)
+module Post exposing (Full, Metadata, Post(..), Preview, StarredPost, UnstarrablePost, UnstarredPost)
 
 import Author exposing (Author)
 import Json.Decode as Decode exposing (Decoder, nullable)
@@ -12,30 +12,22 @@ import Tag exposing (Tag, Validated)
 import Time
 
 
-type Post style
-    = Starring (StarredPost style)
-    | NotStarring (UnstarredPost style)
-    | CantStar (UnstarrablePost style)
+type Post payload
+    = Starring (StarredPost payload)
+    | NotStarring (UnstarredPost payload)
+    | CantStar (UnstarrablePost payload)
 
 
-type StarredPost style
-    = Starred Metadata style
+type StarredPost payload
+    = Starred Metadata payload
 
 
-type UnstarredPost style
-    = Unstarred Metadata style
+type UnstarredPost payload
+    = Unstarred Metadata payload
 
 
-type UnstarrablePost style
-    = Unstarrable Metadata style
-
-
-type Preview
-    = Preview (Maybe String)
-
-
-type Full
-    = Full Body
+type UnstarrablePost payload
+    = Unstarrable Metadata payload
 
 
 type alias Metadata =
@@ -51,6 +43,14 @@ type alias Metadata =
     }
 
 
+type Preview
+    = Preview
+
+
+type Full
+    = Full Body
+
+
 
 -- Obtaining a Post
 
@@ -59,31 +59,20 @@ previewDecoder : Session -> Decoder (Post Preview)
 previewDecoder session =
     let
         postDecoder ( isStarred, meta ) =
-            let
-                preview =
-                    Preview meta.description
-            in
             Session.withLoggedInUser session
-                { guest = Decode.succeed <| CantStar (Unstarrable meta preview)
+                { guest = Decode.succeed <| CantStar (Unstarrable meta Preview)
                 , loggedIn =
                     \loggedInUser ->
                         case isStarred of
-                            Just True ->
-                                Decode.succeed <| Starring (Starred meta preview)
+                            True ->
+                                Decode.succeed <| Starring (Starred meta Preview)
 
-                            Just False ->
-                                Decode.succeed <| NotStarring (Unstarred meta preview)
-
-                            Nothing ->
-                                if LoggedInUser.username loggedInUser == Author.username meta.author then
-                                    Decode.succeed <| CantStar (Unstarrable meta preview)
-
-                                else
-                                    Decode.fail "Post is definitely authored by someone else but I encountered a missing or null `starred` field."
+                            False ->
+                                Decode.succeed <| NotStarring (Unstarred meta Preview)
                 }
     in
     Decode.succeed Tuple.pair
-        |> optional "starred" (nullable Decode.bool) Nothing
+        |> optional "starred" Decode.bool False
         |> custom (metadataDecoder session)
         |> Decode.andThen postDecoder
 
@@ -97,23 +86,16 @@ fullDecoder session =
                 , loggedIn =
                     \loggedInUser ->
                         case isStarred of
-                            Just True ->
+                            True ->
                                 Decode.succeed <| Starring (Starred meta full)
 
-                            Just False ->
+                            False ->
                                 Decode.succeed <| NotStarring (Unstarred meta full)
-
-                            Nothing ->
-                                if LoggedInUser.username loggedInUser == Author.username meta.author then
-                                    Decode.succeed <| CantStar (Unstarrable meta full)
-
-                                else
-                                    Decode.fail "Post is definitely authored by someone else but I encountered a missing or null `starred` field."
                 }
     in
     Decode.succeed (\a b c -> ( a, b, c ))
-        |> optional "starred" (nullable Decode.bool) Nothing
-        |> required "body" (Body.decoder |> Decode.map Full)
+        |> optional "starred" Decode.bool False
+        |> required "body" (Decode.map Full Body.decoder)
         |> custom (metadataDecoder session)
         |> Decode.andThen postDecoder
 
@@ -149,6 +131,10 @@ metadata post =
             meta
 
 
+
+-- Info on Full Post
+
+
 body : Post Full -> String
 body post =
     Body.toString <|
@@ -161,3 +147,17 @@ body post =
 
             CantStar (Unstarrable _ (Full bod)) ->
                 bod
+
+
+
+-- Transforming a Post
+
+
+star : UnstarredPost payload -> StarredPost payload
+star (Unstarred meta payload) =
+    Starred meta payload
+
+
+unstar : StarredPost payload -> UnstarredPost payload
+unstar (Starred meta payload) =
+    Unstarred meta payload

@@ -4,11 +4,11 @@
 
 * This is just a work-in-progress and is not finalized by any means. -BZ
 
-## User
+## Author/User
 
 ```js
 {
-    "user": {
+    "author": {
         "username": "OtherUser",
         "following": true,
         "profile": {
@@ -20,11 +20,31 @@
 }
 ```
 
+```js
+{
+    "user": {
+        "username": "OtherUser",
+        "profile": {
+            "avatar": "https://example.com/happy.png",
+            "joinDate": "2020-09-25T15:12:35.126Z",
+            "bio": "Just here to help debug!"
+        }
+    }
+}
+```
+
 ### Notes
 
-* The `following` field will be missing in the event that the returned user is *you*, or you are not
-  logged in.
-* The `avatar` and `bio` fields can be *missing* from the `profile` object in the event that the user has not set them.
+* An author is a user in the context of a post; in the context of a post, an author can be followed,
+  unfollowed, or unfollowable. When found as an `author` field on a post object, or when returned
+  from an endpoint which returns **a single user**, this author format is used.
+* In the event that this is returned as a **field on a post**, an author will be returned; other-
+  wise, a user will be returned. The only meaningful difference between the two aside from labels is
+  the omission of the `following` field from a user.
+* The `following` field will be missing from an author in the event that the returned user is
+  *you*, or you are not logged in.
+* The `avatar` and `bio` fields can be *missing* from the `profile` object in the event that the
+  user has not set them.
 
 ## Logged-in User
 
