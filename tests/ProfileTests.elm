@@ -1,6 +1,6 @@
 module ProfileTests exposing (..)
 
-{-| This module tests the module `Profile`.
+{-| This module tests the `Profile` module.
 -}
 
 import Avatar
@@ -14,7 +14,7 @@ import Test exposing (..)
 
 
 
--- Decoding
+-- Decoding (TODO: Write testing for an invalid JSON profile)
 
 
 decodingTests : Test

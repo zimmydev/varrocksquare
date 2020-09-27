@@ -41,7 +41,7 @@ decodingTests =
                                 ]
                         ]
         , describe "An invalid JSON flags object results in an error"
-            [ fuzz2 Fuzz.int Fuzz.string "…when `size` object has a mistyped field" <|
+            [ fuzz2 Fuzz.int Fuzz.string "…when size object has a mistyped height field" <|
                 \w h ->
                     { size =
                         [ ( "width", Encode.int w )
@@ -51,17 +51,17 @@ decodingTests =
                         |> flagsObject
                         |> Flags.decode
                         |> Expect.err
-            , fuzz2 Fuzz.int Fuzz.int "…when `size` object has a mislabeled field" <|
+            , fuzz2 Fuzz.int Fuzz.int "…when size object has a mislabeled height field" <|
                 \w h ->
                     { size =
-                        [ ( "x", Encode.int w )
-                        , ( "height", Encode.int h )
+                        [ ( "width", Encode.int w )
+                        , ( "y", Encode.int h )
                         ]
                     }
                         |> flagsObject
                         |> Flags.decode
                         |> Expect.err
-            , fuzz Fuzz.int "…when `size` object is missing a field" <|
+            , fuzz Fuzz.int "…when size object is missing a height field" <|
                 \w ->
                     { size =
                         [ ( "width", Encode.int w ) ]
@@ -69,7 +69,7 @@ decodingTests =
                         |> flagsObject
                         |> Flags.decode
                         |> Expect.err
-            , test "…when `size` object is missing all its fields" <|
+            , test "…when size object is totally empty" <|
                 \() ->
                     { size = [] }
                         |> flagsObject
