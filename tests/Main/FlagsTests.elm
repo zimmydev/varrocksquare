@@ -51,12 +51,10 @@ decodingTests =
                         |> flagsObject
                         |> Flags.decode
                         |> Expect.err
-            , fuzz2 Fuzz.int Fuzz.int "…when size object has a mislabeled height field" <|
-                \w h ->
+            , fuzz Fuzz.int "…when size object is missing a width field" <|
+                \h ->
                     { size =
-                        [ ( "width", Encode.int w )
-                        , ( "y", Encode.int h )
-                        ]
+                        [ ( "height", Encode.int h ) ]
                     }
                         |> flagsObject
                         |> Flags.decode

@@ -39,7 +39,7 @@ decoder session =
                 { guest = Decode.succeed <| CantFollow (Unfollowable usr)
                 , loggedIn =
                     \loggedInUser ->
-                        if User.username usr == LoggedInUser.username loggedInUser then
+                        if LoggedInUser.username loggedInUser == User.username usr then
                             Decode.succeed <| CantFollow (Unfollowable usr)
 
                         else

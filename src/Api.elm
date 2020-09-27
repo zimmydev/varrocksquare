@@ -15,8 +15,8 @@ type AuthToken
 
 authTokenDecoder : Decoder AuthToken
 authTokenDecoder =
-    Decode.succeed AuthToken
-        |> required "token" Decode.string
+    Decode.string
+        |> Decode.map AuthToken
 
 
 
