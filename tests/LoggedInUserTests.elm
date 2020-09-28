@@ -4,7 +4,7 @@ module LoggedInUserTests exposing (..)
 -}
 
 import Avatar
-import Expect exposing (Expectation)
+import Expect
 import Fuzz exposing (Fuzzer, constant, oneOf, string, tuple)
 import Json.Decode as Decode exposing (decodeValue)
 import Json.Encode as Encode
@@ -13,7 +13,7 @@ import Profile
 import ProfileTests exposing (invalidIso8601, validIso8601)
 import Test exposing (..)
 import UserTests exposing (invalidUsername, validUsername)
-import Username exposing (Username)
+import Username
 
 
 decodingTests : Test
@@ -26,7 +26,7 @@ decodingTests =
             Encode.object [ ( "joinDate", Encode.string joinDate ) ]
     in
     describe "Decoding" <|
-        [ fuzz validData "A valid JSON user object" <|
+        [ fuzz validData "A valid JSON logged-in user object" <|
             \( name, token, joinDate ) ->
                 [ ( "username", Encode.string name )
                 , ( "authToken", Encode.string token )
@@ -49,7 +49,7 @@ decodingTests =
                         , Result.map LoggedInUser.avatar
                             >> Expect.equal (Ok Avatar.default)
                         ]
-        , describe "An invalid JSON user object results in an error" <|
+        , describe "An invalid JSON logged-in user object results in an error" <|
             [ fuzz invalidData "…when it contains invalid data" <|
                 \( name, token, joinDate ) ->
                     [ ( "username", Encode.string name )

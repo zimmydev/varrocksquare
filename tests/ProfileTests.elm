@@ -4,12 +4,11 @@ module ProfileTests exposing (..)
 -}
 
 import Avatar
-import Expect exposing (Expectation)
+import Expect
 import Fuzz exposing (Fuzzer, constant, maybe, oneOf, string, tuple3)
 import Json.Decode as Decode exposing (decodeValue)
-import Json.Decode.Extra exposing (datetime)
 import Json.Encode as Encode
-import Profile exposing (Profile)
+import Profile
 import Test exposing (..)
 import TestUtils.Object as Object
 

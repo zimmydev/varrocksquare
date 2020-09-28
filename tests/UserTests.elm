@@ -4,7 +4,7 @@ module UserTests exposing (..)
 -}
 
 import Avatar
-import Expect exposing (Expectation)
+import Expect
 import Fuzz exposing (Fuzzer, constant, oneOf, string, tuple)
 import Json.Decode as Decode exposing (decodeValue)
 import Json.Encode as Encode
