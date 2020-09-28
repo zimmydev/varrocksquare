@@ -17,7 +17,14 @@ type Username
 decoder : Decoder Username
 decoder =
     Decode.string
-        |> Decode.map Username
+        |> Decode.andThen
+            (\name ->
+                if String.isEmpty name then
+                    Decode.fail "Username cannot be empty"
+
+                else
+                    Decode.succeed <| Username name
+            )
 
 
 urlParser : Parser (Username -> a) a

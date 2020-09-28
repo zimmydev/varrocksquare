@@ -1,5 +1,6 @@
 # MacOS
 .DS_Store
+.Trash
 # elm make
 public/*.js
 build/

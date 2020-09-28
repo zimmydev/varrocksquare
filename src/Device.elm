@@ -1,13 +1,11 @@
-module Device exposing (Profile, ResizeHandler, Size, decoder, profile, resizeHandler, responsive)
+module Device exposing (Profile, ResizeHandler, Size, decoder, encode, profile, resizeHandler, responsive)
 
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline exposing (required)
+import Json.Encode as Encode exposing (Value)
 
 
 type alias Size =
-    { width : Int
-    , height : Int
-    }
+    ( Int, Int )
 
 
 type Profile
@@ -24,10 +22,10 @@ type alias ResizeHandler msg =
 
 
 resizeHandler : Profile -> { resized : Profile -> msg, noOp : msg } -> ResizeHandler msg
-resizeHandler currentProfile { resized, noOp } width height =
+resizeHandler currentProfile { resized, noOp } w h =
     let
         newProfile =
-            profile (Size width height)
+            profile ( w, h )
     in
     if newProfile /= currentProfile then
         resized newProfile
@@ -37,8 +35,8 @@ resizeHandler currentProfile { resized, noOp } width height =
 
 
 profile : Size -> Profile
-profile { width } =
-    if width >= 1180 then
+profile ( w, _ ) =
+    if w >= 1180 then
         Full
 
     else
@@ -61,6 +59,26 @@ responsive prof { compact, full } =
 
 decoder : Decoder Size
 decoder =
-    Decode.succeed Size
-        |> required "width" Decode.int
-        |> required "height" Decode.int
+    let
+        isPositiveNonzero =
+            (<) 0
+    in
+    Decode.list Decode.int
+        |> Decode.andThen
+            (\ints ->
+                case ints of
+                    [ w, h ] ->
+                        if ints |> List.all isPositiveNonzero then
+                            Decode.succeed ( w, h )
+
+                        else
+                            Decode.fail "Attempted to decode device size with zero or negative dimension"
+
+                    _ ->
+                        Decode.fail "Device size was in the incorrect format; use an list of 2 elements corresponding to width and height, respectively"
+            )
+
+
+encode : Size -> Value
+encode ( w, h ) =
+    Encode.list Encode.int [ w, h ]

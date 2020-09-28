@@ -35,11 +35,4 @@ decoder =
 
 encode : Flags -> Value
 encode flags =
-    Encode.object
-        [ ( "size"
-          , Encode.object
-                [ ( "width", Encode.int flags.size.width )
-                , ( "height", Encode.int flags.size.height )
-                ]
-          )
-        ]
+    Encode.object [ ( "size", Device.encode flags.size ) ]

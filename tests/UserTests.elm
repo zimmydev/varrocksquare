@@ -5,13 +5,15 @@ module UserTests exposing (..)
 
 import Avatar
 import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, int, list, string)
+import Fuzz exposing (Fuzzer, constant, oneOf, string, tuple)
 import Json.Decode as Decode exposing (decodeValue)
 import Json.Encode as Encode
 import Profile
+import ProfileTests
 import Test exposing (..)
 import User
 import Username exposing (Username)
+import Utils.EncodeTesting exposing (missingFields)
 
 
 decodingTests : Test
@@ -24,60 +26,50 @@ decodingTests =
             decodeValue User.decoder
     in
     describe "Decoding"
-        [ describe "A valid JSON user" <|
-            [ fuzz3 Fuzz.string Fuzz.string Fuzz.string "…when all fields present" <|
-                \name href bio ->
-                    [ ( "username", Encode.string name )
-                    , ( "profile"
-                      , Encode.object
-                            [ ( "avatar", Encode.string href )
-                            , ( "joinDate", Encode.string iso8601String )
-                            , ( "bio", Encode.string bio )
-                            ]
-                      )
-                    ]
-                        |> Encode.object
-                        |> decodeUser
-                        |> Expect.all
-                            [ Expect.ok
-                            , Result.map User.username
-                                >> Result.map Username.toString
-                                >> Expect.equal (Ok name)
-                            , Result.map User.profile
-                                >> Expect.all
-                                    [ Result.map Profile.avatar
-                                        >> Result.map Avatar.href
-                                        >> Expect.equal (Ok href)
-                                    , Result.map Profile.bio
-                                        >> Expect.equal (Ok (Just bio))
-                                    ]
-                            , Result.map User.avatar
-                                >> Result.map Avatar.href
-                                >> Expect.equal (Ok href)
-                            ]
-            , fuzz Fuzz.string "…when missing an avatar and a bio" <|
-                \name ->
-                    [ ( "username", Encode.string name )
-                    , ( "profile", Encode.object [ ( "joinDate", Encode.string iso8601String ) ] )
-                    ]
-                        |> Encode.object
-                        |> decodeUser
-                        |> Expect.all
-                            [ Expect.ok
-                            , Result.map User.username
-                                >> Result.map Username.toString
-                                >> Expect.equal (Ok name)
-                            , Result.map User.profile
-                                >> Expect.all
-                                    [ Result.map Profile.avatar
-                                        >> Expect.equal (Ok Avatar.default)
-                                    , Result.map Profile.bio
-                                        >> Expect.equal (Ok Nothing)
-                                    ]
-                            , Result.map User.avatar
-                                >> Expect.equal (Ok Avatar.default)
-                            ]
-            ]
+        [ fuzz validData "A valid JSON user object" <|
+            \( name, ( maybeHref, joinDate, maybeBio ) ) ->
+                let
+                    profile =
+                        [ ( "avatar", Encode.string, maybeHref )
+                        , ( "joinDate", Encode.string, Just joinDate )
+                        , ( "bio", Encode.string, maybeBio )
+                        ]
+                            |> missingFields
+                in
+                [ ( "username", Encode.string name )
+                , ( "profile", Encode.object profile )
+                ]
+                    |> Encode.object
+                    |> decodeUser
+                    |> Expect.all
+                        [ Expect.ok
+                        , Result.map User.username
+                            >> Result.map Username.toString
+                            >> Expect.equal (Ok name)
+                        , Result.map User.profile
+                            >> Expect.all
+                                [ Result.map Profile.avatar
+                                    >> (case maybeHref of
+                                            Just href ->
+                                                Result.map Avatar.href
+                                                    >> Expect.equal (Ok href)
+
+                                            Nothing ->
+                                                Expect.equal (Ok Avatar.default)
+                                       )
+                                , Result.map Profile.bio
+                                    >> Expect.equal (Ok maybeBio)
+                                ]
+                        , Result.map User.avatar
+                            >> (case maybeHref of
+                                    Just href ->
+                                        Result.map Avatar.href
+                                            >> Expect.equal (Ok href)
+
+                                    Nothing ->
+                                        Expect.equal (Ok Avatar.default)
+                               )
+                        ]
         , describe "An invalid JSON user results in an error" <|
             let
                 validProfile =
@@ -126,4 +118,33 @@ decodingTests =
                         |> decodeUser
                         |> Expect.err
             ]
+        ]
+
+
+
+-- Fuzzers
+
+
+validUsername : Fuzzer String
+validUsername =
+    string
+        |> Fuzz.map ((++) "TestUser")
+
+
+validData : Fuzzer ( String, ( Maybe String, String, Maybe String ) )
+validData =
+    tuple ( validUsername, ProfileTests.validData )
+
+
+invalidUsername : Fuzzer String
+invalidUsername =
+    constant ""
+
+
+invalidData : Fuzzer ( String, ( Maybe String, String, Maybe String ) )
+invalidData =
+    oneOf
+        [ tuple ( validUsername, ProfileTests.invalidData )
+        , tuple ( invalidUsername, ProfileTests.validData )
+        , tuple ( invalidUsername, ProfileTests.invalidData )
         ]
