@@ -1,4 +1,4 @@
-module Post exposing (Full, Metadata, Post(..), Preview, StarredPost, UnstarrablePost, UnstarredPost)
+module Post exposing (Full, Metadata, Post(..), Preview, StarredPost, UnstarrablePost, UnstarredPost, metadata)
 
 import Author exposing (Author)
 import Json.Decode as Decode exposing (Decoder, nullable)

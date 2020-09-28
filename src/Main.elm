@@ -1,4 +1,4 @@
-module Main exposing (App)
+module Main exposing (AppState)
 
 import Alert exposing (Alert, fire)
 import Alert.Queue as Queue exposing (Queue)
@@ -7,7 +7,7 @@ import Browser.Dom as Dom
 import Browser.Events
 import Browser.Navigation as Nav
 import Cache exposing (Cache)
-import Config.App as App
+import Config.App as AppState
 import Device
 import Element exposing (..)
 import Json.Encode exposing (Value)
@@ -44,9 +44,7 @@ import User exposing (User)
 -- Model
 
 
-type
-    App
-    -- TODO: Rename to Model; rename Page.*.State to Page.*.Model
+type AppState
     = RedirectState Global Href
     | NotFoundState Global ()
     | HomeState Global ()
@@ -131,7 +129,7 @@ type Effect
 -- Main, Init & Subscriptions
 
 
-main : Program Value App Msg
+main : Program Value AppState Msg
 main =
     let
         performEffect ( app, effect ) =
@@ -154,7 +152,7 @@ main =
         }
 
 
-init : Value -> Url -> Nav.Key -> ( App, Effect )
+init : Value -> Url -> Nav.Key -> ( AppState, Effect )
 init json url navKey =
     let
         flags =
@@ -163,18 +161,14 @@ init json url navKey =
                    instead of silently substituting defaults (there's probably something wrong).
                 -}
                 |> Result.withDefault
-                    { size =
-                        { width = 1280
-                        , height = 800
-                        }
-                    }
+                    { size = ( 1280, 800 ) }
 
         initRoute =
             Route.routeUrl url
 
         ( initAppState, initEffect ) =
             start initRoute <|
-                { session = Session.new navKey App.startUser
+                { session = Session.new navKey AppState.startUser
                 , devpro = Device.profile flags.size
                 , alerts = Queue.empty
                 , searchCache = Cache.empty
@@ -185,7 +179,7 @@ init json url navKey =
         |> Tuple.pair initAppState
 
 
-subscriptions : App -> Sub Msg
+subscriptions : AppState -> Sub Msg
 subscriptions app =
     let
         global =
@@ -204,7 +198,7 @@ subscriptions app =
 -- Update
 
 
-update : Msg -> App -> ( App, Effect )
+update : Msg -> AppState -> ( AppState, Effect )
 update msg app =
     let
         global =
@@ -216,7 +210,7 @@ update msg app =
         navKey =
             Session.navKey global.session
     in
-    case msg |> App.logMsg [ Ignored ] of
+    case msg |> AppState.logMsg [ Ignored ] of
         Ignored ->
             ignore
 
@@ -236,7 +230,7 @@ update msg app =
 
         LinkClicked (Browser.External href) ->
             Browser.External href
-                |> App.logProblem "xternal link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
+                |> AppState.logProblem "xternal link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
 
         RouteChanged newRoute ->
             app |> transition newRoute
@@ -386,7 +380,7 @@ update msg app =
 -- Views
 
 
-view : App -> Document Msg
+view : AppState -> Document Msg
 view app =
     let
         { session, devpro, alerts } =
@@ -466,16 +460,16 @@ view app =
 
 
 
--- Transitioning the App State
+-- Transitioning the AppState State
 
 
-start : Route -> Global -> ( App, Effect )
+start : Route -> Global -> ( AppState, Effect )
 start initRoute initGlobal =
     HomeState initGlobal ()
         |> transition initRoute
 
 
-transition : Route -> App -> ( App, Effect )
+transition : Route -> AppState -> ( AppState, Effect )
 transition nextRoute app =
     let
         navKey =
@@ -790,7 +784,7 @@ transition nextRoute app =
                 }
 
 
-updateApp : App -> Global -> App
+updateApp : AppState -> Global -> AppState
 updateApp app global =
     case app of
         RedirectState _ href ->
@@ -842,7 +836,7 @@ updateApp app global =
             PrivacyPolicyState global ()
 
 
-globalState : App -> Global
+globalState : AppState -> Global
 globalState app =
     case app of
         RedirectState global _ ->
@@ -904,7 +898,7 @@ perform navKey effect =
         ignore =
             Cmd.none
     in
-    case effect |> App.logEffect [ NoEffect, SettingsEffect Page.Settings.NoEffect ] of
+    case effect |> AppState.logEffect [ NoEffect, SettingsEffect Page.Settings.NoEffect ] of
         Effects effects ->
             Cmd.batch <|
                 List.map (perform navKey) effects
