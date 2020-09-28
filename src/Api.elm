@@ -16,7 +16,14 @@ type AuthToken
 authTokenDecoder : Decoder AuthToken
 authTokenDecoder =
     Decode.string
-        |> Decode.map AuthToken
+        |> Decode.andThen
+            (\token ->
+                if String.isEmpty token then
+                    Decode.fail "Token cannot be empty"
+
+                else
+                    Decode.succeed <| AuthToken token
+            )
 
 
 
