@@ -11,7 +11,7 @@ import Json.Decode.Extra exposing (datetime)
 import Json.Encode as Encode
 import Profile exposing (Profile)
 import Test exposing (..)
-import Utils.EncodeTesting exposing (missingFields)
+import TestUtils.Object as Object
 
 
 
@@ -31,7 +31,7 @@ decodingTests =
                 , ( "joinDate", Encode.string, Just joinDate )
                 , ( "bio", Encode.string, maybeBio )
                 ]
-                    |> missingFields
+                    |> Object.missingFields
                     |> Encode.object
                     |> decodeProfile
                     |> Expect.all
@@ -49,13 +49,13 @@ decodingTests =
                             >> Expect.equal (Ok maybeBio)
                         ]
         , describe "An invalid JSON profile object" <|
-            [ fuzz invalidData "…when it has invalid data" <|
+            [ fuzz invalidData "…when it contains invalid data" <|
                 \( maybeHref, joinDate, maybeBio ) ->
                     [ ( "avatar", Encode.string, maybeHref )
                     , ( "joinDate", Encode.string, Just joinDate )
                     , ( "bio", Encode.string, maybeBio )
                     ]
-                        |> missingFields
+                        |> Object.missingFields
                         |> Encode.object
                         |> decodeProfile
                         |> Expect.err
@@ -65,7 +65,7 @@ decodingTests =
                     , ( "joinDate", Encode.string, Nothing )
                     , ( "bio", Encode.string, maybeBio )
                     ]
-                        |> missingFields
+                        |> Object.missingFields
                         |> Encode.object
                         |> decodeProfile
                         |> Expect.err

@@ -19,7 +19,7 @@ import Test exposing (..)
 decodingTests : Test
 decodingTests =
     describe "Decoding" <|
-        [ fuzz validSize "A valid JSON flags object" <|
+        [ fuzz validData "A valid JSON flags object" <|
             \(( w, h ) as size) ->
                 [ ( "size", Encode.list Encode.int [ w, h ] ) ]
                     |> Encode.object
@@ -28,20 +28,20 @@ decodingTests =
                         [ Result.map .size
                             >> Expect.equal (Ok size)
                         ]
-        , describe "An size problem results in an error" <|
-            [ fuzz invalidSize "…when at least one device dimension is zero or negative" <|
+        , describe "An invalid JSON flags object results in an error" <|
+            [ fuzz invalidData "…when at least one device dimension is zero or negative" <|
                 \( w, h ) ->
                     [ ( "size", Encode.list Encode.int [ w, h ] ) ]
                         |> Encode.object
                         |> Flags.decode
                         |> Expect.err
-            , fuzz2 validSize validSize "…when too many device dimensions" <|
-                \( w, h ) ( x, _ ) ->
+            , fuzz2 validData validDim "…when too many device dimensions" <|
+                \( w, h ) x ->
                     [ ( "size", Encode.list Encode.int [ w, h, x ] ) ]
                         |> Encode.object
                         |> Flags.decode
                         |> Expect.err
-            , fuzz validSize "…when two few device dimensions" <|
+            , fuzz validData "…when two few device dimensions" <|
                 \( w, _ ) ->
                     [ ( "size", Encode.list Encode.int [ w ] ) ]
                         |> Encode.object
@@ -53,9 +53,7 @@ decodingTests =
                         |> Encode.object
                         |> Flags.decode
                         |> Expect.err
-            ]
-        , describe "An invalid flags object results in an error" <|
-            [ test "…when flags object is totally empty" <|
+            , test "…when flags object is totally empty" <|
                 \() ->
                     []
                         |> Encode.object
@@ -91,3 +89,13 @@ invalidSize =
         , tuple ( invalidDim, validDim )
         , tuple ( invalidDim, invalidDim )
         ]
+
+
+validData : Fuzzer Device.Size
+validData =
+    validSize
+
+
+invalidData : Fuzzer Device.Size
+invalidData =
+    invalidSize

@@ -9,35 +9,26 @@ import Fuzz exposing (Fuzzer, constant, oneOf, string, tuple)
 import Json.Decode as Decode exposing (decodeValue)
 import Json.Encode as Encode
 import Profile
-import ProfileTests
+import ProfileTests exposing (invalidIso8601, validIso8601)
 import Test exposing (..)
 import User
 import Username exposing (Username)
-import Utils.EncodeTesting exposing (missingFields)
 
 
 decodingTests : Test
 decodingTests =
     let
-        iso8601String =
-            "2020-09-25T15:12:35.126Z"
-
         decodeUser =
             decodeValue User.decoder
+
+        smallProfile joinDate =
+            Encode.object [ ( "joinDate", Encode.string joinDate ) ]
     in
-    describe "Decoding"
+    describe "Decoding" <|
         [ fuzz validData "A valid JSON user object" <|
-            \( name, ( maybeHref, joinDate, maybeBio ) ) ->
-                let
-                    profile =
-                        [ ( "avatar", Encode.string, maybeHref )
-                        , ( "joinDate", Encode.string, Just joinDate )
-                        , ( "bio", Encode.string, maybeBio )
-                        ]
-                            |> missingFields
-                in
+            \( name, joinDate ) ->
                 [ ( "username", Encode.string name )
-                , ( "profile", Encode.object profile )
+                , ( "profile", smallProfile joinDate )
                 ]
                     |> Encode.object
                     |> decodeUser
@@ -49,62 +40,36 @@ decodingTests =
                         , Result.map User.profile
                             >> Expect.all
                                 [ Result.map Profile.avatar
-                                    >> (case maybeHref of
-                                            Just href ->
-                                                Result.map Avatar.href
-                                                    >> Expect.equal (Ok href)
-
-                                            Nothing ->
-                                                Expect.equal (Ok Avatar.default)
-                                       )
+                                    >> Expect.equal (Ok Avatar.default)
                                 , Result.map Profile.bio
-                                    >> Expect.equal (Ok maybeBio)
+                                    >> Expect.equal (Ok Nothing)
                                 ]
                         , Result.map User.avatar
-                            >> (case maybeHref of
-                                    Just href ->
-                                        Result.map Avatar.href
-                                            >> Expect.equal (Ok href)
-
-                                    Nothing ->
-                                        Expect.equal (Ok Avatar.default)
-                               )
+                            >> Expect.equal (Ok Avatar.default)
                         ]
-        , describe "An invalid JSON user results in an error" <|
-            let
-                validProfile =
-                    Encode.object [ ( "joinDate", Encode.string iso8601String ) ]
-            in
-            [ fuzz Fuzz.int "…when username field is mistyped" <|
-                \x ->
-                    [ ( "username", Encode.int x )
-                    , ( "profile", validProfile )
+        , describe "An invalid JSON user object results in an error" <|
+            [ fuzz invalidData "…when it contains invalid data" <|
+                \( name, joinDate ) ->
+                    [ ( "username", Encode.string name )
+                    , ( "profile", smallProfile joinDate )
                     ]
                         |> Encode.object
                         |> decodeUser
                         |> Expect.err
-            , fuzz Fuzz.string "…when username field is mislabeled" <|
-                \name ->
-                    [ ( "name", Encode.string name )
-                    , ( "profile", validProfile )
-                    ]
+            , fuzz validData "…when username field is missing" <|
+                \( _, joinDate ) ->
+                    [ ( "profile", smallProfile joinDate ) ]
                         |> Encode.object
                         |> decodeUser
                         |> Expect.err
-            , test "…when username field is missing" <|
-                \() ->
-                    [ ( "profile", validProfile ) ]
-                        |> Encode.object
-                        |> decodeUser
-                        |> Expect.err
-            , fuzz Fuzz.string "…when profile field is missing" <|
-                \name ->
+            , fuzz validData "…when profile field is missing" <|
+                \( name, _ ) ->
                     [ ( "username", Encode.string name ) ]
                         |> Encode.object
                         |> decodeUser
                         |> Expect.err
-            , fuzz Fuzz.string "…when profile object is totally empty" <|
-                \name ->
+            , fuzz validData "…when profile object is empty" <|
+                \( name, _ ) ->
                     [ ( "username", Encode.string name )
                     , ( "profile", Encode.object [] )
                     ]
@@ -131,9 +96,9 @@ validUsername =
         |> Fuzz.map ((++) "TestUser")
 
 
-validData : Fuzzer ( String, ( Maybe String, String, Maybe String ) )
+validData : Fuzzer ( String, String )
 validData =
-    tuple ( validUsername, ProfileTests.validData )
+    tuple ( validUsername, validIso8601 )
 
 
 invalidUsername : Fuzzer String
@@ -141,10 +106,10 @@ invalidUsername =
     constant ""
 
 
-invalidData : Fuzzer ( String, ( Maybe String, String, Maybe String ) )
+invalidData : Fuzzer ( String, String )
 invalidData =
     oneOf
-        [ tuple ( validUsername, ProfileTests.invalidData )
-        , tuple ( invalidUsername, ProfileTests.validData )
-        , tuple ( invalidUsername, ProfileTests.invalidData )
+        [ tuple ( invalidUsername, validIso8601 )
+        , tuple ( validUsername, invalidIso8601 )
+        , tuple ( invalidUsername, invalidIso8601 )
         ]

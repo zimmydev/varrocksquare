@@ -1,4 +1,4 @@
-module Utils.EncodeTesting exposing (..)
+module TestUtils.Object exposing (..)
 
 import Json.Encode as Encode exposing (Value)
 
