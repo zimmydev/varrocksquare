@@ -147,23 +147,16 @@ main =
             in
             ( app, perform global.navigation effect )
 
-        initShim json url key =
-            init json
-                url
-                { key = key
-                , pushRoute = Route.push
-                , replaceRoute = Route.replace
-                }
-                |> performEffect
-
-        updateShim msg model =
-            update msg model
-                |> performEffect
+        navigation key =
+            { key = key
+            , pushRoute = Route.push
+            , replaceRoute = Route.replace
+            }
     in
     Browser.application
-        { init = initShim
+        { init = \json url key -> init json url (navigation key) |> performEffect
         , subscriptions = subscriptions
-        , update = updateShim
+        , update = \msg model -> update msg model |> performEffect
         , onUrlRequest = LinkClicked
         , onUrlChange = RouteChanged << Route.routeUrl
         , view = view
