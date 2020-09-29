@@ -1,4 +1,4 @@
-module Device exposing (Profile, ResizeHandler, Size, decoder, encode, profile, resizeHandler, responsive)
+module Device exposing (Profile(..), ResizeHandler, Size, decoder, encode, profile, resizeHandler, responsive)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
@@ -72,7 +72,7 @@ decoder =
                             Decode.succeed ( w, h )
 
                         else
-                            Decode.fail "Attempted to decode device size with zero or negative dimension"
+                            Decode.fail "Attempted to decode device size with one or more zero or negative dimensions"
 
                     _ ->
                         Decode.fail "Device size was in the incorrect format; use an list of 2 elements corresponding to width and height, respectively"

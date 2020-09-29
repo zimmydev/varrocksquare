@@ -1,4 +1,4 @@
-module Main exposing (AppState, Effect(..), Msg(..), NavigationConfig, extractGlobal, init, perform, update, view)
+module Main exposing (AppState, Effect(..), Global, Msg(..), NavigationConfig, globalOf, init, perform, update, view)
 
 import Alert exposing (Alert, fire)
 import Alert.Queue as Queue exposing (Queue)
@@ -10,11 +10,13 @@ import Cache exposing (Cache)
 import Config.App as AppState
 import Device
 import Element exposing (..)
+import Json.Decode as Decode
 import Json.Encode exposing (Value)
 import LoggedInUser exposing (LoggedInUser)
 import Main.Flags as Flags
 import Page
 import Page.Editor
+import Page.Error
 import Page.Feeds
 import Page.Help
 import Page.Home
@@ -46,6 +48,7 @@ import User exposing (User)
 
 type AppState key
     = RedirectState (Global key) Page.Redirect.State
+    | ErrorState (Global key) Page.Error.State
     | NotFoundState (Global key) ()
     | HomeState (Global key) ()
     | FeedsState (Global key) Page.Feeds.State
@@ -56,9 +59,6 @@ type AppState key
     | InboxState (Global key) Page.Inbox.State LoggedInUser
     | SettingsState (Global key) Page.Settings.State LoggedInUser
     | RegisterState (Global key) Page.Register.State
-      {- NOTE: There is no LogoutState because logging out can be handled by `transition` without
-         the need for an actual interim state existing.
-      -}
     | LoginState (Global key) Page.Login.State
     | ProfileState (Global key) Page.Profile.State
     | PostState (Global key) Page.Post.State
@@ -143,7 +143,7 @@ main =
         performEffect ( app, effect ) =
             let
                 global =
-                    extractGlobal app
+                    globalOf app
             in
             ( app, perform global.navigation effect )
 
@@ -166,36 +166,40 @@ main =
 init : Value -> Url -> NavigationConfig key -> ( AppState key, Effect )
 init json url navigation =
     let
-        flags =
-            Flags.decode json
-                {- TODO: Present some kind of error page for when the flags can't be read from JS
-                   instead of silently substituting defaults (there's probably something wrong).
-                -}
-                |> Result.withDefault
-                    { size = ( 1280, 800 ) }
-
         initRoute =
             Route.routeUrl url
 
+        global flags =
+            { navigation = navigation
+            , session = Session.new Nothing
+            , devpro = Device.profile flags.size
+            , alerts = Queue.empty
+            , searchCache = Cache.empty
+            , settings = Settings.default
+            }
+
         ( initAppState, initEffect ) =
-            begin initRoute <|
-                { navigation = navigation
-                , session = Session.new AppState.startUser
-                , devpro = Device.profile flags.size
-                , alerts = Queue.empty
-                , searchCache = Cache.empty
-                , settings = Settings.default
-                }
+            case Flags.decode json of
+                Ok flags ->
+                    begin initRoute (global flags)
+
+                Err error ->
+                    ( ErrorState
+                        (global { size = ( 0, 0 ) })
+                        (Page.Error.init (Decode.errorToString error))
+                    , NoEffect
+                    )
     in
-    Batch [ initEffect, DelayMsg 350 LoadingTimedOut ]
-        |> Tuple.pair initAppState
+    ( initAppState
+    , Batch [ initEffect, DelayMsg 350 LoadingTimedOut ]
+    )
 
 
 subscriptions : AppState key -> Sub Msg
 subscriptions app =
     let
         global =
-            extractGlobal app
+            globalOf app
     in
     Sub.batch
         [ Browser.Events.onResize <|
@@ -214,7 +218,7 @@ update : Msg -> AppState key -> ( AppState key, Effect )
 update msg app =
     let
         global =
-            extractGlobal app
+            globalOf app
 
         ignore =
             ( app, NoEffect )
@@ -393,14 +397,18 @@ view : AppState key -> Document Msg
 view app =
     let
         { session, devpro, alerts } =
-            extractGlobal app
+            globalOf app
 
         page =
             Page.view session devpro alerts
     in
     case app of
-        RedirectState _ href ->
-            Page.Redirect.view href
+        RedirectState _ local ->
+            Page.Redirect.view local
+                |> Page.unthemed
+
+        ErrorState _ local ->
+            Page.Error.view local
                 |> Page.unthemed
 
         NotFoundState _ () ->
@@ -482,7 +490,7 @@ transition : Route -> AppState key -> ( AppState key, Effect )
 transition nextRoute app =
     let
         global =
-            extractGlobal app
+            globalOf app
     in
     {- Here, we're checking the *old state* against the *new route* to see how we should transition
        and build a new AppState. Note: `_` in first tuple position here means *coming from any
@@ -491,7 +499,7 @@ transition nextRoute app =
     -}
     case ( app, nextRoute ) of
         ( _, Route.Redirect href ) ->
-            ( RedirectState global { href = href }
+            ( RedirectState global (Page.Redirect.init href)
             , Redirect href
             )
 
@@ -501,17 +509,13 @@ transition nextRoute app =
             )
 
         ( _, Route.Home ) ->
-            ( HomeState global ()
-            , NoEffect
-            )
+            ( HomeState global (), NoEffect )
 
         -- Feeds
         --
         ( _, Route.Feeds ) ->
             -- TODO: IMPORTANT: Create a feeds page!
-            ( FeedsState global ()
-            , NoEffect
-            )
+            ( FeedsState global (), NoEffect )
 
         -- Search
         --
@@ -793,8 +797,11 @@ transition nextRoute app =
 updateGlobal : AppState key -> Global key -> AppState key
 updateGlobal app global =
     case app of
-        RedirectState _ href ->
-            RedirectState global href
+        RedirectState _ local ->
+            RedirectState global local
+
+        ErrorState _ local ->
+            ErrorState global local
 
         NotFoundState _ () ->
             NotFoundState global ()
@@ -842,10 +849,13 @@ updateGlobal app global =
             PrivacyPolicyState global ()
 
 
-extractGlobal : AppState key -> Global key
-extractGlobal app =
+globalOf : AppState key -> Global key
+globalOf app =
     case app of
         RedirectState global _ ->
+            global
+
+        ErrorState global _ ->
             global
 
         NotFoundState global _ ->

@@ -1,4 +1,4 @@
-module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, focus, footer, footerElement, highlighted, input, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, radioRow, root, searchPlaceholder, searchbar, seguePage, smallSpacing, spinner)
+module Config.Styles exposing (alert, alertArea, avatar, button, content, contentHeader, donate, error, focus, footer, footerElement, highlighted, input, inputLabel, logo, navbar, navbarItem, navbarSpacing, page, pill, radioRow, root, searchPlaceholder, searchbar, segueContent, seguePage, smallSpacing, spinner)
 
 import Config.Assets as Assets
 import Config.Styles.Colors as Colors
@@ -148,6 +148,23 @@ seguePage =
     , height fill
     , Font.bold
     , Font.size (fontSizeBy 3)
+    ]
+
+
+segueContent : List (Attribute msg)
+segueContent =
+    [ centerX
+    , centerY
+    , spacing 30
+    ]
+
+
+error : List (Attribute msg)
+error =
+    [ Font.bold
+    , Font.size 12
+    , Font.family [ Font.monospace ]
+    , Font.color Colors.red
     ]
 
 

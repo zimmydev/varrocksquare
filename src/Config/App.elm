@@ -1,4 +1,4 @@
-module Config.App exposing (logEffect, logInfo, logMsg, logProblem, messagePreviewLength, startUser)
+module Config.App exposing (logEffect, logInfo, logMsg, logProblem, messagePreviewLength)
 
 {-| Configurations that affect the entire app.
 -}
@@ -11,15 +11,6 @@ import LoggedInUser exposing (LoggedInUser)
 messagePreviewLength : Int
 messagePreviewLength =
     50
-
-
-
--- Debugging
-
-
-startUser : Maybe LoggedInUser
-startUser =
-    Just LoggedInUser.debug
 
 
 

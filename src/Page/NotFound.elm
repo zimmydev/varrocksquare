@@ -24,7 +24,7 @@ view =
 body : Element msg
 body =
     el Styles.seguePage <|
-        column [ centerX, centerY, spacing 30 ] <|
+        column Styles.segueContent
             [ Route.link [ centerX ] <|
                 { route = Route.Home
                 , body =
@@ -34,7 +34,7 @@ body =
                         }
                 }
             , el [ centerX ] <|
-                text "Whoops! The page you were looking for is missing."
+                text "Whoops! The page you were looking for was not found."
             , el [ centerX ] <|
                 text "You'll be redirected shortly…"
             ]

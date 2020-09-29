@@ -1,4 +1,4 @@
-module Page.Redirect exposing (State, view)
+module Page.Redirect exposing (State, init, view)
 
 import Config.Styles as Styles
 import Element exposing (..)
@@ -16,34 +16,39 @@ type alias Href =
 
 
 
+-- Init
+
+
+init : Href -> State
+init href =
+    { href = href }
+
+
+
 -- Views
 
 
 view : State -> Page msg
 view { href } =
-    let
-        redirectingString =
-            title href
-    in
     { navbarItem = Page.Other
-    , title = redirectingString
-    , body = lazy body redirectingString
+    , title = activity href
+    , body = lazy body href
     }
 
 
-body : String -> Element msg
-body label =
+body : Href -> Element msg
+body href =
     el Styles.seguePage <|
-        el [ centerX, centerY ] <|
-            text label
+        el Styles.segueContent <|
+            text (activity href)
 
 
 
 -- Helpers
 
 
-title : Href -> String
-title href =
+activity : Href -> String
+activity href =
     href
         |> Url.fromString
         |> Maybe.map .host
