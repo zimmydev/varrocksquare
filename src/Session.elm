@@ -1,4 +1,4 @@
-module Session exposing (Session, authToken, credentialed, navKey, new, user, withLoggedInUser)
+module Session exposing (Session, authToken, credentialed, new, user, withLoggedInUser)
 
 import Api exposing (AuthToken)
 import Browser.Navigation as Nav
@@ -6,55 +6,45 @@ import LoggedInUser exposing (LoggedInUser)
 
 
 type Session
-    = Guest Nav.Key
-    | LoggedIn Nav.Key LoggedInUser
+    = Guest
+    | LoggedIn LoggedInUser
 
 
 
 -- Obtaining a Session
 
 
-new : Nav.Key -> Maybe LoggedInUser -> Session
-new key maybeLoggedInUser =
+new : Maybe LoggedInUser -> Session
+new maybeLoggedInUser =
     case maybeLoggedInUser of
         Nothing ->
-            Guest key
+            Guest
 
         Just loggedInUser ->
-            LoggedIn key loggedInUser
+            LoggedIn loggedInUser
 
 
 
 -- Info on Session
 
 
-navKey : Session -> Nav.Key
-navKey session =
-    case session of
-        Guest key ->
-            key
-
-        LoggedIn key _ ->
-            key
-
-
 user : Session -> Maybe LoggedInUser
 user session =
     case session of
-        Guest _ ->
+        Guest ->
             Nothing
 
-        LoggedIn _ loggedInUser ->
+        LoggedIn loggedInUser ->
             Just loggedInUser
 
 
 authToken : Session -> Maybe AuthToken
 authToken session =
     case session of
-        Guest _ ->
+        Guest ->
             Nothing
 
-        LoggedIn _ loggedInUser ->
+        LoggedIn loggedInUser ->
             Just (LoggedInUser.authToken loggedInUser)
 
 
@@ -65,18 +55,18 @@ authToken session =
 credentialed : Session -> { loggedIn : a, guest : a } -> a
 credentialed session { loggedIn, guest } =
     case session of
-        Guest _ ->
+        Guest ->
             guest
 
-        LoggedIn _ _ ->
+        LoggedIn _ ->
             loggedIn
 
 
 withLoggedInUser : Session -> { loggedIn : LoggedInUser -> a, guest : a } -> a
 withLoggedInUser session { loggedIn, guest } =
     case session of
-        Guest _ ->
+        Guest ->
             guest
 
-        LoggedIn _ loggedInUser ->
+        LoggedIn loggedInUser ->
             loggedIn loggedInUser

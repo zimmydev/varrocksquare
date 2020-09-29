@@ -1,10 +1,14 @@
-module Page.Redirect exposing (view)
+module Page.Redirect exposing (State, view)
 
 import Config.Styles as Styles
 import Element exposing (..)
 import Element.Lazy exposing (..)
 import Page exposing (Page)
 import Url
+
+
+type alias State =
+    { href : String }
 
 
 type alias Href =
@@ -15,8 +19,8 @@ type alias Href =
 -- Views
 
 
-view : Href -> Page msg
-view href =
+view : State -> Page msg
+view { href } =
     let
         redirectingString =
             title href

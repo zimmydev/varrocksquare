@@ -44,34 +44,42 @@ import User exposing (User)
 -- Model
 
 
-type AppState
-    = RedirectState Global Href
-    | NotFoundState Global ()
-    | HomeState Global ()
-    | FeedsState Global Page.Feeds.State
-    | EditorState Global Page.Editor.State LoggedInUser
-    | SearchState Global Page.Search.State
-    | ToolsState Global Page.Tools.State
-    | StarredState Global Page.Starred.State LoggedInUser
-    | InboxState Global Page.Inbox.State LoggedInUser
-    | SettingsState Global Page.Settings.State LoggedInUser
-    | RegisterState Global Page.Register.State
+type AppState key
+    = RedirectState (Global key) Page.Redirect.State
+    | NotFoundState (Global key) ()
+    | HomeState (Global key) ()
+    | FeedsState (Global key) Page.Feeds.State
+    | EditorState (Global key) Page.Editor.State LoggedInUser
+    | SearchState (Global key) Page.Search.State
+    | ToolsState (Global key) Page.Tools.State
+    | StarredState (Global key) Page.Starred.State LoggedInUser
+    | InboxState (Global key) Page.Inbox.State LoggedInUser
+    | SettingsState (Global key) Page.Settings.State LoggedInUser
+    | RegisterState (Global key) Page.Register.State
       {- NOTE: There is no LogoutState because logging out can be handled by `transition` without
          the need for an actual interim state existing.
       -}
-    | LoginState Global Page.Login.State
-    | ProfileState Global Page.Profile.State
-    | PostState Global Page.Post.State
-    | HelpState Global ()
-    | PrivacyPolicyState Global ()
+    | LoginState (Global key) Page.Login.State
+    | ProfileState (Global key) Page.Profile.State
+    | PostState (Global key) Page.Post.State
+    | HelpState (Global key) ()
+    | PrivacyPolicyState (Global key) ()
 
 
-type alias Global =
-    { session : Session
+type alias Global key =
+    { navigation : NavigationConfig key
+    , session : Session
     , devpro : Device.Profile
     , alerts : Queue
     , searchCache : Cache (Post Preview)
     , settings : Settings
+    }
+
+
+type alias NavigationConfig key =
+    { key : key
+    , pushRoute : key -> Route -> Cmd Msg
+    , replaceRoute : key -> Route -> Cmd Msg
     }
 
 
@@ -103,7 +111,7 @@ type Msg
 
 
 type Effect
-    = Effects (List Effect)
+    = Batch (List Effect)
     | NoEffect -- No-op
     | DelayEffect Float Effect
     | DelayMsg Float Msg
@@ -129,31 +137,41 @@ type Effect
 -- Main, Init & Subscriptions
 
 
-main : Program Value AppState Msg
+main : Program Value (AppState Nav.Key) Msg
 main =
     let
         performEffect ( app, effect ) =
             let
                 global =
-                    globalState app
-
-                navKey =
-                    Session.navKey global.session
+                    extractGlobal app
             in
-            ( app, perform navKey effect )
+            ( app, perform global.navigation effect )
+
+        initShim json url key =
+            init json
+                url
+                { key = key
+                , pushRoute = Route.push
+                , replaceRoute = Route.replace
+                }
+                |> performEffect
+
+        updateShim msg model =
+            update msg model
+                |> performEffect
     in
     Browser.application
-        { init = \json url key -> init json url key |> performEffect
+        { init = initShim
         , subscriptions = subscriptions
-        , update = \msg model -> update msg model |> performEffect
+        , update = updateShim
         , onUrlRequest = LinkClicked
         , onUrlChange = RouteChanged << Route.routeUrl
         , view = view
         }
 
 
-init : Value -> Url -> Nav.Key -> ( AppState, Effect )
-init json url navKey =
+init : Value -> Url -> NavigationConfig key -> ( AppState key, Effect )
+init json url navigation =
     let
         flags =
             Flags.decode json
@@ -167,23 +185,24 @@ init json url navKey =
             Route.routeUrl url
 
         ( initAppState, initEffect ) =
-            start initRoute <|
-                { session = Session.new navKey AppState.startUser
+            begin initRoute <|
+                { navigation = navigation
+                , session = Session.new AppState.startUser
                 , devpro = Device.profile flags.size
                 , alerts = Queue.empty
                 , searchCache = Cache.empty
                 , settings = Settings.default
                 }
     in
-    Effects [ initEffect, DelayMsg 350 LoadingTimedOut ]
+    Batch [ initEffect, DelayMsg 350 LoadingTimedOut ]
         |> Tuple.pair initAppState
 
 
-subscriptions : AppState -> Sub Msg
+subscriptions : AppState key -> Sub Msg
 subscriptions app =
     let
         global =
-            globalState app
+            extractGlobal app
     in
     Sub.batch
         [ Browser.Events.onResize <|
@@ -198,17 +217,14 @@ subscriptions app =
 -- Update
 
 
-update : Msg -> AppState -> ( AppState, Effect )
+update : Msg -> AppState key -> ( AppState key, Effect )
 update msg app =
     let
         global =
-            globalState app
+            extractGlobal app
 
         ignore =
             ( app, NoEffect )
-
-        navKey =
-            Session.navKey global.session
     in
     case msg |> AppState.logMsg [ Ignored ] of
         Ignored ->
@@ -236,7 +252,7 @@ update msg app =
             app |> transition newRoute
 
         ResizedDevice devpro ->
-            ( { global | devpro = devpro } |> updateApp app, NoEffect )
+            ( { global | devpro = devpro } |> updateGlobal app, NoEffect )
 
         AlertRequested alert ->
             ( app, FireAlert alert )
@@ -254,10 +270,10 @@ update msg app =
                     else
                         global.alerts
             in
-            ( { global | alerts = nextQueue } |> updateApp app, ExpireAlert alert )
+            ( { global | alerts = nextQueue } |> updateGlobal app, ExpireAlert alert )
 
         AlertExpired alert ->
-            ( { global | alerts = global.alerts |> Queue.remove alert } |> updateApp app
+            ( { global | alerts = global.alerts |> Queue.remove alert } |> updateGlobal app
             , NoEffect
             )
 
@@ -380,11 +396,11 @@ update msg app =
 -- Views
 
 
-view : AppState -> Document Msg
+view : AppState key -> Document Msg
 view app =
     let
         { session, devpro, alerts } =
-            globalState app
+            extractGlobal app
 
         page =
             Page.view session devpro alerts
@@ -463,29 +479,26 @@ view app =
 -- Transitioning the AppState State
 
 
-start : Route -> Global -> ( AppState, Effect )
-start initRoute initGlobal =
+begin : Route -> Global key -> ( AppState key, Effect )
+begin initRoute initGlobal =
     HomeState initGlobal ()
         |> transition initRoute
 
 
-transition : Route -> AppState -> ( AppState, Effect )
+transition : Route -> AppState key -> ( AppState key, Effect )
 transition nextRoute app =
     let
-        navKey =
-            Session.navKey global.session
-
         global =
-            globalState app
+            extractGlobal app
     in
     {- Here, we're checking the *old state* against the *new route* to see how we should transition
        and build a new AppState. Note: `_` in first tuple position here means *coming from any
-       previous state (inherently discarding previous local state; global state is available as
-       `global`)*
+       previous state, inherently discarding previous local state*. This function gives us fine-
+       tuned control over our state transitions.
     -}
     case ( app, nextRoute ) of
         ( _, Route.Redirect href ) ->
-            ( RedirectState global href
+            ( RedirectState global { href = href }
             , Redirect href
             )
 
@@ -757,8 +770,8 @@ transition nextRoute app =
                 -- Whoops, we're already logged out!
                 { guest = app |> transition Route.Home
                 , loggedIn =
-                    ( HomeState { global | session = Session.new navKey Nothing } ()
-                    , Effects
+                    ( HomeState { global | session = Session.new Nothing } ()
+                    , Batch
                         [ FireAlert Alert.loggedOut
                         , PushRoute Route.Home
                         ]
@@ -784,8 +797,8 @@ transition nextRoute app =
                 }
 
 
-updateApp : AppState -> Global -> AppState
-updateApp app global =
+updateGlobal : AppState key -> Global key -> AppState key
+updateGlobal app global =
     case app of
         RedirectState _ href ->
             RedirectState global href
@@ -836,19 +849,19 @@ updateApp app global =
             PrivacyPolicyState global ()
 
 
-globalState : AppState -> Global
-globalState app =
+extractGlobal : AppState key -> Global key
+extractGlobal app =
     case app of
         RedirectState global _ ->
             global
 
-        NotFoundState global () ->
+        NotFoundState global _ ->
             global
 
-        HomeState global () ->
+        HomeState global _ ->
             global
 
-        FeedsState global () ->
+        FeedsState global _ ->
             global
 
         EditorState global _ _ ->
@@ -881,10 +894,10 @@ globalState app =
         PostState global _ ->
             global
 
-        HelpState global () ->
+        HelpState global _ ->
             global
 
-        PrivacyPolicyState global () ->
+        PrivacyPolicyState global _ ->
             global
 
 
@@ -892,16 +905,16 @@ globalState app =
 -- Performing Effects
 
 
-perform : Nav.Key -> Effect -> Cmd Msg
-perform navKey effect =
+perform : NavigationConfig key -> Effect -> Cmd Msg
+perform navigation effect =
     let
         ignore =
             Cmd.none
     in
     case effect |> AppState.logEffect [ NoEffect, SettingsEffect Page.Settings.NoEffect ] of
-        Effects effects ->
+        Batch effects ->
             Cmd.batch <|
-                List.map (perform navKey) effects
+                List.map (perform navigation) effects
 
         NoEffect ->
             ignore
@@ -936,6 +949,7 @@ perform navKey effect =
         ProfileEffect Page.Profile.NoEffect ->
             ignore
 
+        -- Timers
         DelayMsg delay msg ->
             Process.sleep delay
                 |> Task.perform (\_ -> msg)
@@ -944,15 +958,17 @@ perform navKey effect =
             Process.sleep delay
                 |> Task.perform (\_ -> EffectDelayed delayedEffect)
 
+        -- Navigation
         PushRoute route ->
-            Route.push navKey route
+            navigation.pushRoute navigation.key route
 
         ReplaceRoute route ->
-            Route.replace navKey route
+            navigation.replaceRoute navigation.key route
 
         Redirect href ->
             Nav.load href
 
+        -- Alerts
         FireAlert alert ->
             Alert.fire AlertFired alert
 
@@ -964,4 +980,4 @@ perform navKey effect =
             Task.attempt (\_ -> Ignored) (Dom.focus "searchbar")
 
         SearchEffect (Page.Search.ReplaceQuery maybeQuery) ->
-            Route.replace navKey (Route.Search maybeQuery)
+            perform navigation (ReplaceRoute <| Route.Search maybeQuery)
