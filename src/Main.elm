@@ -171,7 +171,7 @@ init json url navigation =
 
         global flags =
             { navigation = navigation
-            , session = Session.new Nothing
+            , session = Guest
             , devpro = Device.profile flags.size
             , alerts = Queue.empty
             , searchCache = Cache.empty
@@ -570,12 +570,9 @@ transition nextRoute app =
 
             else
                 let
-                    maybeUser =
-                        Session.user global.session
-
                     ( initLocal, initEffect ) =
                         -- Initialize page state
-                        Page.Profile.init maybeUser username
+                        Page.Profile.init global.session username
                 in
                 ( ProfileState global initLocal
                 , ProfileEffect initEffect
@@ -584,11 +581,16 @@ transition nextRoute app =
         ( _, Route.Profile username ) ->
             let
                 maybeUser =
-                    Session.user global.session
+                    case global.session of
+                        Guest ->
+                            Nothing
+
+                        LoggedIn loggedInUser ->
+                            Just loggedInUser
 
                 ( initLocal, initEffect ) =
                     -- Initialize page state
-                    Page.Profile.init maybeUser username
+                    Page.Profile.init global.session username
             in
             ( ProfileState global initLocal
             , ProfileEffect initEffect
@@ -626,21 +628,21 @@ transition nextRoute app =
                 )
 
         ( _, Route.NewPost ) ->
-            Session.withLoggedInUser global.session
-                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
-                { guest = app |> transition Route.NotFound
-                , loggedIn =
-                    \loggedInUser ->
-                        let
-                            ( initLocal, initEffect ) =
-                                Page.Editor.init Nothing
+            case global.session of
+                Guest ->
+                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                    app |> transition Route.NotFound
 
-                            -- Initialize page state
-                        in
-                        ( EditorState global initLocal loggedInUser
-                        , EditorEffect initEffect
-                        )
-                }
+                LoggedIn loggedInUser ->
+                    let
+                        ( initLocal, initEffect ) =
+                            Page.Editor.init Nothing
+
+                        -- Initialize page state
+                    in
+                    ( EditorState global initLocal loggedInUser
+                    , EditorEffect initEffect
+                    )
 
         -- Edit Post
         --
@@ -660,20 +662,20 @@ transition nextRoute app =
                 )
 
         ( _, Route.EditPost slug ) ->
-            Session.withLoggedInUser global.session
-                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
-                { guest = app |> transition Route.NotFound
-                , loggedIn =
-                    \loggedInUser ->
-                        let
-                            ( initState, initEffect ) =
-                                -- Initialize page state
-                                Page.Editor.init (Just slug)
-                        in
-                        ( EditorState global initState loggedInUser
-                        , EditorEffect initEffect
-                        )
-                }
+            case global.session of
+                Guest ->
+                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                    app |> transition Route.NotFound
+
+                LoggedIn loggedInUser ->
+                    let
+                        ( initState, initEffect ) =
+                            -- Initialize page state
+                            Page.Editor.init (Just slug)
+                    in
+                    ( EditorState global initState loggedInUser
+                    , EditorEffect initEffect
+                    )
 
         -- Settings
         --
@@ -682,20 +684,20 @@ transition nextRoute app =
             ( SettingsState global local loggedInUser, NoEffect )
 
         ( _, Route.Settings ) ->
-            Session.withLoggedInUser global.session
+            case global.session of
                 -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
-                { guest = app |> transition Route.NotFound
-                , loggedIn =
-                    \loggedInUser ->
-                        let
-                            ( initLocal, initEffect ) =
-                                -- Initialize page state
-                                Page.Settings.init global.settings
-                        in
-                        ( SettingsState global initLocal loggedInUser
-                        , SettingsEffect initEffect
-                        )
-                }
+                Guest ->
+                    app |> transition Route.NotFound
+
+                LoggedIn loggedInUser ->
+                    let
+                        ( initLocal, initEffect ) =
+                            -- Initialize page state
+                            Page.Settings.init global.settings
+                    in
+                    ( SettingsState global initLocal loggedInUser
+                    , SettingsEffect initEffect
+                    )
 
         -- Starred
         --
@@ -704,20 +706,20 @@ transition nextRoute app =
             ( StarredState global local loggedInUser, NoEffect )
 
         ( _, Route.Starred ) ->
-            Session.withLoggedInUser global.session
-                -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
-                { guest = app |> transition Route.NotFound
-                , loggedIn =
-                    \loggedInUser ->
-                        let
-                            ( initLocal, initEffect ) =
-                                -- Initialize page state
-                                Page.Starred.init ()
-                        in
-                        ( StarredState global initLocal loggedInUser
-                        , StarredEffect initEffect
-                        )
-                }
+            case global.session of
+                Guest ->
+                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                    app |> transition Route.NotFound
+
+                LoggedIn loggedInUser ->
+                    let
+                        ( initLocal, initEffect ) =
+                            -- Initialize page state
+                            Page.Starred.init ()
+                    in
+                    ( StarredState global initLocal loggedInUser
+                    , StarredEffect initEffect
+                    )
 
         -- Inbox
         --
@@ -726,20 +728,20 @@ transition nextRoute app =
             ( InboxState global local loggedInUser, NoEffect )
 
         ( _, Route.Inbox ) ->
-            Session.withLoggedInUser global.session
+            case global.session of
                 -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
-                { guest = app |> transition Route.NotFound
-                , loggedIn =
-                    \loggedInUser ->
-                        let
-                            ( initLocal, initEffect ) =
-                                -- Initialize page state
-                                Page.Inbox.init ()
-                        in
-                        ( InboxState global initLocal loggedInUser
-                        , InboxEffect initEffect
-                        )
-                }
+                Guest ->
+                    app |> transition Route.NotFound
+
+                LoggedIn loggedInUser ->
+                    let
+                        ( initLocal, initEffect ) =
+                            -- Initialize page state
+                            Page.Inbox.init ()
+                    in
+                    ( InboxState global initLocal loggedInUser
+                    , InboxEffect initEffect
+                    )
 
         -- Login
         --
@@ -753,36 +755,38 @@ transition nextRoute app =
                     -- Initialize page state
                     Page.Login.init ()
             in
-            Session.credentialed global.session
-                -- Whoops, we're already logged in!
-                { loggedIn = app |> transition Route.Home
-                , guest =
+            case global.session of
+                Guest ->
                     ( LoginState global initLocal
                     , LoginEffect initEffect
                     )
-                }
+
+                LoggedIn _ ->
+                    -- We're already logged in; transition to home route
+                    app
+                        |> transition Route.Home
 
         ( _, Route.Logout ) ->
-            Session.credentialed global.session
-                -- Whoops, we're already logged out!
-                { guest = app |> transition Route.Home
-                , loggedIn =
-                    ( HomeState { global | session = Session.new Nothing } ()
+            case global.session of
+                Guest ->
+                    -- We're already logged out; transition to home route
+                    app |> transition Route.Home
+
+                LoggedIn _ ->
+                    ( HomeState { global | session = Guest } ()
                     , Batch
                         [ FireAlert Alert.loggedOut
                         , PushRoute Route.Home
                         ]
                     )
-                }
 
         ( RegisterState _ local, Route.Register ) ->
             -- Ignore state transition
             ( RegisterState global local, NoEffect )
 
         ( _, Route.Register ) ->
-            Session.credentialed global.session
-                { loggedIn = app |> transition Route.Home
-                , guest =
+            case global.session of
+                Guest ->
                     let
                         ( initLocal, initEffect ) =
                             -- Initialize page state
@@ -791,7 +795,9 @@ transition nextRoute app =
                     ( RegisterState global initLocal
                     , RegisterEffect initEffect
                     )
-                }
+
+                LoggedIn _ ->
+                    app |> transition Route.Home
 
 
 updateGlobal : AppState key -> Global key -> AppState key

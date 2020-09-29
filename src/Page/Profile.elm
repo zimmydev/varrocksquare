@@ -6,7 +6,7 @@ import Element.Input as Input
 import Element.Lazy exposing (..)
 import LoggedInUser exposing (LoggedInUser)
 import Page exposing (Page)
-import Session exposing (Session)
+import Session exposing (Session(..))
 import User exposing (User)
 import Username exposing (Username)
 
@@ -74,13 +74,13 @@ type Effect
 -- Init
 
 
-init : Maybe LoggedInUser -> Username -> ( State, Effect )
-init maybeLoggedInUser name =
-    case maybeLoggedInUser of
-        Nothing ->
+init : Session -> Username -> ( State, Effect )
+init session name =
+    case session of
+        Guest ->
             ( { profile = ViewingOther (NotAsked name) }, NoEffect )
 
-        Just loggedInUser ->
+        LoggedIn loggedInUser ->
             if LoggedInUser.username loggedInUser == name then
                 ( { profile = ViewingMe loggedInUser }, NoEffect )
 

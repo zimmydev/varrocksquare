@@ -18,14 +18,14 @@ import Username
 
 decodingTests : Test
 decodingTests =
-    let
-        decodeUser =
-            decodeValue LoggedInUser.decoder
-
-        smallProfile joinDate =
-            Encode.object [ ( "joinDate", Encode.string joinDate ) ]
-    in
     describe "Decoding" <|
+        let
+            decodeUser =
+                decodeValue LoggedInUser.decoder
+
+            smallProfile joinDate =
+                Encode.object [ ( "joinDate", Encode.string joinDate ) ]
+        in
         [ fuzz validData "A valid JSON logged-in user object" <|
             \( name, token, joinDate ) ->
                 [ ( "username", Encode.string name )

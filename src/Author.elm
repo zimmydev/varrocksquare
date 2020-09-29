@@ -4,7 +4,7 @@ import Json.Decode as Decode exposing (Decoder, nullable)
 import Json.Decode.Pipeline exposing (custom, optional, required)
 import LoggedInUser exposing (LoggedInUser)
 import Profile exposing (Profile)
-import Session exposing (Session)
+import Session exposing (Session(..))
 import User exposing (User)
 import Username exposing (Username)
 
@@ -34,22 +34,20 @@ type UnfollowableUser
 decoder : Session -> Decoder Author
 decoder session =
     let
-        authorDecoder ( isFollowing, usr ) =
-            Session.withLoggedInUser session
-                { guest = Decode.succeed <| CantFollow (Unfollowable usr)
-                , loggedIn =
-                    \loggedInUser ->
-                        if LoggedInUser.username loggedInUser == User.username usr then
-                            Decode.succeed <| CantFollow (Unfollowable usr)
+        authorDecoder ( isFollowing, author ) =
+            case session of
+                Guest ->
+                    Decode.succeed <| CantFollow (Unfollowable author)
 
-                        else
-                            case isFollowing of
-                                True ->
-                                    Decode.succeed <| Following (Followed usr)
+                LoggedIn loggedInUser ->
+                    if LoggedInUser.username loggedInUser == User.username author then
+                        Decode.succeed <| CantFollow (Unfollowable author)
 
-                                False ->
-                                    Decode.succeed <| NotFollowing (Unfollowed usr)
-                }
+                    else if isFollowing then
+                        Decode.succeed <| Following (Followed author)
+
+                    else
+                        Decode.succeed <| NotFollowing (Unfollowed author)
     in
     Decode.succeed Tuple.pair
         |> optional "following" Decode.bool False

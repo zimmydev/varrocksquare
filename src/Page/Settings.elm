@@ -124,35 +124,35 @@ body requestAlert session settings =
                     ParentMsg (requestAlert Alert.passwordsDontMatch)
                 ]
                 (text "Mismatch passwords")
-            , Session.withLoggedInUser session
-                { loggedIn =
-                    \loggedInUser ->
-                        Route.inert
-                            [ Events.onClick <|
-                                ParentMsg <|
-                                    requestAlert <|
-                                        Alert.receivedMessage
-                                            loggedInUser
-                                            Username.debug
-                                            "A little bit of technique in there as well."
-                            ]
-                            (text "Short message")
-                , guest = none
-                }
-            , Session.withLoggedInUser session
-                { loggedIn =
-                    \loggedInUser ->
-                        Route.inert
-                            [ Events.onClick <|
-                                ParentMsg <|
-                                    requestAlert <|
-                                        Alert.receivedMessage
-                                            loggedInUser
-                                            Username.debug
-                                            "I can double your GP just meet me at the chaos altar"
-                            ]
-                            (text "Long message")
-                , guest = none
-                }
+            , case session of
+                Guest ->
+                    none
+
+                LoggedIn loggedInUser ->
+                    Route.inert
+                        [ Events.onClick <|
+                            ParentMsg <|
+                                requestAlert <|
+                                    Alert.receivedMessage
+                                        loggedInUser
+                                        Username.debug
+                                        "A little bit of technique in there as well."
+                        ]
+                        (text "Short message")
+            , case session of
+                Guest ->
+                    none
+
+                LoggedIn loggedInUser ->
+                    Route.inert
+                        [ Events.onClick <|
+                            ParentMsg <|
+                                requestAlert <|
+                                    Alert.receivedMessage
+                                        loggedInUser
+                                        Username.debug
+                                        "I can double your GP just meet me at the chaos altar"
+                        ]
+                        (text "Long message")
             ]
         ]

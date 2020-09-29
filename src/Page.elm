@@ -20,7 +20,7 @@ import Html.Attributes
 import Icon exposing (Icon)
 import LoggedInUser
 import Route
-import Session exposing (Session)
+import Session exposing (Session(..))
 import Username
 
 
@@ -187,10 +187,14 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.pencil iconSize
             in
-            Session.credentialed session
-                { guest = Element.none
-                , loggedIn =
-                    Route.link itemStyle
+            case session of
+                Guest ->
+                    -- We're logged out; display no new post link
+                    Element.none
+
+                LoggedIn _ ->
+                    Route.link
+                        itemStyle
                         { route = Route.NewPost
                         , body =
                             Device.responsive devpro
@@ -198,7 +202,6 @@ navbarItem item session devpro activeItem =
                                 , full = labelIcon icon "New Post"
                                 }
                         }
-                }
 
         Search ->
             let
@@ -235,9 +238,12 @@ navbarItem item session devpro activeItem =
                 icon =
                     Icon.starBox iconSize
             in
-            Session.credentialed session
-                { guest = Element.none
-                , loggedIn =
+            case session of
+                Guest ->
+                    -- We're logged out; display no starred posts link
+                    Element.none
+
+                LoggedIn _ ->
                     Route.link itemStyle
                         { route = Route.Starred
                         , body =
@@ -246,16 +252,18 @@ navbarItem item session devpro activeItem =
                                 , full = labelIcon icon "Starred"
                                 }
                         }
-                }
 
         Inbox ->
             let
                 icon =
                     Icon.paperPlane iconSize
             in
-            Session.credentialed session
-                { guest = Element.none
-                , loggedIn =
+            case session of
+                Guest ->
+                    -- We're logged out; display no inbox link
+                    Element.none
+
+                LoggedIn _ ->
                     Route.link itemStyle
                         { route = Route.Inbox
                         , body =
@@ -264,7 +272,6 @@ navbarItem item session devpro activeItem =
                                 , full = "Inbox" |> labelIcon icon |> pill 69
                                 }
                         }
-                }
 
         Donate ->
             let
@@ -304,33 +311,40 @@ navbarItem item session devpro activeItem =
                 }
 
         Login ->
-            Session.credentialed session
-                { loggedIn = Element.none
-                , guest =
+            case session of
+                Guest ->
                     Route.link itemStyle
                         { route = Route.Login
                         , body = Element.text "Login"
                         }
-                }
+
+                LoggedIn _ ->
+                    -- We're logged in; display no login link
+                    Element.none
 
         Register ->
-            Session.credentialed session
-                { loggedIn = Element.none
-                , guest =
+            case session of
+                Guest ->
                     Route.link itemStyle
                         { route = Route.Register
                         , body = Element.text "Register"
                         }
-                }
+
+                LoggedIn _ ->
+                    -- We're logged in; display no register link
+                    Element.none
 
         Settings ->
             let
                 icon =
                     Icon.settings iconSize
             in
-            Session.credentialed session
-                { guest = Element.none
-                , loggedIn =
+            case session of
+                Guest ->
+                    -- We're logged out; display no settings link
+                    Element.none
+
+                LoggedIn _ ->
                     Route.link itemStyle
                         { route = Route.Settings
                         , body =
@@ -339,39 +353,40 @@ navbarItem item session devpro activeItem =
                                 , full = labelIcon icon "Settings"
                                 }
                         }
-                }
 
         Logout ->
-            Session.credentialed session
-                { guest = Element.none
-                , loggedIn =
+            case session of
+                Guest ->
+                    Element.none
+
+                LoggedIn _ ->
                     Route.link itemStyle
                         { route = Route.Logout
                         , body = Element.text "Logout"
                         }
-                }
 
         Profile ->
-            Session.withLoggedInUser session
-                { guest =
+            case session of
+                Guest ->
                     Avatar.default
                         |> Avatar.view avatarSize
                         |> label "Guest"
-                , loggedIn =
-                    \loggedInUser ->
-                        let
-                            username =
-                                LoggedInUser.username loggedInUser
-                        in
-                        Route.link Styles.highlighted
-                            { route = Route.Profile username
-                            , body =
-                                LoggedInUser.avatar loggedInUser
-                                    |> Avatar.view avatarSize
-                                    |> label ("@" ++ Username.toString username)
-                                    |> Element.el Styles.highlighted
-                            }
-                }
+
+                LoggedIn loggedInUser ->
+                    let
+                        ( username, avatar ) =
+                            ( LoggedInUser.username loggedInUser
+                            , LoggedInUser.avatar loggedInUser
+                            )
+                    in
+                    Route.link Styles.highlighted
+                        { route = Route.Profile username
+                        , body =
+                            avatar
+                                |> Avatar.view avatarSize
+                                |> label ("@" ++ Username.toString username)
+                                |> Element.el Styles.highlighted
+                        }
 
         Other ->
             Other
