@@ -1,4 +1,4 @@
-module ProfileTests exposing (..)
+module Tests.Profile exposing (..)
 
 {-| This module tests the `Profile` module.
 -}

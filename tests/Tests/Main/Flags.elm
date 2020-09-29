@@ -1,4 +1,4 @@
-module Main.FlagsTests exposing (..)
+module Tests.Main.Flags exposing (..)
 
 {-| This module tests the module `Main.Flags`.
 -}

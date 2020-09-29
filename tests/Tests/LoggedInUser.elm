@@ -1,4 +1,4 @@
-module LoggedInUserTests exposing (..)
+module Tests.LoggedInUser exposing (..)
 
 {-| This module tests the `User` module.
 -}
@@ -10,9 +10,9 @@ import Json.Decode as Decode exposing (decodeValue)
 import Json.Encode as Encode
 import LoggedInUser
 import Profile
-import ProfileTests exposing (invalidIso8601, validIso8601)
 import Test exposing (..)
-import UserTests exposing (invalidUsername, validUsername)
+import Tests.Profile exposing (invalidIso8601, validIso8601)
+import Tests.User exposing (invalidUsername, validUsername)
 import Username
 
 
@@ -114,7 +114,7 @@ validToken =
 
 validData : Fuzzer ( String, String, String )
 validData =
-    tuple ( UserTests.validData, validToken )
+    tuple ( Tests.User.validData, validToken )
         |> Fuzz.map join
 
 
@@ -126,11 +126,11 @@ invalidToken =
 invalidData : Fuzzer ( String, String, String )
 invalidData =
     oneOf
-        [ tuple ( UserTests.validData, invalidToken )
+        [ tuple ( Tests.User.validData, invalidToken )
             |> Fuzz.map join
-        , tuple ( UserTests.invalidData, validToken )
+        , tuple ( Tests.User.invalidData, validToken )
             |> Fuzz.map join
-        , tuple ( UserTests.invalidData, invalidToken )
+        , tuple ( Tests.User.invalidData, invalidToken )
             |> Fuzz.map join
         ]
 

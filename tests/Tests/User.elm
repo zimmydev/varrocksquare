@@ -1,4 +1,4 @@
-module UserTests exposing (..)
+module Tests.User exposing (..)
 
 {-| This module tests the `User` module.
 -}
@@ -9,8 +9,8 @@ import Fuzz exposing (Fuzzer, constant, oneOf, string, tuple)
 import Json.Decode as Decode exposing (decodeValue)
 import Json.Encode as Encode
 import Profile
-import ProfileTests exposing (invalidIso8601, validIso8601)
 import Test exposing (..)
+import Tests.Profile exposing (invalidIso8601, validIso8601)
 import User
 import Username exposing (Username)
 
