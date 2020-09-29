@@ -1,4 +1,4 @@
-module Main exposing (AppState)
+module Main exposing (AppState, Effect(..), Msg(..), NavigationConfig, extractGlobal, init, perform, update, view)
 
 import Alert exposing (Alert, fire)
 import Alert.Queue as Queue exposing (Queue)
@@ -156,9 +156,9 @@ main =
     Browser.application
         { init = \json url key -> init json url (navigation key) |> performEffect
         , subscriptions = subscriptions
-        , update = \msg model -> update msg model |> performEffect
+        , update = \msg app -> update msg app |> performEffect
         , onUrlRequest = LinkClicked
-        , onUrlChange = RouteChanged << Route.routeUrl
+        , onUrlChange = Route.routeUrl >> RouteChanged
         , view = view
         }
 
