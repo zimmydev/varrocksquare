@@ -13,10 +13,6 @@ import Test exposing (..)
 import TestUtils.Object as Object
 
 
-
--- Decoding (TODO: Write testing for an invalid JSON profile)
-
-
 decodingTests : Test
 decodingTests =
     let
