@@ -7,7 +7,7 @@ import Json.Decode.Pipeline exposing (custom, optional, required)
 import LoggedInUser
 import Post.Body as Body exposing (Body)
 import Post.Slug as Slug exposing (Slug)
-import Session exposing (Session)
+import Session exposing (Session(..))
 import Tag exposing (Tag, Validated)
 import Time
 
@@ -59,17 +59,17 @@ previewDecoder : Session -> Decoder (Post Preview)
 previewDecoder session =
     let
         postDecoder ( isStarred, meta ) =
-            Session.withLoggedInUser session
-                { guest = Decode.succeed <| CantStar (Unstarrable meta Preview)
-                , loggedIn =
-                    \loggedInUser ->
-                        case isStarred of
-                            True ->
-                                Decode.succeed <| Starring (Starred meta Preview)
+            case session of
+                Guest ->
+                    Decode.succeed <| CantStar (Unstarrable meta Preview)
 
-                            False ->
-                                Decode.succeed <| NotStarring (Unstarred meta Preview)
-                }
+                LoggedIn _ ->
+                    case isStarred of
+                        True ->
+                            Decode.succeed <| Starring (Starred meta Preview)
+
+                        False ->
+                            Decode.succeed <| NotStarring (Unstarred meta Preview)
     in
     Decode.succeed Tuple.pair
         |> optional "starred" Decode.bool False
@@ -81,17 +81,16 @@ fullDecoder : Session -> Decoder (Post Full)
 fullDecoder session =
     let
         postDecoder ( isStarred, full, meta ) =
-            Session.withLoggedInUser session
-                { guest = Decode.succeed <| CantStar (Unstarrable meta full)
-                , loggedIn =
-                    \loggedInUser ->
-                        case isStarred of
-                            True ->
-                                Decode.succeed <| Starring (Starred meta full)
+            case session of
+                Guest ->
+                    Decode.succeed <| CantStar (Unstarrable meta full)
 
-                            False ->
-                                Decode.succeed <| NotStarring (Unstarred meta full)
-                }
+                LoggedIn _ ->
+                    if isStarred then
+                        Decode.succeed <| Starring (Starred meta full)
+
+                    else
+                        Decode.succeed <| NotStarring (Unstarred meta full)
     in
     Decode.succeed (\a b c -> ( a, b, c ))
         |> optional "starred" Decode.bool False
