@@ -1,8 +1,9 @@
-module Api exposing (AuthToken, authHeader, authTokenDecoder, debugToken)
+port module Api exposing (AuthToken, authHeader, debugToken, encodeToken, storeUser, tokenDecoder, userChanged)
 
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
+import Json.Encode as Encode exposing (Value)
 
 
 type AuthToken
@@ -13,8 +14,8 @@ type AuthToken
 -- Obtaining an AuthToken
 
 
-authTokenDecoder : Decoder AuthToken
-authTokenDecoder =
+tokenDecoder : Decoder AuthToken
+tokenDecoder =
     Decode.string
         |> Decode.andThen
             (\token ->
@@ -26,13 +27,18 @@ authTokenDecoder =
             )
 
 
+encodeToken : AuthToken -> Value
+encodeToken (AuthToken token) =
+    Encode.string token
+
+
 
 -- Converting an AuthToken
 
 
 authHeader : AuthToken -> Http.Header
-authHeader (AuthToken tok) =
-    Http.header "Authorization" ("Token " ++ tok)
+authHeader (AuthToken token) =
+    Http.header "Authorization" ("Token " ++ token)
 
 
 
@@ -42,3 +48,13 @@ authHeader (AuthToken tok) =
 debugToken : AuthToken
 debugToken =
     AuthToken "DEBUG_TOKEN"
+
+
+
+-- Ports
+
+
+port userChanged : (Maybe Value -> msg) -> Sub msg
+
+
+port storeUser : Maybe Value -> Cmd msg

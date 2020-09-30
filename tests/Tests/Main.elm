@@ -22,16 +22,20 @@ import Test.Html.Selector as Selector
 startFullscreen : ProgramTest (AppState ()) Msg Effect
 startFullscreen =
     -- Simulates a desktop device
-    { size = ( 1280, 800 ) }
-        |> Flags.encode
+    [ ( "size", intList [ 1280, 800 ] )
+    , ( "user", Encode.null )
+    ]
+        |> Encode.object
         |> startWith
 
 
 startCompact : ProgramTest (AppState ()) Msg Effect
 startCompact =
     -- Simulates a mobile device
-    { size = ( 640, 1136 ) }
-        |> Flags.encode
+    [ ( "size", intList [ 640, 1136 ] )
+    , ( "user", Encode.null )
+    ]
+        |> Encode.object
         |> startWith
 
 
@@ -89,32 +93,42 @@ programTests =
             [ describe "Flags are decoded as intended" <|
                 [ fuzzWith { runs = 25 } validSize "Valid size brings user to homepage" <|
                     \( w, h ) ->
-                        [ ( "size", intList [ w, h ] ) ]
+                        [ ( "size", intList [ w, h ] )
+                        , ( "user", Encode.null )
+                        ]
                             |> Encode.object
                             |> startWith
                             |> expectHomePage
                 , describe "Invalid size brings user to error page" <|
                     [ fuzzWith { runs = 75 } invalidSize "When one/more dimensions are invalid" <|
                         \( w, h ) ->
-                            [ ( "size", intList [ w, h ] ) ]
+                            [ ( "size", intList [ w, h ] )
+                            , ( "user", Encode.null )
+                            ]
                                 |> Encode.object
                                 |> startWith
                                 |> expectErrorPage
                     , fuzzWith { runs = 25 } validDim "When size has too few dimension" <|
                         \w ->
-                            [ ( "size", intList [ w ] ) ]
+                            [ ( "size", intList [ w ] )
+                            , ( "user", Encode.null )
+                            ]
                                 |> Encode.object
                                 |> startWith
                                 |> expectErrorPage
                     , fuzzWith { runs = 25 } validSize "When size has too many dimension" <|
                         \( w, h ) ->
-                            [ ( "size", intList [ w, h, w ] ) ]
+                            [ ( "size", intList [ w, h, w ] )
+                            , ( "user", Encode.null )
+                            ]
                                 |> Encode.object
                                 |> startWith
                                 |> expectErrorPage
                     , test "When size has no dimensions" <|
                         \() ->
-                            [ ( "size", intList [] ) ]
+                            [ ( "size", intList [] )
+                            , ( "user", Encode.null )
+                            ]
                                 |> Encode.object
                                 |> startWith
                                 |> expectErrorPage

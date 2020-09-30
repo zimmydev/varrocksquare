@@ -1,9 +1,10 @@
-module LoggedInUser exposing (LoggedInUser, authToken, avatar, debug, decoder, profile, username)
+module LoggedInUser exposing (LoggedInUser, authToken, avatar, decoder, encode, profile, username)
 
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (custom, required)
+import Json.Encode as Encode exposing (Value)
 import Profile exposing (Profile)
 import User exposing (User)
 import Username exposing (Username)
@@ -14,14 +15,23 @@ type LoggedInUser
 
 
 
--- Obtaining a LoggedInUser
+-- Serializing a LoggedInUser
 
 
 decoder : Decoder LoggedInUser
 decoder =
     Decode.succeed LoggedInUser
-        |> required "authToken" Api.authTokenDecoder
+        |> required "authToken" Api.tokenDecoder
         |> custom User.decoder
+
+
+encode : LoggedInUser -> Value
+encode user =
+    Encode.object
+        [ ( "authToken", Api.encodeToken <| authToken user )
+        , ( "username", Username.encode <| username user )
+        , ( "profile", Profile.encode <| profile user )
+        ]
 
 
 
@@ -29,8 +39,8 @@ decoder =
 
 
 authToken : LoggedInUser -> AuthToken
-authToken (LoggedInUser tok _) =
-    tok
+authToken (LoggedInUser token _) =
+    token
 
 
 username : LoggedInUser -> Username
@@ -46,12 +56,3 @@ profile (LoggedInUser _ user) =
 avatar : LoggedInUser -> Avatar
 avatar (LoggedInUser _ user) =
     User.avatar user
-
-
-
--- Debugging a LoggedInUser
-
-
-debug : LoggedInUser
-debug =
-    LoggedInUser Api.debugToken User.debug

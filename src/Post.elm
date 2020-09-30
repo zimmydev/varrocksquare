@@ -1,8 +1,8 @@
 module Post exposing (Full, Metadata, Post(..), Preview, StarredPost, UnstarrablePost, UnstarredPost, metadata)
 
 import Author exposing (Author)
+import Iso8601
 import Json.Decode as Decode exposing (Decoder, nullable)
-import Json.Decode.Extra exposing (datetime)
 import Json.Decode.Pipeline exposing (custom, optional, required)
 import LoggedInUser
 import Post.Body as Body exposing (Body)
@@ -107,8 +107,8 @@ metadataDecoder session =
         |> required "title" Decode.string
         |> optional "description" (nullable Decode.string) Nothing
         |> required "tags" (Decode.list Tag.decoder)
-        |> required "createdAt" datetime
-        |> optional "editedAt" (nullable datetime) Nothing
+        |> required "createdAt" Iso8601.decoder
+        |> optional "editedAt" (nullable Iso8601.decoder) Nothing
         |> required "starCount" Decode.int
         |> required "commentCount" Decode.int
 

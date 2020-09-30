@@ -2,6 +2,7 @@ module Main exposing (AppState, Effect(..), Global, Msg(..), NavigationConfig, g
 
 import Alert exposing (Alert, fire)
 import Alert.Queue as Queue exposing (Queue)
+import Api
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events
@@ -10,7 +11,7 @@ import Cache exposing (Cache)
 import Config.App as AppState
 import Device
 import Element exposing (..)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (decodeValue)
 import Json.Encode exposing (Value)
 import LoggedInUser exposing (LoggedInUser)
 import Main.Flags as Flags
@@ -93,7 +94,8 @@ type Msg
     | LoadingTimedOut -- Display a loading spinner… (should be roughly 200-600ms)
     | LinkClicked UrlRequest
     | RouteChanged Route
-    | ResizedDevice Device.Profile
+    | DeviceResized Device.Profile
+    | UserChanged (Maybe Value)
     | AlertRequested (Alert.Id -> Alert)
     | AlertFired Alert
     | AlertExpired Alert
@@ -118,6 +120,7 @@ type Effect
     | PushRoute Route
     | ReplaceRoute Route
     | Redirect Href
+    | StoreUser (Maybe LoggedInUser)
     | FireAlert (Alert.Id -> Alert)
     | ExpireAlert Alert
       -- Pages
@@ -171,7 +174,7 @@ init json url navigation =
 
         global flags =
             { navigation = navigation
-            , session = Guest
+            , session = flags.user |> Maybe.map LoggedIn |> Maybe.withDefault Guest
             , devpro = Device.profile flags.size
             , alerts = Queue.empty
             , searchCache = Cache.empty
@@ -185,7 +188,7 @@ init json url navigation =
 
                 Err error ->
                     ( ErrorState
-                        (global { size = ( 0, 0 ) })
+                        (global { size = ( 0, 0 ), user = Nothing })
                         (Page.Error.init (Decode.errorToString error))
                     , NoEffect
                     )
@@ -204,9 +207,10 @@ subscriptions app =
     Sub.batch
         [ Browser.Events.onResize <|
             Device.resizeHandler global.devpro
-                { resized = ResizedDevice
+                { resized = DeviceResized
                 , noOp = Ignored
                 }
+        , Api.userChanged UserChanged
         ]
 
 
@@ -248,8 +252,23 @@ update msg app =
         RouteChanged newRoute ->
             app |> transition newRoute
 
-        ResizedDevice devpro ->
+        DeviceResized devpro ->
             ( { global | devpro = devpro } |> updateGlobal app, NoEffect )
+
+        UserChanged maybeJson ->
+            case maybeJson of
+                Nothing ->
+                    ( { global | session = Guest } |> updateGlobal app, NoEffect )
+
+                Just json ->
+                    case json |> decodeValue LoggedInUser.decoder of
+                        Ok loggedInUser ->
+                            ( { global | session = LoggedIn loggedInUser } |> updateGlobal app
+                            , NoEffect
+                            )
+
+                        Err _ ->
+                            ignore
 
         AlertRequested alert ->
             ( app, FireAlert alert )
@@ -976,6 +995,12 @@ perform navigation effect =
 
         Redirect href ->
             Nav.load href
+
+        -- Cache
+        StoreUser maybeUser ->
+            maybeUser
+                |> Maybe.map LoggedInUser.encode
+                |> Api.storeUser
 
         -- Alerts
         FireAlert alert ->

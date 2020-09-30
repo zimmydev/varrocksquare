@@ -155,7 +155,7 @@ logo devpro =
         , body =
             Element.row Styles.logo
                 [ Element.image []
-                    { src = Assets.logo
+                    { src = Assets.image "logo.png"
                     , description = "The " ++ Strings.appName ++ " logo"
                     }
                 , Element.text logotype

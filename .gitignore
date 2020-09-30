@@ -2,7 +2,7 @@
 .DS_Store
 .Trash
 # elm make
-public/*.js
+public/main.js
 build/
 # elm-package generated files
 elm-stuff

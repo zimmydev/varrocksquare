@@ -29,7 +29,7 @@ body =
                 { route = Route.Home
                 , body =
                     image []
-                        { src = Assets.notFoundImage
+                        { src = Assets.image "not-found.png"
                         , description = "Page not found!"
                         }
                 }

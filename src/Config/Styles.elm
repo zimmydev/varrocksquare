@@ -36,7 +36,7 @@ root =
     , Font.color Colors.white
     , Font.size (fontSizeBy 1)
     , uiFont
-    , Background.tiled Assets.appBackground
+    , Background.tiled (Assets.image "background.png")
     ]
 
 
@@ -136,7 +136,7 @@ content =
     , contentFont
     , Font.justify
     , Font.color Colors.ink
-    , Background.tiled Assets.contentBackground
+    , Background.tiled (Assets.image "content-background.png")
     , Border.shadow shadow
     , Border.rounded contentRoundness
     ]

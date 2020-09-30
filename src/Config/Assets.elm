@@ -1,4 +1,4 @@
-module Config.Assets exposing (appBackground, contentBackground, defaultAvatar, icon, image, logo, notFoundImage)
+module Config.Assets exposing (icon, image)
 
 import Url.Builder as Builder
 
@@ -9,35 +9,6 @@ type alias Href =
 
 
 -- Image Assets
-
-
-logo : Href
-logo =
-    image "logo.png"
-
-
-appBackground : Href
-appBackground =
-    image "bg.png"
-
-
-contentBackground : Href
-contentBackground =
-    image "content-bg.png"
-
-
-defaultAvatar : Href
-defaultAvatar =
-    image "default-avatar.png"
-
-
-notFoundImage : Href
-notFoundImage =
-    image "not-found.png"
-
-
-
--- Image Assets (Helpers)
 
 
 image : String -> Href

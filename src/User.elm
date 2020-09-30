@@ -1,4 +1,4 @@
-module User exposing (User, avatar, debug, decoder, profile, username)
+module User exposing (User, avatar, decoder, profile, username)
 
 import Avatar exposing (Avatar)
 import Json.Decode as Decode exposing (Decoder)
@@ -40,12 +40,3 @@ avatar : User -> Avatar
 avatar user =
     profile user
         |> Profile.avatar
-
-
-
--- Debugging a User
-
-
-debug : User
-debug =
-    User Username.debug Profile.debug

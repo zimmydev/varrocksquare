@@ -1,4 +1,4 @@
-module Avatar exposing (Avatar, debug, decoder, default, encode, href, view)
+module Avatar exposing (Avatar, decoder, default, encode, href, view)
 
 import Config.Assets as Assets
 import Config.Styles as Styles
@@ -22,7 +22,11 @@ type alias Href =
 
 default : Avatar
 default =
-    Avatar Assets.defaultAvatar
+    Avatar <| Assets.image "default-avatar.png"
+
+
+
+-- Serializing an Avatar
 
 
 decoder : Decoder Avatar
@@ -31,13 +35,17 @@ decoder =
         |> Decode.map Avatar
 
 
-
--- Converting an Avatar
-
-
 encode : Avatar -> Value
-encode (Avatar hrf) =
-    Encode.string hrf
+encode avatar =
+    if avatar == default then
+        Encode.null
+
+    else
+        Encode.string (href avatar)
+
+
+
+-- Info on Avatar
 
 
 href : Avatar -> Href
@@ -45,16 +53,11 @@ href (Avatar hrf) =
     hrf
 
 
+
+-- Converting an Avatar
+
+
 view : Int -> Avatar -> Element msg
-view size (Avatar hrf) =
-    Element.el (Styles.avatar size hrf)
+view size avatar =
+    Element.el (Styles.avatar size (href avatar))
         Element.none
-
-
-
--- Debugging an Avatar
-
-
-debug : Avatar
-debug =
-    Avatar (Assets.image "bart.png")

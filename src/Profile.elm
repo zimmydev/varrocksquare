@@ -1,9 +1,10 @@
-module Profile exposing (Profile, avatar, bio, debug, decoder, joinDate)
+module Profile exposing (Profile, avatar, bio, decoder, encode, joinDate)
 
 import Avatar exposing (Avatar)
+import Iso8601
 import Json.Decode as Decode exposing (Decoder, nullable, string)
-import Json.Decode.Extra exposing (datetime)
 import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Encode exposing (Value)
 import Time
 
 
@@ -27,9 +28,22 @@ decoder : Decoder Profile
 decoder =
     Decode.succeed Internals
         |> optional "avatar" Avatar.decoder Avatar.default
-        |> required "joinDate" datetime
+        |> required "joinDate" Iso8601.decoder
         |> optional "bio" (nullable string) Nothing
         |> Decode.map Profile
+
+
+encode : Profile -> Value
+encode (Profile prof) =
+    let
+        maybe encoder =
+            Maybe.map encoder >> Maybe.withDefault Encode.null
+    in
+    Encode.object
+        [ ( "avatar", Avatar.encode prof.avatar )
+        , ( "joinDate", Iso8601.encode prof.joinDate )
+        , ( "bio", maybe Encode.string prof.bio )
+        ]
 
 
 
@@ -49,16 +63,3 @@ joinDate (Profile prof) =
 bio : Profile -> Maybe String
 bio (Profile prof) =
     prof.bio
-
-
-
--- Debugging a Profile
-
-
-debug : Profile
-debug =
-    Profile
-        { avatar = Avatar.debug
-        , joinDate = Time.millisToPosix 0
-        , bio = Just "I am an account meant for debugging purposes!"
-        }
