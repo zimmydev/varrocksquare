@@ -13,6 +13,7 @@ import SimulatedEffect.Cmd as CmdSim
 import SimulatedEffect.Navigation as NavSim
 import Test exposing (..)
 import Test.Html.Selector as Selector
+import Url.Builder
 
 
 
@@ -56,7 +57,7 @@ startWith flags =
         , view = Main.view
         }
         |> ProgramTest.withSimulatedEffects simulate
-        |> ProgramTest.withBaseUrl "https://vsq.app/"
+        |> ProgramTest.withBaseUrl (appUrl [] [])
         |> ProgramTest.start flags
 
 
@@ -157,12 +158,12 @@ programTests =
                     \() ->
                         startFullscreen
                             |> ProgramTest.clickLink "Varrock Square" "/feeds"
-                            |> ProgramTest.expectPageChange "https://vsq.app/feeds"
+                            |> ProgramTest.expectPageChange (appUrl [ "feeds" ] [])
                 , test "When compact" <|
                     \() ->
                         startCompact
                             |> ProgramTest.clickLink "VSq" "/feeds"
-                            |> ProgramTest.expectPageChange "https://vsq.app/feeds"
+                            |> ProgramTest.expectPageChange (appUrl [ "feeds" ] [])
                 ]
             ]
         ]
@@ -175,6 +176,11 @@ programTests =
 intList : List Int -> Value
 intList =
     Encode.list Encode.int
+
+
+appUrl : List String -> List Url.Builder.QueryParameter -> String
+appUrl paths queries =
+    Url.Builder.crossOrigin "https://varrocksquare.app" paths queries
 
 
 expectErrorPage : ProgramTest state msg effect -> Expectation
