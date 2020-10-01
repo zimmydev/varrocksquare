@@ -1,10 +1,10 @@
 module Alert exposing (Alert, Id, announcement, canSilence, expire, fire, id, loggedIn, loggedOut, passwordsDontMatch, payload, receivedMessage, view)
 
 import Config.App as App
+import Config.Assets as Assets
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
 import Element exposing (Color, Element)
-import Icon exposing (Icon)
 import LoggedInUser exposing (LoggedInUser)
 import Process
 import Task
@@ -122,7 +122,7 @@ view alert =
     in
     Element.el (Styles.alert color) <|
         Element.row [ Styles.smallSpacing ]
-            [ Icon.view icon, Element.text (payload alert) ]
+            [ icon, Element.text (payload alert) ]
 
 
 
@@ -146,24 +146,20 @@ expire timeout expireAlert alert =
 -- Helpers
 
 
-style : Alert -> ( Icon, Color )
+style : Alert -> ( Element msg, Color )
 style alert =
-    let
-        size =
-            Icon.Small
-    in
     case alert of
         Info _ _ ->
-            ( Icon.espresso size, Colors.black )
+            ( Assets.icon "coffee", Colors.black )
 
         Success _ _ ->
-            ( Icon.success size, Colors.green )
+            ( Assets.icon "ok", Colors.green )
 
         Error _ _ ->
-            ( Icon.error size, Colors.red )
+            ( Assets.icon "error", Colors.red )
 
         ReceivedMessage _ _ ->
-            ( Icon.envelope size, Colors.blue )
+            ( Assets.icon "message", Colors.blue )
 
         Announcement _ _ ->
-            ( Icon.espresso size, Colors.orange )
+            ( Assets.icon "coffee", Colors.orange )

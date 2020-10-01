@@ -1,6 +1,7 @@
 module Page.Settings exposing (Effect(..), Msg(..), State, init, update, view)
 
 import Alert exposing (Alert)
+import Config.Assets as Assets
 import Config.Styles as Styles
 import Config.Styles.Colors as Colors
 import Element exposing (..)
@@ -8,7 +9,6 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (..)
-import Icon
 import LoggedInUser
 import Page exposing (Page)
 import Route
@@ -102,14 +102,8 @@ body requestAlert session settings =
                         Styles.inputLabel
                         (text "Message Notifications:")
                 , options =
-                    [ Input.optionWith True <|
-                        \optionState ->
-                            Page.label "On" <|
-                                Icon.view (Icon.radio optionState Icon.Medium)
-                    , Input.optionWith False <|
-                        \optionState ->
-                            Page.label "Off" <|
-                                Icon.view (Icon.radio optionState Icon.Medium)
+                    [ Input.optionWith True <| \state -> Page.label "On" <| Assets.radio state
+                    , Input.optionWith False <| \state -> Page.label "Off" <| Assets.radio state
                     ]
                 }
         , textColumn Styles.content

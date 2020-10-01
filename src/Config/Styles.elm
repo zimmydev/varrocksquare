@@ -71,7 +71,7 @@ navbarItem isActive =
         [ Font.bold ]
 
     else
-        [ Font.color (Colors.lightGrey 1) ]
+        []
 
 
 pill : List (Attribute msg)

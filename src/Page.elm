@@ -1,4 +1,4 @@
-module Page exposing (NavbarItem(..), Page, column, content, form, inputField, label, labelIcon, map, pill, spinner, unthemed, view)
+module Page exposing (NavbarItem(..), Page, column, content, form, inputField, label, map, pill, spinner, unthemed, view)
 
 {-| This module mostly contains the view rendering that's common to all pages,
 e.g. the navbar, the footer, page title, formatting, etc.
@@ -12,12 +12,11 @@ import Config.Assets as Assets
 import Config.Strings as Strings
 import Config.Styles as Styles
 import Device
-import Element exposing (Attribute, Element, FocusStyle, alignLeft, alignRight, centerX, fill, fillPortion, focusStyle, height, spacing, width)
+import Element exposing (Attribute, Element, FocusStyle, alignLeft, alignRight, centerX, centerY, fill, fillPortion, focusStyle, height, spacing, width)
 import Element.Input as Input
 import Element.Lazy exposing (..)
 import Html
 import Html.Attributes
-import Icon exposing (Icon)
 import LoggedInUser
 import Route
 import Session exposing (Session(..))
@@ -167,9 +166,10 @@ navbarItem : NavbarItem -> Session -> Device.Profile -> NavbarItem -> Element ms
 navbarItem item session devpro activeItem =
     let
         iconSize =
+            -- TODO: Make this useful again
             Device.responsive devpro
-                { compact = Icon.Medium
-                , full = Icon.Small
+                { compact = 24
+                , full = 16
                 }
 
         avatarSize =
@@ -185,7 +185,7 @@ navbarItem item session devpro activeItem =
         NewPost ->
             let
                 icon =
-                    Icon.pencil iconSize
+                    Assets.icon "newPost"
             in
             case session of
                 Guest ->
@@ -198,45 +198,45 @@ navbarItem item session devpro activeItem =
                         { route = Route.NewPost
                         , body =
                             Device.responsive devpro
-                                { compact = Icon.view icon
-                                , full = labelIcon icon "New Post"
+                                { compact = icon
+                                , full = icon |> label "New Post"
                                 }
                         }
 
         Search ->
             let
                 icon =
-                    Icon.search iconSize
+                    Assets.icon "search"
             in
             Route.link
                 itemStyle
                 { route = Route.Search Nothing
                 , body =
                     Device.responsive devpro
-                        { compact = Icon.view icon
-                        , full = labelIcon icon "Search"
+                        { compact = icon
+                        , full = icon |> label "Search"
                         }
                 }
 
         Tools ->
             let
                 icon =
-                    Icon.wrench iconSize
+                    Assets.icon "tools"
             in
             Route.link
                 itemStyle
                 { route = Route.Tools
                 , body =
                     Device.responsive devpro
-                        { compact = Icon.view icon
-                        , full = labelIcon icon "Tools"
+                        { compact = icon
+                        , full = icon |> label "Tools"
                         }
                 }
 
         Starred ->
             let
                 icon =
-                    Icon.starBox iconSize
+                    Assets.icon "starredPosts"
             in
             case session of
                 Guest ->
@@ -248,15 +248,15 @@ navbarItem item session devpro activeItem =
                         { route = Route.Starred
                         , body =
                             Device.responsive devpro
-                                { compact = Icon.view icon
-                                , full = labelIcon icon "Starred"
+                                { compact = icon
+                                , full = icon |> label "Starred"
                                 }
                         }
 
         Inbox ->
             let
                 icon =
-                    Icon.paperPlane iconSize
+                    Assets.icon "inbox"
             in
             case session of
                 Guest ->
@@ -268,20 +268,20 @@ navbarItem item session devpro activeItem =
                         { route = Route.Inbox
                         , body =
                             Device.responsive devpro
-                                { compact = Icon.view icon
-                                , full = "Inbox" |> labelIcon icon |> pill 69
+                                { compact = icon
+                                , full = icon |> label "Inbox" |> pill 69
                                 }
                         }
 
         Donate ->
             let
                 icon =
-                    Icon.donate iconSize
+                    Assets.icon "donate"
             in
             Route.inert (Styles.donate devpro) <|
                 Device.responsive devpro
-                    { compact = Icon.view icon
-                    , full = labelIcon icon "Donate!"
+                    { compact = icon
+                    , full = icon |> label "Donate!"
                     }
 
         Discord ->
@@ -290,7 +290,7 @@ navbarItem item session devpro activeItem =
                 , full =
                     Route.external []
                         { target = Route.Discord
-                        , body = Icon.view (Icon.discord iconSize)
+                        , body = Assets.icon "discord"
                         }
                 }
 
@@ -300,14 +300,14 @@ navbarItem item session devpro activeItem =
                 , full =
                     Route.external []
                         { target = Route.Github
-                        , body = Icon.view (Icon.github iconSize)
+                        , body = Assets.icon "github"
                         }
                 }
 
         Help ->
             Route.link []
                 { route = Route.Help
-                , body = Icon.view (Icon.help iconSize)
+                , body = Assets.icon "help"
                 }
 
         Login ->
@@ -337,7 +337,7 @@ navbarItem item session devpro activeItem =
         Settings ->
             let
                 icon =
-                    Icon.settings iconSize
+                    Assets.icon "settings"
             in
             case session of
                 Guest ->
@@ -349,8 +349,8 @@ navbarItem item session devpro activeItem =
                         { route = Route.Settings
                         , body =
                             Device.responsive devpro
-                                { compact = Icon.view icon
-                                , full = labelIcon icon "Settings"
+                                { compact = icon
+                                , full = icon |> label "Settings"
                                 }
                         }
 
@@ -499,12 +499,6 @@ inputField config =
         }
 
 
-labelIcon : Icon -> String -> Element msg
-labelIcon icon lbl =
-    Icon.view icon
-        |> label lbl
-
-
 label : String -> Element msg -> Element msg
 label lbl element =
     place
@@ -572,9 +566,4 @@ toHtmlDocument config =
 
 place : { left : Element msg, right : Element msg } -> Element msg
 place { left, right } =
-    smallSpace [ left, right ]
-
-
-smallSpace : List (Element msg) -> Element msg
-smallSpace children =
-    Element.row [ Styles.smallSpacing ] children
+    Element.row [ Styles.smallSpacing ] [ left, right ]
