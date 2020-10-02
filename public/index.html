@@ -20,10 +20,10 @@
         <link rel="stylesheet" href="/fonts.css">
         <link rel="stylesheet" href="/spinner.css">
         <script src="/main.js"></script>
+        <script src="/debug.js"></script>
     </head>
     <body>
         <div id="app"></div>
-        <script src="/debug.js"></script>
         <script>
             // Setup user caching
             const userKey = "vsq-user";
@@ -31,7 +31,7 @@
             // Setup app flags
             const flags = {
                 size: [window.innerWidth, window.innerHeight],
-                user: JSON.parse(localStorage.getItem(userKey))
+                user: debug.isActive ? debug.user : JSON.parse(localStorage.getItem(userKey))
             };
 
             console.log("Initializing elm app with flags:", flags);
