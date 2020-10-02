@@ -1,6 +1,6 @@
 # Varrock Square [![Build Status](https://travis-ci.com/zimmydev/varrocksquare.svg?branch=master)](https://travis-ci.com/zimmydev/varrocksquare)
 
-Varrock Square is a social blogging platform designed for the free-to-play [Old School RuneScape](https://oldschool.runescape.com) community. It's perfect if you want to write a guide for your fellow players, or simply keep a log of your daily progress. Perhaps you want to write an article discussing potential updates to the game, attaching a poll for quick feedback? On Varrock Square, you can do all this and more!
+Varrock Square is a social blogging platform designed for the free-to-play [Old School RuneScape](https://oldschool.runescape.com) community. It's the perfect tool if you want to write a guide for your fellow players, or simply keep a log of your daily progress. Perhaps you want to discuss potential updates to the game, attaching a poll for quick feedback? On Varrock Square, you can do all this and more!
 
 ## Project Status
 
