@@ -247,7 +247,7 @@ update msg app =
 
         LinkClicked (Browser.External href) ->
             Browser.External href
-                |> AppState.logProblem "xternal link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
+                |> AppState.logProblem "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
 
         RouteChanged newRoute ->
             app |> transition newRoute
