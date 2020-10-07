@@ -3,7 +3,7 @@ module Profile exposing (Profile, avatar, bio, decoder, encode, joinDate)
 import Avatar exposing (Avatar)
 import Iso8601
 import Json.Decode as Decode exposing (Decoder, nullable, string)
-import Json.Decode.Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
 import Time
 
@@ -27,9 +27,9 @@ type alias Internals =
 decoder : Decoder Profile
 decoder =
     Decode.succeed Internals
-        |> optional "avatar" Avatar.decoder Avatar.default
+        |> required "avatar" Avatar.decoder
         |> required "joinDate" Iso8601.decoder
-        |> optional "bio" (nullable string) Nothing
+        |> required "bio" (nullable string)
         |> Decode.map Profile
 
 

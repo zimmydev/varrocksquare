@@ -3,7 +3,7 @@ module Avatar exposing (Avatar, decoder, default, encode, href, view)
 import Config.Assets as Assets
 import Config.Styles as Styles
 import Element exposing (Element)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, nullable, string)
 import Json.Decode.Pipeline exposing (optional)
 import Json.Encode as Encode exposing (Value)
 
@@ -31,8 +31,16 @@ default =
 
 decoder : Decoder Avatar
 decoder =
-    Decode.string
-        |> Decode.map Avatar
+    nullable string
+        |> Decode.andThen
+            (\maybeHref ->
+                case maybeHref of
+                    Nothing ->
+                        Decode.succeed default
+
+                    Just hrf ->
+                        Decode.succeed (Avatar hrf)
+            )
 
 
 encode : Avatar -> Value

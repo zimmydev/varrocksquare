@@ -7,12 +7,24 @@ import Avatar
 import Expect
 import Fuzz exposing (Fuzzer, constant, oneOf, string, tuple)
 import Json.Decode as Decode exposing (decodeValue)
-import Json.Encode as Encode
+import Json.Encode as Encode exposing (Value)
 import Profile
 import Test exposing (..)
-import Tests.Profile exposing (invalidIso8601, validIso8601)
+import Tests.Profile exposing (invalidIso8601, profile, validIso8601)
 import User
 import Username exposing (Username)
+
+
+
+-- Decoding
+
+
+user : String -> Value -> Value
+user name prof =
+    Encode.object
+        [ ( "username", Encode.string name )
+        , ( "profile", prof )
+        ]
 
 
 decodingTests : Test
@@ -20,17 +32,11 @@ decodingTests =
     let
         decodeUser =
             decodeValue User.decoder
-
-        smallProfile joinDate =
-            Encode.object [ ( "joinDate", Encode.string joinDate ) ]
     in
     describe "Decoding" <|
         [ fuzz validData "A valid JSON user object" <|
             \( name, joinDate ) ->
-                [ ( "username", Encode.string name )
-                , ( "profile", smallProfile joinDate )
-                ]
-                    |> Encode.object
+                user name (profile Nothing joinDate Nothing)
                     |> decodeUser
                     |> Expect.all
                         [ Expect.ok
@@ -50,36 +56,12 @@ decodingTests =
         , describe "An invalid JSON user object results in an error" <|
             [ fuzz invalidData "…when it contains invalid data" <|
                 \( name, joinDate ) ->
-                    [ ( "username", Encode.string name )
-                    , ( "profile", smallProfile joinDate )
-                    ]
-                        |> Encode.object
-                        |> decodeUser
-                        |> Expect.err
-            , fuzz validData "…when username field is missing" <|
-                \( _, joinDate ) ->
-                    [ ( "profile", smallProfile joinDate ) ]
-                        |> Encode.object
-                        |> decodeUser
-                        |> Expect.err
-            , fuzz validData "…when profile field is missing" <|
-                \( name, _ ) ->
-                    [ ( "username", Encode.string name ) ]
-                        |> Encode.object
-                        |> decodeUser
-                        |> Expect.err
-            , fuzz validData "…when profile object is empty" <|
-                \( name, _ ) ->
-                    [ ( "username", Encode.string name )
-                    , ( "profile", Encode.object [] )
-                    ]
-                        |> Encode.object
+                    user name (profile Nothing joinDate Nothing)
                         |> decodeUser
                         |> Expect.err
             , test "…when user object is totally empty" <|
                 \() ->
-                    []
-                        |> Encode.object
+                    Encode.object []
                         |> decodeUser
                         |> Expect.err
             ]

@@ -7,10 +7,27 @@ import Avatar
 import Expect
 import Fuzz exposing (Fuzzer, constant, maybe, oneOf, string, tuple3)
 import Json.Decode as Decode exposing (decodeValue)
-import Json.Encode as Encode
+import Json.Encode as Encode exposing (Value)
 import Profile
 import Test exposing (..)
 import TestUtils.Object as Object
+
+
+type alias Href =
+    String
+
+
+
+-- Decoding
+
+
+profile : Maybe Href -> String -> Maybe String -> Value
+profile maybeHref joinDate maybeBio =
+    Encode.object
+        [ ( "avatar", maybeHref |> Maybe.map Encode.string |> Maybe.withDefault Encode.null )
+        , ( "joinDate", Encode.string joinDate )
+        , ( "bio", maybeBio |> Maybe.map Encode.string |> Maybe.withDefault Encode.null )
+        ]
 
 
 decodingTests : Test
@@ -22,12 +39,7 @@ decodingTests =
     describe "Decoding" <|
         [ fuzz validData "A valid JSON profile object" <|
             \( maybeHref, joinDate, maybeBio ) ->
-                [ ( "avatar", Encode.string, maybeHref )
-                , ( "joinDate", Encode.string, Just joinDate )
-                , ( "bio", Encode.string, maybeBio )
-                ]
-                    |> Object.missingFields
-                    |> Encode.object
+                profile maybeHref joinDate maybeBio
                     |> decodeProfile
                     |> Expect.all
                         [ Expect.ok
@@ -46,22 +58,7 @@ decodingTests =
         , describe "An invalid JSON profile object" <|
             [ fuzz invalidData "…when it contains invalid data" <|
                 \( maybeHref, joinDate, maybeBio ) ->
-                    [ ( "avatar", Encode.string, maybeHref )
-                    , ( "joinDate", Encode.string, Just joinDate )
-                    , ( "bio", Encode.string, maybeBio )
-                    ]
-                        |> Object.missingFields
-                        |> Encode.object
-                        |> decodeProfile
-                        |> Expect.err
-            , fuzz validData "…when it is missing a joinDate" <|
-                \( maybeHref, _, maybeBio ) ->
-                    [ ( "avatar", Encode.string, maybeHref )
-                    , ( "joinDate", Encode.string, Nothing )
-                    , ( "bio", Encode.string, maybeBio )
-                    ]
-                        |> Object.missingFields
-                        |> Encode.object
+                    profile maybeHref joinDate maybeBio
                         |> decodeProfile
                         |> Expect.err
             ]
