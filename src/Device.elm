@@ -1,6 +1,6 @@
 module Device exposing (Profile(..), ResizeHandler, Size, decoder, encode, profile, resizeHandler, responsive)
 
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, fail, succeed)
 import Json.Encode as Encode exposing (Value)
 
 
@@ -64,19 +64,21 @@ decoder =
             (<) 0
     in
     Decode.list Decode.int
-        |> Decode.andThen
-            (\ints ->
-                case ints of
-                    [ w, h ] ->
-                        if ints |> List.all isPositiveNonzero then
-                            Decode.succeed ( w, h )
+        |> Decode.andThen validate
 
-                        else
-                            Decode.fail "Device size with one or more invalid dimensions"
 
-                    _ ->
-                        Decode.fail "Device size array formatted incorrectly."
-            )
+validate : List Int -> Decoder Size
+validate dims =
+    case dims of
+        [ w, h ] ->
+            if dims |> List.all ((<) 0) then
+                succeed ( w, h )
+
+            else
+                fail "Device size with one or more invalid dimensions"
+
+        _ ->
+            fail "Device size formatted incorrectly."
 
 
 encode : Size -> Value

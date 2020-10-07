@@ -7,7 +7,7 @@ import Avatar
 import Expect
 import Fuzz exposing (Fuzzer, constant, maybe, oneOf, string, tuple3)
 import Json.Decode as Decode exposing (decodeValue)
-import Json.Encode as Encode exposing (Value)
+import Json.Encode as Encode exposing (Value, null)
 import Profile
 import Test exposing (..)
 import TestUtils.Object as Object
@@ -24,9 +24,9 @@ type alias Href =
 profile : Maybe Href -> String -> Maybe String -> Value
 profile maybeHref joinDate maybeBio =
     Encode.object
-        [ ( "avatar", maybeHref |> Maybe.map Encode.string |> Maybe.withDefault Encode.null )
+        [ ( "avatar", maybeHref |> Maybe.map Encode.string |> Maybe.withDefault null )
         , ( "joinDate", Encode.string joinDate )
-        , ( "bio", maybeBio |> Maybe.map Encode.string |> Maybe.withDefault Encode.null )
+        , ( "bio", maybeBio |> Maybe.map Encode.string |> Maybe.withDefault null )
         ]
 
 

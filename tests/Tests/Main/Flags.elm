@@ -7,7 +7,7 @@ import Avatar
 import Device
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, intRange, oneOf, tuple)
-import Json.Encode as Encode exposing (Value)
+import Json.Encode as Encode exposing (Value, null)
 import LoggedInUser
 import Main.Flags as Flags exposing (Flags)
 import Profile
@@ -36,7 +36,7 @@ decodingTests =
         [ describe "A valid JSON flags object" <|
             [ fuzz validData "…when no user is cached" <|
                 \(( w, h ) as size) ->
-                    flags [ w, h ] Encode.null
+                    flags [ w, h ] null
                         |> Flags.decode
                         |> Expect.all
                             [ Result.map .size
@@ -62,22 +62,22 @@ decodingTests =
         , describe "An invalid JSON flags object results in an error" <|
             [ fuzz invalidData "…when at least one device dimension is zero or negative" <|
                 \( w, h ) ->
-                    flags [ w, h ] Encode.null
+                    flags [ w, h ] null
                         |> Flags.decode
                         |> Expect.err
             , fuzz validData "…when too many device dimensions" <|
                 \( w, h ) ->
-                    flags [ w, h, w ] Encode.null
+                    flags [ w, h, w ] null
                         |> Flags.decode
                         |> Expect.err
             , fuzz validData "…when two few device dimensions" <|
                 \( w, _ ) ->
-                    flags [ w ] Encode.null
+                    flags [ w ] null
                         |> Flags.decode
                         |> Expect.err
             , test "…when no device dimensions" <|
                 \() ->
-                    flags [] Encode.null
+                    flags [] null
                         |> Flags.decode
                         |> Expect.err
             , test "…when flags object is totally empty" <|

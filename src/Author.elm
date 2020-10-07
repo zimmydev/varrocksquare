@@ -1,6 +1,6 @@
 module Author exposing (Author(..), FollowedUser, UnfollowedUser, decoder, profile, user, username)
 
-import Json.Decode as Decode exposing (Decoder, nullable)
+import Json.Decode as Decode exposing (Decoder, nullable, succeed)
 import Json.Decode.Pipeline exposing (custom, optional, required)
 import LoggedInUser exposing (LoggedInUser)
 import Profile exposing (Profile)
@@ -37,19 +37,19 @@ decoder session =
         decodeAuthor ( isFollowing, author ) =
             case session of
                 Guest ->
-                    Decode.succeed <| CantFollow (Unfollowable author)
+                    succeed <| CantFollow (Unfollowable author)
 
                 LoggedIn loggedInUser ->
                     if LoggedInUser.username loggedInUser == User.username author then
-                        Decode.succeed <| CantFollow (Unfollowable author)
+                        succeed <| CantFollow (Unfollowable author)
 
                     else if isFollowing then
-                        Decode.succeed <| Following (Followed author)
+                        succeed <| Following (Followed author)
 
                     else
-                        Decode.succeed <| NotFollowing (Unfollowed author)
+                        succeed <| NotFollowing (Unfollowed author)
     in
-    Decode.succeed Tuple.pair
+    succeed Tuple.pair
         |> optional "following" Decode.bool False
         |> custom User.decoder
         |> Decode.andThen decodeAuthor

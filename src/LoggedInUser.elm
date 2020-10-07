@@ -2,7 +2,7 @@ module LoggedInUser exposing (LoggedInUser, authToken, avatar, decoder, encode, 
 
 import Api exposing (AuthToken)
 import Avatar exposing (Avatar)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, succeed)
 import Json.Decode.Pipeline exposing (custom, required)
 import Json.Encode as Encode exposing (Value)
 import Profile exposing (Profile)
@@ -20,7 +20,7 @@ type LoggedInUser
 
 decoder : Decoder LoggedInUser
 decoder =
-    Decode.succeed LoggedInUser
+    succeed LoggedInUser
         |> required "authToken" Api.tokenDecoder
         |> custom User.decoder
 

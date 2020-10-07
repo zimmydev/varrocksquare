@@ -2,9 +2,9 @@ module Profile exposing (Profile, avatar, bio, decoder, encode, joinDate)
 
 import Avatar exposing (Avatar)
 import Iso8601
-import Json.Decode as Decode exposing (Decoder, nullable, string)
+import Json.Decode as Decode exposing (Decoder, nullable, string, succeed)
 import Json.Decode.Pipeline exposing (required)
-import Json.Encode as Encode exposing (Value)
+import Json.Encode as Encode exposing (Value, null)
 import Time
 
 
@@ -26,7 +26,7 @@ type alias Internals =
 
 decoder : Decoder Profile
 decoder =
-    Decode.succeed Internals
+    succeed Internals
         |> required "avatar" Avatar.decoder
         |> required "joinDate" Iso8601.decoder
         |> required "bio" (nullable string)
@@ -37,7 +37,7 @@ encode : Profile -> Value
 encode (Profile prof) =
     let
         maybe encoder =
-            Maybe.map encoder >> Maybe.withDefault Encode.null
+            Maybe.map encoder >> Maybe.withDefault null
     in
     Encode.object
         [ ( "avatar", Avatar.encode prof.avatar )

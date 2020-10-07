@@ -1,7 +1,7 @@
 module Username exposing (Username, appAuthor, debug, decoder, encode, toPossessiveString, toString, urlParser, view)
 
 import Element exposing (Element)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, fail, succeed)
 import Json.Encode as Encode exposing (Value)
 import Url.Parser exposing (Parser)
 
@@ -11,20 +11,22 @@ type Username
 
 
 
--- Obtaining a Username
+-- Serializing a Username
 
 
 decoder : Decoder Username
 decoder =
     Decode.string
-        |> Decode.andThen
-            (\name ->
-                if String.isEmpty name then
-                    Decode.fail "Username cannot be empty"
+        |> Decode.andThen validate
 
-                else
-                    Decode.succeed <| Username name
-            )
+
+validate : String -> Decoder Username
+validate name =
+    if String.isEmpty name then
+        fail "Username should not be empty"
+
+    else
+        succeed (Username name)
 
 
 urlParser : Parser (Username -> a) a
@@ -32,27 +34,27 @@ urlParser =
     Url.Parser.map Username Url.Parser.string
 
 
+encode : Username -> Value
+encode (Username name) =
+    Encode.string name
+
+
 
 -- Converting a Username
 
 
-encode : Username -> Value
-encode (Username raw) =
-    Encode.string raw
-
-
 toString : Username -> String
-toString (Username raw) =
-    raw
+toString (Username name) =
+    name
 
 
 toPossessiveString : Username -> String
-toPossessiveString (Username raw) =
-    if String.right 1 raw == "s" then
-        raw ++ "'"
+toPossessiveString (Username name) =
+    if String.right 1 name == "s" then
+        name ++ "'"
 
     else
-        raw ++ "'s"
+        name ++ "'s"
 
 
 view : Username -> Element msg

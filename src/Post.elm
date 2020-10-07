@@ -2,7 +2,7 @@ module Post exposing (Full, Metadata, Post(..), Preview, StarredPost, Unstarrabl
 
 import Author exposing (Author)
 import Iso8601
-import Json.Decode as Decode exposing (Decoder, nullable)
+import Json.Decode as Decode exposing (Decoder, nullable, succeed)
 import Json.Decode.Pipeline exposing (custom, optional, required)
 import LoggedInUser
 import Post.Body as Body exposing (Body)
@@ -58,50 +58,50 @@ type Full
 previewDecoder : Session -> Decoder (Post Preview)
 previewDecoder session =
     let
-        postDecoder ( isStarred, meta ) =
+        decodePost ( isStarred, meta ) =
             case session of
                 Guest ->
-                    Decode.succeed <| CantStar (Unstarrable meta Preview)
+                    succeed <| CantStar (Unstarrable meta Preview)
 
                 LoggedIn _ ->
                     case isStarred of
                         True ->
-                            Decode.succeed <| Starring (Starred meta Preview)
+                            succeed <| Starring (Starred meta Preview)
 
                         False ->
-                            Decode.succeed <| NotStarring (Unstarred meta Preview)
+                            succeed <| NotStarring (Unstarred meta Preview)
     in
-    Decode.succeed Tuple.pair
+    succeed Tuple.pair
         |> optional "starred" Decode.bool False
         |> custom (metadataDecoder session)
-        |> Decode.andThen postDecoder
+        |> Decode.andThen decodePost
 
 
 fullDecoder : Session -> Decoder (Post Full)
 fullDecoder session =
     let
-        postDecoder ( isStarred, full, meta ) =
+        decodePost ( isStarred, full, meta ) =
             case session of
                 Guest ->
-                    Decode.succeed <| CantStar (Unstarrable meta full)
+                    succeed <| CantStar (Unstarrable meta full)
 
                 LoggedIn _ ->
                     if isStarred then
-                        Decode.succeed <| Starring (Starred meta full)
+                        succeed <| Starring (Starred meta full)
 
                     else
-                        Decode.succeed <| NotStarring (Unstarred meta full)
+                        succeed <| NotStarring (Unstarred meta full)
     in
-    Decode.succeed (\a b c -> ( a, b, c ))
+    succeed (\a b c -> ( a, b, c ))
         |> optional "starred" Decode.bool False
         |> required "body" (Decode.map Full Body.decoder)
         |> custom (metadataDecoder session)
-        |> Decode.andThen postDecoder
+        |> Decode.andThen decodePost
 
 
 metadataDecoder : Session -> Decoder Metadata
 metadataDecoder session =
-    Decode.succeed Metadata
+    succeed Metadata
         |> required "slug" Slug.decoder
         |> required "author" (Author.decoder session)
         |> required "title" Decode.string

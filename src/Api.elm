@@ -1,7 +1,7 @@
 port module Api exposing (AuthToken, authHeader, debugToken, encodeToken, storeUser, tokenDecoder, userChanged)
 
 import Http
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, fail, succeed)
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
 
@@ -17,14 +17,16 @@ type AuthToken
 tokenDecoder : Decoder AuthToken
 tokenDecoder =
     Decode.string
-        |> Decode.andThen
-            (\token ->
-                if String.isEmpty token then
-                    Decode.fail "Token cannot be empty"
+        |> Decode.andThen validateToken
 
-                else
-                    Decode.succeed <| AuthToken token
-            )
+
+validateToken : String -> Decoder AuthToken
+validateToken token =
+    if String.isEmpty token then
+        fail "Token should not be empty"
+
+    else
+        succeed (AuthToken token)
 
 
 encodeToken : AuthToken -> Value

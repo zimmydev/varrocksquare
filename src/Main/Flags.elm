@@ -5,7 +5,7 @@ sent by JS to our elm app.
 -}
 
 import Device
-import Json.Decode as Decode exposing (Decoder, decodeValue, nullable)
+import Json.Decode as Decode exposing (Decoder, decodeValue, nullable, succeed)
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode exposing (Value)
 import LoggedInUser exposing (LoggedInUser)
@@ -32,6 +32,6 @@ decode json =
 -}
 decoder : Decoder Flags
 decoder =
-    Decode.succeed Flags
+    succeed Flags
         |> required "size" Device.decoder
         |> required "user" (nullable LoggedInUser.decoder)
