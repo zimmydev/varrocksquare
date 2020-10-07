@@ -32,7 +32,7 @@
 
 ```json
 {
-    "authToken": "EXAMPLE_TOKEN"
+    "authToken": "EXAMPLE_TOKEN",
     "username": "ExampleUser",
     "profile": {
         "avatar": null,
@@ -58,7 +58,7 @@
         "profile": {
             "avatar": null,
             "joinDate": "2020-05-20T12:20:20.500Z",
-            "bio": null,
+            "bio": null
         }
     },
     "title": "My First Post!",
@@ -118,7 +118,7 @@
     "errors": {
         "unauthorized": [
             "Client did not provide an authentication token."
-        ],
+        ]
     }
 }
 ```
