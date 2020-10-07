@@ -2,7 +2,7 @@
 
 ## Notes
 
-* This is just a work-in-progress and is not finalized by any means. -BZ
+* This is just a work-in-progress and is not finalized by any means. *-BZ*
 
 ## User/Author
 
