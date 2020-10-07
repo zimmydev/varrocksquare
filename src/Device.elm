@@ -72,10 +72,10 @@ decoder =
                             Decode.succeed ( w, h )
 
                         else
-                            Decode.fail "Attempted to decode device size with one or more zero or negative dimensions"
+                            Decode.fail "Device size with one or more invalid dimensions"
 
                     _ ->
-                        Decode.fail "Device size was in the incorrect format; use an list of 2 elements corresponding to width and height, respectively"
+                        Decode.fail "Device size array formatted incorrectly."
             )
 
 

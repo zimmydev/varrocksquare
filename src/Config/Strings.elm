@@ -1,4 +1,4 @@
-module Config.Strings exposing (appName, appNameCompact, copyright, loremIpsum, searchPlaceholder)
+module Config.Strings exposing (appName, copyright, loremIpsum, searchPlaceholder)
 
 {-| This module houses `String`s exclusively which are used multiple times in the codebase, or are
 long enough to warrant putting them in a dedicated spot.
@@ -10,11 +10,6 @@ long enough to warrant putting them in a dedicated spot.
 appName : String
 appName =
     "Varrock Square"
-
-
-appNameCompact : String
-appNameCompact =
-    "VSq"
 
 
 copyright : String

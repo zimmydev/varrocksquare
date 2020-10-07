@@ -20,24 +20,23 @@ import Url.Builder
 -- Program Test
 
 
-startFullscreen : ProgramTest (AppState ()) Msg Effect
-startFullscreen =
-    -- Simulates a desktop device
-    [ ( "size", intList [ 1280, 800 ] )
-    , ( "user", Encode.null )
-    ]
-        |> Encode.object
-        |> startWith
+fullscreen : List Int
+fullscreen =
+    [ 1280, 800 ]
 
 
-startCompact : ProgramTest (AppState ()) Msg Effect
-startCompact =
-    -- Simulates a mobile device
-    [ ( "size", intList [ 640, 1136 ] )
-    , ( "user", Encode.null )
-    ]
-        |> Encode.object
-        |> startWith
+compact : List Int
+compact =
+    [ 640, 1136 ]
+
+
+start : List Int -> Maybe Value -> ProgramTest (AppState ()) Msg Effect
+start dims maybeUser =
+    startWith <|
+        Encode.object
+            [ ( "size", Encode.list Encode.int dims )
+            , ( "user", maybeUser |> Maybe.withDefault Encode.null )
+            ]
 
 
 startWith : Value -> ProgramTest (AppState ()) Msg Effect
@@ -92,51 +91,30 @@ programTests =
     describe "Program tests" <|
         [ describe "Initialization" <|
             [ describe "Flags are decoded as intended" <|
-                [ fuzzWith { runs = 25 } validSize "Valid size brings user to homepage" <|
+                [ fuzz validSize "Valid size brings user to homepage" <|
                     \( w, h ) ->
-                        [ ( "size", intList [ w, h ] )
-                        , ( "user", Encode.null )
-                        ]
-                            |> Encode.object
-                            |> startWith
+                        start [ w, h ] Nothing
                             |> expectHomePage
                 , describe "Invalid size brings user to error page" <|
-                    [ fuzzWith { runs = 75 } invalidSize "When one/more dimensions are invalid" <|
+                    [ fuzz invalidSize "When one/more dimensions are invalid" <|
                         \( w, h ) ->
-                            [ ( "size", intList [ w, h ] )
-                            , ( "user", Encode.null )
-                            ]
-                                |> Encode.object
-                                |> startWith
+                            start [ w, h ] Nothing
                                 |> expectErrorPage
-                    , fuzzWith { runs = 25 } validDim "When size has too few dimension" <|
+                    , fuzz validDim "When size has too few dimension" <|
                         \w ->
-                            [ ( "size", intList [ w ] )
-                            , ( "user", Encode.null )
-                            ]
-                                |> Encode.object
-                                |> startWith
+                            start [ w ] Nothing
                                 |> expectErrorPage
-                    , fuzzWith { runs = 25 } validSize "When size has too many dimension" <|
+                    , fuzz validSize "When size has too many dimension" <|
                         \( w, h ) ->
-                            [ ( "size", intList [ w, h, w ] )
-                            , ( "user", Encode.null )
-                            ]
-                                |> Encode.object
-                                |> startWith
+                            start [ w, h, w ] Nothing
                                 |> expectErrorPage
                     , test "When size has no dimensions" <|
                         \() ->
-                            [ ( "size", intList [] )
-                            , ( "user", Encode.null )
-                            ]
-                                |> Encode.object
-                                |> startWith
+                            start [] Nothing
                                 |> expectErrorPage
                     , test "When flags are totally empty" <|
                         \() ->
-                            []
-                                |> Encode.object
+                            Encode.object []
                                 |> startWith
                                 |> expectErrorPage
                     ]
@@ -144,11 +122,11 @@ programTests =
             , describe "Size flags properly set the device profile" <|
                 [ test "When fullscreen" <|
                     \() ->
-                        startFullscreen
+                        start fullscreen Nothing
                             |> expectGlobal (.devpro >> Expect.equal Device.Full)
                 , test "When compact" <|
                     \() ->
-                        startCompact
+                        start compact Nothing
                             |> expectGlobal (.devpro >> Expect.equal Device.Compact)
                 ]
             ]
@@ -156,12 +134,12 @@ programTests =
             [ describe "Clicking the logo brings user to feeds page" <|
                 [ test "When fullscreen" <|
                     \() ->
-                        startFullscreen
+                        start fullscreen Nothing
                             |> ProgramTest.clickLink "Varrock Square" "/feeds"
                             |> ProgramTest.expectPageChange (appUrl [ "feeds" ] [])
                 , test "When compact" <|
                     \() ->
-                        startCompact
+                        start compact Nothing
                             |> ProgramTest.clickLink "VSq" "/feeds"
                             |> ProgramTest.expectPageChange (appUrl [ "feeds" ] [])
                 ]
@@ -171,11 +149,6 @@ programTests =
 
 
 -- Test Helpers
-
-
-intList : List Int -> Value
-intList =
-    Encode.list Encode.int
 
 
 appUrl : List String -> List Url.Builder.QueryParameter -> String

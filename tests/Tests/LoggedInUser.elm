@@ -1,6 +1,6 @@
 module Tests.LoggedInUser exposing (..)
 
-{-| This module tests the `User` module.
+{-| This module tests the `LoggedInUser` module.
 -}
 
 import Avatar

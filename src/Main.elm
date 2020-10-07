@@ -247,7 +247,7 @@ update msg app =
 
         LinkClicked (Browser.External href) ->
             Browser.External href
-                |> AppState.logProblem "External link accidently embedded in the page (NOTE: Use the app's link redirection mechanism)" ignore
+                |> AppState.logProblem "External link accidently embedded in the page" ignore
 
         RouteChanged newRoute ->
             app |> transition newRoute
@@ -649,7 +649,7 @@ transition nextRoute app =
         ( _, Route.NewPost ) ->
             case global.session of
                 Guest ->
-                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home?
                     app |> transition Route.NotFound
 
                 LoggedIn loggedInUser ->
@@ -683,7 +683,7 @@ transition nextRoute app =
         ( _, Route.EditPost slug ) ->
             case global.session of
                 Guest ->
-                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home?
                     app |> transition Route.NotFound
 
                 LoggedIn loggedInUser ->
@@ -727,7 +727,7 @@ transition nextRoute app =
         ( _, Route.Starred ) ->
             case global.session of
                 Guest ->
-                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home or something?
+                    -- TODO: Fire off a 'Bad Permissions' alert and transition guest home?
                     app |> transition Route.NotFound
 
                 LoggedIn loggedInUser ->

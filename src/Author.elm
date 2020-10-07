@@ -34,7 +34,7 @@ type UnfollowableUser
 decoder : Session -> Decoder Author
 decoder session =
     let
-        authorDecoder ( isFollowing, author ) =
+        decodeAuthor ( isFollowing, author ) =
             case session of
                 Guest ->
                     Decode.succeed <| CantFollow (Unfollowable author)
@@ -52,7 +52,7 @@ decoder session =
     Decode.succeed Tuple.pair
         |> optional "following" Decode.bool False
         |> custom User.decoder
-        |> Decode.andThen authorDecoder
+        |> Decode.andThen decodeAuthor
 
 
 

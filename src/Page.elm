@@ -145,7 +145,7 @@ logo devpro =
     let
         logotype =
             Device.responsive devpro
-                { compact = Strings.appNameCompact
+                { compact = ""
                 , full = Strings.appName
                 }
     in
