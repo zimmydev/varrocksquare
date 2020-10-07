@@ -3,7 +3,7 @@ module Tests.Main exposing (..)
 import Device
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, intRange, oneOf, tuple)
-import Json.Encode as Encode exposing (Value)
+import Json.Encode as Encode exposing (Value, null)
 import Main exposing (AppState, Effect, Global, Msg, NavigationConfig)
 import Main.Flags as Flags exposing (Flags)
 import ProgramTest exposing (ProgramDefinition, ProgramTest, SimulatedEffect)
@@ -13,6 +13,7 @@ import SimulatedEffect.Cmd as CmdSim
 import SimulatedEffect.Navigation as NavSim
 import Test exposing (..)
 import Test.Html.Selector as Selector
+import Tests.Main.Flags exposing (flags)
 import Url.Builder
 
 
@@ -20,13 +21,10 @@ import Url.Builder
 -- Program Test
 
 
-start : List Int -> Maybe Value -> ProgramTest (AppState ()) Msg Effect
-start dims maybeUser =
-    startWith <|
-        Encode.object
-            [ ( "size", Encode.list Encode.int dims )
-            , ( "user", maybeUser |> Maybe.withDefault Encode.null )
-            ]
+start : List Int -> Value -> ProgramTest (AppState ()) Msg Effect
+start dims user =
+    flags dims user
+        |> startWith
 
 
 startWith : Value -> ProgramTest (AppState ()) Msg Effect
@@ -90,11 +88,11 @@ programTests =
             [ describe "Size flags properly set the device profile" <|
                 [ test "When fullscreen" <|
                     \() ->
-                        start fullscreen Nothing
+                        start fullscreen null
                             |> expectGlobal (.devpro >> Expect.equal Device.Full)
                 , test "When compact" <|
                     \() ->
-                        start compact Nothing
+                        start compact null
                             |> expectGlobal (.devpro >> Expect.equal Device.Compact)
                 ]
             ]
@@ -102,12 +100,12 @@ programTests =
             [ describe "Clicking the logo brings user to feeds page" <|
                 [ test "When fullscreen" <|
                     \() ->
-                        start fullscreen Nothing
+                        start fullscreen null
                             |> ProgramTest.clickLink "Varrock Square" "/feeds"
                             |> ProgramTest.expectPageChange (appUrl [ "feeds" ] [])
                 , test "When compact" <|
                     \() ->
-                        start compact Nothing
+                        start compact null
                             |> ProgramTest.clickLink "" "/feeds"
                             |> ProgramTest.expectPageChange (appUrl [ "feeds" ] [])
                 ]
