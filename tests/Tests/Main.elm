@@ -20,16 +20,6 @@ import Url.Builder
 -- Program Test
 
 
-fullscreen : List Int
-fullscreen =
-    [ 1280, 800 ]
-
-
-compact : List Int
-compact =
-    [ 640, 1136 ]
-
-
 start : List Int -> Maybe Value -> ProgramTest (AppState ()) Msg Effect
 start dims maybeUser =
     startWith <|
@@ -89,37 +79,15 @@ simulate effect =
 programTests : Test
 programTests =
     describe "Program tests" <|
+        let
+            compact =
+                [ 640, 1136 ]
+
+            fullscreen =
+                [ 1280, 800 ]
+        in
         [ describe "Initialization" <|
-            [ describe "Flags are decoded as intended" <|
-                [ fuzz validSize "Valid size brings user to homepage" <|
-                    \( w, h ) ->
-                        start [ w, h ] Nothing
-                            |> expectHomePage
-                , describe "Invalid size brings user to error page" <|
-                    [ fuzz invalidSize "When one/more dimensions are invalid" <|
-                        \( w, h ) ->
-                            start [ w, h ] Nothing
-                                |> expectErrorPage
-                    , fuzz validDim "When size has too few dimension" <|
-                        \w ->
-                            start [ w ] Nothing
-                                |> expectErrorPage
-                    , fuzz validSize "When size has too many dimension" <|
-                        \( w, h ) ->
-                            start [ w, h, w ] Nothing
-                                |> expectErrorPage
-                    , test "When size has no dimensions" <|
-                        \() ->
-                            start [] Nothing
-                                |> expectErrorPage
-                    , test "When flags are totally empty" <|
-                        \() ->
-                            Encode.object []
-                                |> startWith
-                                |> expectErrorPage
-                    ]
-                ]
-            , describe "Size flags properly set the device profile" <|
+            [ describe "Size flags properly set the device profile" <|
                 [ test "When fullscreen" <|
                     \() ->
                         start fullscreen Nothing
@@ -175,31 +143,3 @@ expectPageSaying strings =
 expectGlobal : (Global () -> Expectation) -> ProgramTest (AppState ()) msg effect -> Expectation
 expectGlobal expect =
     ProgramTest.expectModel (Main.globalOf >> expect)
-
-
-
--- Fuzzers
-
-
-validDim : Fuzzer Int
-validDim =
-    intRange 1 maxInt
-
-
-validSize : Fuzzer Device.Size
-validSize =
-    tuple ( validDim, validDim )
-
-
-invalidDim : Fuzzer Int
-invalidDim =
-    intRange minInt 0
-
-
-invalidSize : Fuzzer Device.Size
-invalidSize =
-    oneOf
-        [ tuple ( validDim, invalidDim )
-        , tuple ( invalidDim, validDim )
-        , tuple ( invalidDim, invalidDim )
-        ]
