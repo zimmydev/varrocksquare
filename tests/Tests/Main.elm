@@ -140,7 +140,7 @@ programTests =
                 , test "When compact" <|
                     \() ->
                         start compact Nothing
-                            |> ProgramTest.clickLink "VSq" "/feeds"
+                            |> ProgramTest.clickLink "" "/feeds"
                             |> ProgramTest.expectPageChange (appUrl [ "feeds" ] [])
                 ]
             ]
