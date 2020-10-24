@@ -1,68 +1,80 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Varrock Square</title>
-        <meta charset="utf-8">
-        <meta name="description" content="Varrock Square is a social blogging platform designed for the free-to-play Old School RuneScape community. It's the perfect tool if you want to write a guide for your fellow players, or simply keep a log of your daily progress. Perhaps you want to discuss potential updates to the game, attaching a poll for quick feedback? On Varrock Square, you can do all this and more!">
-        <meta name="copyright" content="Hammer Forged Code">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta content="yes" name="apple-touch-fullscreen" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="#1c1c1e">
-        <meta name="viewport" content="width = 500, initial-scale = 0.5, user-scalable = no">
-        <!-- Preload UI resources -->
-        <link rel="preload" as="style" href="/fonts.css">
-        <link rel="preload" as="image" href="/assets/images/logo.png">
-        <link rel="preload" as="image" href="/assets/images/background.png">
-        <!-- Prefetch UI resources -->
-        <link rel="prefetch" href="/assets/images/content-background.png">
-        <!-- Resources -->
-        <link rel="icon" href="/assets/images/favicon.png">
-        <link rel="stylesheet" href="/fonts.css">
-        <link rel="stylesheet" href="/spinner.css">
-        <script src="/main.js"></script>
-        <script src="/debug.js"></script>
-    </head>
-    <body>
-        <div id="app"></div>
-        <script>
-            // Setup user caching
-            const userKey = "vsq-user";
+  <head>
+    <title>Varrock Square</title>
+    <meta charset="utf-8" />
+    <meta
+      name="description"
+      content="Varrock Square is a social blogging platform designed for the free-to-play Old School RuneScape community. It's the perfect tool if you want to write a guide for your fellow players, or simply keep a log of your daily progress. Perhaps you want to discuss potential updates to the game, attaching a poll for quick feedback? On Varrock Square, you can do all this and more!"
+    />
+    <meta name="copyright" content="Hammer Forged Code" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta content="yes" name="apple-touch-fullscreen" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="#1c1c1e" />
+    <meta
+      name="viewport"
+      content="width = 500, initial-scale = 0.5, user-scalable = no"
+    />
+    <!-- Preload UI resources -->
+    <link rel="preload" as="style" href="/fonts.css" />
+    <link rel="preload" as="image" href="/assets/images/logo.png" />
+    <link rel="preload" as="image" href="/assets/images/background.png" />
+    <!-- Prefetch UI resources -->
+    <link rel="prefetch" href="/assets/images/content-background.png" />
+    <!-- Resources -->
+    <link rel="icon" href="/assets/images/favicon.png" />
+    <link rel="stylesheet" href="/fonts.css" />
+    <link rel="stylesheet" href="/spinner.css" />
+    <script src="/main.js"></script>
+    <script src="/debug.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      // Setup user caching
+      const userKey = "vsq-user";
 
-            // Setup app flags
-            const flags = {
-                size: [window.innerWidth, window.innerHeight],
-                user: debug.isActive ? debug.user : JSON.parse(localStorage.getItem(userKey))
-            };
+      // Setup app flags
+      const flags = {
+        size: [window.innerWidth, window.innerHeight],
+        user: debug.isActive
+          ? debug.user
+          : JSON.parse(localStorage.getItem(userKey)),
+      };
 
-            console.log("Initializing elm app with flags:", flags);
+      console.log("Initializing elm app with flags:", flags);
 
-            // Setup app
-            const app = Elm.Main.init({
-                node: document.getElementById("app"),
-                flags: flags
-            });
+      // Setup app
+      const app = Elm.Main.init({
+        node: document.getElementById("app"),
+        flags: flags,
+      });
 
-            /* Incoming ports */
+      /* Incoming ports */
 
-            // Allow elm to cache a user in localStorage
-            app.ports.storeUser.subscribe(function(user) {
-                if (user === null) {
-                    localStorage.removeItem(userKey);
-                } else {
-                    localStorage.setItem(userKey, JSON.stringify(user));
-                }
-                // Propogate the cache change back to the app, in a nonblocking fashion
-                setTimeout(function() { app.ports.userChanged.send(user); }, 0);
-            });
+      // Allow elm to cache a user in localStorage
+      app.ports.storeUser.subscribe((user) => {
+        if (user === null) {
+          localStorage.removeItem(userKey);
+        } else {
+          localStorage.setItem(userKey, JSON.stringify(user));
+        }
+        // Propogate the cache change back to the app, in a nonblocking fashion
+        setTimeout(() => app.ports.userChanged.send(user), 0);
+      });
 
-            /* Outgoing ports */
+      /* Outgoing ports */
 
-            // Allow changes to the cache across the browser to propogate to the app
-            window.addEventListener("storage", function(event) {
-                if (event.storageArea === "localStorage" && event.key === userKey) {
-                    app.ports.userChanged.send(event.newValue);
-                }
-            }, false);
-        </script>
-    </body>
+      // Allow changes to the cache across the browser to propogate to the app
+      window.addEventListener(
+        "storage",
+        (event) => {
+          if (event.storageArea === "localStorage" && event.key === userKey) {
+            app.ports.userChanged.send(event.newValue);
+          }
+        },
+        false
+      );
+    </script>
+  </body>
 </html>
